@@ -178,7 +178,7 @@ const calculatePriority = (task: Task, tasks: Task[]) => {
 };
 
 const TaskHeatmap: React.FC = () => {
-  const { tasks, updateTask, completeTask } = useTaskContext();
+  const { tasks, completedTasks, updateTask, completeTask } = useTaskContext();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [timer, setTimer] = useState<number | null>(null);
   const [timerRunning, setTimerRunning] = useState(false);
@@ -297,6 +297,14 @@ const TaskHeatmap: React.FC = () => {
           </LegendItem>
         </Legend>
       </HeatmapContainer>
+      <CompletedTasksSection>
+        <h3>Completed Tasks</h3>
+        {completedTasks.map(task => (
+          <CompletedTaskItem key={task.id}>
+            {task.name} - Completed in: {formatTime(task.completionTime || 0)}
+          </CompletedTaskItem>
+        ))}
+      </CompletedTasksSection>
       <Modal isOpen={selectedTask !== null}>
         <ModalContent>
           <CloseButton onClick={closeModal}>&times;</CloseButton>
@@ -332,5 +340,19 @@ const TaskHeatmap: React.FC = () => {
     </>
   );
 };
+
+const CompletedTasksSection = styled.div`
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #3c3c3c;
+  border-radius: 8px;
+`;
+
+const CompletedTaskItem = styled.div`
+  padding: 5px;
+  margin: 5px 0;
+  background-color: #4a4a4a;
+  border-radius: 4px;
+`;
 
 export default TaskHeatmap;
