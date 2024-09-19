@@ -11,5 +11,6 @@
     "esModuleInterop": true,
     "lib": ["dom", "dom.iterable", "esnext"]
   },
-  "include": ["app"]
+  "include": ["app/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
