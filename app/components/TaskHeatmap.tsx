@@ -254,9 +254,15 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({ selectedMood, setSelectedMood
   };
 
   const handleMoodSelection = (mood: string) => {
+    console.log('Handling mood selection:', mood);
+    console.log('All tasks:', tasks);
+    console.log('Sorted tasks:', sortedTasks);
     const selectedTask = selectTaskByMood(mood, sortedTasks, tasks);
+    console.log('Task selected by mood:', selectedTask);
     if (selectedTask) {
       openModal(selectedTask);
+    } else {
+      console.log('No task found for the selected mood');
     }
   };
 
