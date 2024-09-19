@@ -1,7 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 import { useTaskContext } from '../context/TaskContext';
 import { Task } from '../types/Task';
+import {
+  getPriorityColor,
+  calculatePriority,
+  truncateName,
+  formatTime,
+  selectTaskByMood
+} from '../utils/taskUtils';
 
 const HeatmapContainer = styled.div`
   display: flex;
@@ -139,45 +146,57 @@ const AbandonButton = styled(ModalButton)`
   background-color: #8B0000;
 `;
 
-const getPriorityColor = (priority: number) => {
-  const hue = Math.max(0, Math.min(120 - priority * 20, 120)); // 120 is green, 0 is red
-  return `hsl(${hue}, 100%, 50%)`;
-};
+const LuckyButtonStyled = styled.button`
+  background-color: transparent;
+  border: 1px solid #FFA500;
+  color: #FFA500;
+  padding: 8px 16px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s ease, color 0.3s ease;
 
-const calculateBasePriority = (task: Task) => {
-  let priority = 0;
-  
-  // Type
-  if (task.type === 'cost') priority += 1;
-  else if (task.type === 'revenue') priority += 2;
-  else if (task.type === 'happiness') priority += 3;
-  
-  // External Dependency
-  if (task.externalDependency === 'no') priority += 2;
-  
-  // Attribute
-  if (task.attribute === 'urgent') priority += 1;
-  else if (task.attribute === 'important') priority += 2;
+  &:hover {
+    background-color: #FFA500;
+    color: white;
+  }
+`;
 
-  return priority;
-};
+const MoodModal = styled(Modal)``;
 
-const calculatePriority = (task: Task, tasks: Task[]) => {
-  const basePriority = calculateBasePriority(task);
-  
-  // Calculate the range of priorities
-  const priorities = tasks.map(t => calculateBasePriority(t));
-  const maxPriority = Math.max(...priorities);
-  const minPriority = Math.min(...priorities);
-  const priorityRange = maxPriority - minPriority;
+const MoodModalContent = styled(ModalContent)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
 
-  // Subtract rejection penalty
-  const rejectionPenalty = (task.rejectionCount * 0.1 * priorityRange);
-  
-  return Math.max(basePriority - rejectionPenalty, 0); // Ensure priority doesn't go below 0
-};
+const MoodButton = styled.button`
+  background-color: transparent;
+  border: 1px solid #4CAF50;
+  color: #4CAF50;
+  padding: 10px 20px;
+  margin: 5px;
+  cursor: pointer;
+  font-size: 18px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease, color 0.3s ease;
 
-const TaskHeatmap: React.FC = () => {
+  &:hover {
+    background-color: #4CAF50;
+    color: white;
+  }
+`;
+
+interface TaskHeatmapProps {
+  selectedMood: string | null;
+  setSelectedMood: React.Dispatch<React.SetStateAction<string | null>>;
+}
+
+const TaskHeatmap: React.FC<TaskHeatmapProps> = ({ selectedMood, setSelectedMood }) => {
   const { tasks, completedTasks, updateTask, completeTask } = useTaskContext();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [timer, setTimer] = useState<number | null>(null);
@@ -185,17 +204,18 @@ const TaskHeatmap: React.FC = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [, forceUpdate] = useState({});
 
+  const sortedTasks = useMemo(() => {
+    return tasks
+      .filter(task => !task.isCompleted)
+      .sort((a, b) => calculatePriority(b, tasks) - calculatePriority(a, tasks));
+  }, [tasks]);
+
   const openModal = (task: Task) => setSelectedTask(task);
   const closeModal = () => {
     setSelectedTask(null);
     setTimer(null);
     setTimerRunning(false);
     setIsPaused(false);
-  };
-
-  const truncateName = (name: string, effort: Task['effort']) => {
-    const maxLength = effort === 'h' ? 8 : effort === 'm' ? 12 : 16;
-    return name.length > maxLength ? name.slice(0, maxLength - 3) + '...' : name;
   };
 
   const handleAccept = () => {
@@ -233,6 +253,13 @@ const TaskHeatmap: React.FC = () => {
     handleReject();
   };
 
+  const handleMoodSelection = (mood: string) => {
+    const selectedTask = selectTaskByMood(mood, sortedTasks, tasks);
+    if (selectedTask) {
+      openModal(selectedTask);
+    }
+  };
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (timerRunning && !isPaused) {
@@ -243,17 +270,12 @@ const TaskHeatmap: React.FC = () => {
     return () => clearInterval(interval);
   }, [timerRunning, isPaused]);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const sortedTasks = React.useMemo(() => {
-    return tasks
-      .filter(task => !task.isCompleted)
-      .sort((a, b) => calculatePriority(b, tasks) - calculatePriority(a, tasks));
-  }, [tasks]);
+  useEffect(() => {
+    if (selectedMood) {
+      handleMoodSelection(selectedMood);
+      setSelectedMood(null);
+    }
+  }, [selectedMood]);
 
   return (
     <>
@@ -266,7 +288,7 @@ const TaskHeatmap: React.FC = () => {
               effort={task.effort}
               onClick={() => openModal(task)}
             >
-              {truncateName(task.name, task.effort)}
+              {truncateName(task)}
             </TaskBox>
           ))}
         </GridContainer>
@@ -354,5 +376,13 @@ const CompletedTaskItem = styled.div`
   background-color: #4a4a4a;
   border-radius: 4px;
 `;
+
+interface LuckyButtonProps {
+  openMoodModal: () => void;
+}
+
+export const LuckyButton: React.FC<LuckyButtonProps> = ({ openMoodModal }) => {
+  return <LuckyButtonStyled onClick={openMoodModal}>I'm Feeling Lucky</LuckyButtonStyled>;
+};
 
 export default TaskHeatmap;

@@ -3,26 +3,23 @@ import styled from 'styled-components';
 import { Task } from '../types/Task';
 import { useTaskContext } from '../context/TaskContext';
 
-interface TaskInputProps {
-  onAddTask: (task: Task) => void;
-}
-
 const Button = styled.button`
-  background-color: #4CAF50;
-  border: none;
-  color: white;
-  padding: 12px 24px;
+  background-color: transparent;
+  border: 1px solid #4CAF50;
+  color: #4CAF50;
+  padding: 8px 16px;
   text-align: center;
   text-decoration: none;
   display: inline-block;
-  font-size: 16px;
+  font-size: 14px;
   margin: 4px 2px;
   cursor: pointer;
   border-radius: 4px;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
 
   &:hover {
-    background-color: #45a049;
+    background-color: #4CAF50;
+    color: white;
   }
 `;
 
@@ -151,7 +148,7 @@ const TaskInput: React.FC = () => {
 
   return (
     <div>
-      <Button onClick={openModal}>Add New Task</Button>
+      <Button onClick={openModal}>+ New Task</Button>
       <Modal isOpen={isModalOpen}>
         <ModalContent>
           <CloseButton onClick={closeModal}>&times;</CloseButton>
