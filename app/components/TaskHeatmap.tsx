@@ -1,17 +1,17 @@
 import React from 'react';
+import { Task } from '../types/Task';
 
 interface TaskHeatmapProps {
-  tasks: any[];
+  tasks: Task[];
 }
 
-function TaskHeatmap({ tasks }: TaskHeatmapProps) {
-  // TODO: Implement heatmap visualization
+const TaskHeatmap: React.FC<TaskHeatmapProps> = ({ tasks }) => {
   return (
     <div>
-      <h2>Task Heatmap</h2>
-      <p>Heatmap visualization will be implemented here</p>
+      {/* Implement your heatmap here */}
+      <p>Task Heatmap Placeholder</p>
     </div>
   );
-}
+};
 
 export default TaskHeatmap;
