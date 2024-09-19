@@ -1,16 +1,15 @@
 import React from 'react';
-import { Task } from '../types/Task';
+import { useTaskContext } from '../context/TaskContext';
 
-interface TaskSuggestionProps {
-  tasks: Task[];
-  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
-}
+const TaskSuggestion: React.FC = () => {
+  const { tasks } = useTaskContext();
 
-const TaskSuggestion: React.FC<TaskSuggestionProps> = ({ tasks, setTasks }) => {
+  // Implement your task suggestion logic here
+
   return (
     <div>
-      {/* Implement your task suggestion logic here */}
       <p>Task Suggestion Placeholder</p>
+      <p>Total tasks: {tasks.length}</p>
     </div>
   );
 };

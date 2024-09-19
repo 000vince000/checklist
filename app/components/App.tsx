@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import TaskInput from './TaskInput';
 import TaskHeatmap from './TaskHeatmap';
 import TaskSuggestion from './TaskSuggestion';
 import styled from 'styled-components';
-import { Task } from '../types/Task';
+import { TaskProvider } from '../context/TaskContext';
 
 const AppContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
   font-family: 'Roboto', sans-serif;
-  color: #333;
+  color: #e0e0e0;
+  background-color: #1e1e1e;
+  min-height: 100vh;
 `;
 
 const Header = styled.header`
@@ -20,11 +22,11 @@ const Header = styled.header`
 const Title = styled.h1`
   font-size: 2.5rem;
   font-weight: 300;
-  color: #2c3e50;
+  color: #ffffff;
 `;
 
 const Section = styled.section`
-  background-color: #fff;
+  background-color: #2c2c2c;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
@@ -32,27 +34,23 @@ const Section = styled.section`
 `;
 
 function App() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-
-  const handleAddTask = (newTask: Task) => {
-    setTasks([...tasks, newTask]);
-  };
-
   return (
-    <AppContainer>
-      <Header>
-        <Title>Collaborative Checklist</Title>
-      </Header>
-      <Section>
-        <TaskInput onAddTask={handleAddTask} />
-      </Section>
-      <Section>
-        <TaskHeatmap tasks={tasks} />
-      </Section>
-      <Section>
-        <TaskSuggestion tasks={tasks} setTasks={setTasks} />
-      </Section>
-    </AppContainer>
+    <TaskProvider>
+      <AppContainer>
+        <Header>
+          <Title>Collaborative Checklist</Title>
+        </Header>
+        <Section>
+          <TaskInput />
+        </Section>
+        <Section>
+          <TaskHeatmap />
+        </Section>
+        <Section>
+          <TaskSuggestion />
+        </Section>
+      </AppContainer>
+    </TaskProvider>
   );
 }
 
