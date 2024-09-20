@@ -12,3 +12,4 @@ yarn-debug.log*
 yarn-error.log*
 *.bak
 .cache/
+venv/
