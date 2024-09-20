@@ -2,3 +2,13 @@ node_modules/
 dist/
 *.log
 .DS_Store
+.env
+.vscode/
+.idea/
+*.tmp
+*.temp
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.bak
+.cache/
