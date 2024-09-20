@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { Task } from '../types/Task';
+import { saveToGoogleDrive, loadFromGoogleDrive } from '../utils/googleDriveUtils';
 
 interface TaskContextType {
   tasks: Task[];
@@ -37,46 +38,34 @@ const generateRandomTasks = (count: number): Task[] => {
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [tasks, setTasks] = useState<Task[]>(() => {
     const savedTasks = localStorage.getItem(OPEN_TASKS_KEY);
-    console.log('Initial open tasks from localStorage:', savedTasks);
-    let initialTasks: Task[] = [];
-    if (savedTasks) {
-      try {
-        const parsedTasks = JSON.parse(savedTasks);
-        console.log('Parsed open tasks:', parsedTasks);
-        initialTasks = parsedTasks;
-      } catch (error) {
-        console.error('Error parsing open tasks:', error);
-      }
-    }
-    
-    // Generate random tasks only if there are no saved tasks
-    if (initialTasks.length === 0) {
-      const randomTasks = generateRandomTasks(20);
-      console.log('Generated random tasks:', randomTasks);
-      initialTasks = randomTasks;
-    }
-    
-    return initialTasks;
+    return savedTasks ? JSON.parse(savedTasks) : generateRandomTasks(20);
   });
 
   const [completedTasks, setCompletedTasks] = useState<Task[]>(() => {
     const savedCompletedTasks = localStorage.getItem(CLOSED_TASKS_KEY);
-    console.log('Initial completed tasks from localStorage:', savedCompletedTasks);
     return savedCompletedTasks ? JSON.parse(savedCompletedTasks) : [];
   });
 
-  const saveToLocalStorage = (updatedTasks: Task[], updatedCompletedTasks: Task[]) => {
-    console.log('Saving tasks to localStorage:', updatedTasks);
-    localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(updatedTasks));
-    localStorage.setItem(CLOSED_TASKS_KEY, JSON.stringify(updatedCompletedTasks));
+  const saveToLocalStorage = () => {
+    localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(tasks));
+    localStorage.setItem(CLOSED_TASKS_KEY, JSON.stringify(completedTasks));
   };
+
+  const saveToStorage = async () => {
+    saveToLocalStorage();
+    await saveToGoogleDrive(JSON.stringify(tasks), 'tasks.json');
+    await saveToGoogleDrive(JSON.stringify(completedTasks), 'completedTasks.json');
+  };
+
+  useEffect(() => {
+    saveToStorage();
+  }, [tasks, completedTasks]);
 
   const addTask = (newTask: Task) => {
     console.log('Adding new task:', newTask);
     setTasks(prevTasks => {
       const updatedTasks = [...prevTasks, { ...newTask, rejectionCount: 0, isCompleted: false }];
       console.log('Updated tasks after adding:', updatedTasks);
-      saveToLocalStorage(updatedTasks, completedTasks);
       return updatedTasks;
     });
   };
@@ -88,7 +77,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         task.id === updatedTask.id ? updatedTask : task
       );
       console.log('Updated tasks after updating:', updatedTasks);
-      saveToLocalStorage(updatedTasks, completedTasks);
       return updatedTasks;
     });
   };
@@ -97,17 +85,14 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('Completing task:', taskId);
     setTasks(prevTasks => {
       const taskToComplete = prevTasks.find(task => task.id === taskId);
-      let updatedCompletedTasks = completedTasks;
       if (taskToComplete) {
-        updatedCompletedTasks = [
-          ...completedTasks,
+        setCompletedTasks(prevCompletedTasks => [
+          ...prevCompletedTasks,
           { ...taskToComplete, isCompleted: true, completionTime }
-        ];
-        setCompletedTasks(updatedCompletedTasks);
+        ]);
       }
       const updatedTasks = prevTasks.filter(task => task.id !== taskId);
       console.log('Updated tasks after completing:', updatedTasks);
-      saveToLocalStorage(updatedTasks, updatedCompletedTasks);
       return updatedTasks;
     });
   };
