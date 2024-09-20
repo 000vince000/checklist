@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TaskInput from './TaskInput';
 import TaskHeatmap, { LuckyButton } from './TaskHeatmap';
 import TaskSuggestion from './TaskSuggestion';
@@ -92,6 +92,20 @@ function App() {
     setSelectedMood(mood);
     closeMoodModal();
   };
+
+  useEffect(() => {
+    const initGoogleApi = async () => {
+      await new Promise((resolve) => gapi.load('client', resolve));
+      await gapi.client.init({
+        apiKey: 'YOUR_API_KEY',
+        clientId: 'YOUR_CLIENT_ID',
+        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+        scope: 'https://www.googleapis.com/auth/drive.file',
+      });
+    };
+
+    initGoogleApi();
+  }, []);
 
   return (
     <TaskProvider>

@@ -46,16 +46,30 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return savedCompletedTasks ? JSON.parse(savedCompletedTasks) : [];
   });
 
-  const saveToLocalStorage = () => {
+  const saveToStorage = async () => {
     localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(tasks));
     localStorage.setItem(CLOSED_TASKS_KEY, JSON.stringify(completedTasks));
-  };
-
-  const saveToStorage = async () => {
-    saveToLocalStorage();
+    
+    // Save to Google Drive
     await saveToGoogleDrive(JSON.stringify(tasks), 'tasks.json');
     await saveToGoogleDrive(JSON.stringify(completedTasks), 'completedTasks.json');
   };
+
+  const loadFromStorage = async () => {
+    const localTasks = localStorage.getItem(OPEN_TASKS_KEY);
+    const localCompletedTasks = localStorage.getItem(CLOSED_TASKS_KEY);
+
+    // Try to load from Google Drive
+    const driveTasks = await loadFromGoogleDrive('tasks.json');
+    const driveCompletedTasks = await loadFromGoogleDrive('completedTasks.json');
+
+    setTasks(driveTasks || (localTasks ? JSON.parse(localTasks) : generateRandomTasks(20)));
+    setCompletedTasks(driveCompletedTasks || (localCompletedTasks ? JSON.parse(localCompletedTasks) : []));
+  };
+
+  useEffect(() => {
+    loadFromStorage();
+  }, []);
 
   useEffect(() => {
     saveToStorage();

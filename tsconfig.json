@@ -9,7 +9,12 @@
     "allowJs": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "lib": ["dom", "dom.iterable", "esnext"]
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "typeRoots": ["./node_modules/@types", "./app/types"],
+    "baseUrl": ".",
+    "paths": {
+      "*": ["app/*"]
+    }
   },
   "include": ["app/**/*"],
   "exclude": ["node_modules", "dist"]
