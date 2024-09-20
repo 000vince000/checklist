@@ -24,7 +24,7 @@
     "server": "nodemon app.js",
     "dev:server": "concurrently \"npm run dev\" \"npm run server\"",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist --repo git@github-000vince000:000vince000/checklist.git -f"
+    "deploy": "node scripts/deploy.js"
   },
   "homepage": "https://000vince000.github.io/checklist"
 }
