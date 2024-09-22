@@ -6,26 +6,43 @@ import styled from 'styled-components';
 import { TaskProvider } from '../context/TaskContext';
 
 const AppContainer = styled.div`
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1rem;
   font-family: 'Roboto', sans-serif;
   color: #e0e0e0;
   background-color: #1e1e1e;
   min-height: 100vh;
+
+  @media (min-width: 768px) {
+    max-width: 1200px;
+    padding: 2rem;
+  }
 `;
 
 const Header = styled.header`
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+  }
 `;
 
 const Title = styled.h1`
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 300;
   color: #ffffff;
+  margin-bottom: 1rem;
+
+  @media (min-width: 768px) {
+    font-size: 2.5rem;
+    margin-bottom: 0;
+  }
 `;
 
 const ButtonContainer = styled.div`

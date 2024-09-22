@@ -50,7 +50,7 @@ export const getTaskPrefix = (type: Task['type']) => {
 
 export const truncateName = (task: Task) => {
   const prefix = getTaskPrefix(task.type);
-  const maxLength = task.effort === 'h' ? 6 : task.effort === 'm' ? 10 : 14;
+  const maxLength = task.effort === 'l' ? 20 : task.effort === 'm' ? 12 : 8;
   const truncatedName = task.name.length > maxLength ? task.name.slice(0, maxLength - 1) + '…' : task.name;
   return prefix + truncatedName;
 };

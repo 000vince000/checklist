@@ -14,15 +14,28 @@ const HeatmapContainer = styled.div`
   display: flex;
   flex-direction: column;
   background-color: #2c2c2c;
-  padding: 20px;
+  padding: 10px;
   border-radius: 8px;
+
+  @media (min-width: 768px) {
+    padding: 20px;
+  }
 `;
 
 const GridContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  grid-auto-rows: minmax(40px, auto);
+  grid-auto-flow: dense;
+  gap: 5px;
+  padding: 5px;
   justify-content: center;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 10px;
+    padding: 10px;
+  }
 `;
 
 const TaskBox = styled.div<{ priority: number; effort: Task['effort'] }>`
@@ -32,18 +45,24 @@ const TaskBox = styled.div<{ priority: number; effort: Task['effort'] }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 10px;
   color: ${props => props.priority > 3.5 ? 'white' : 'black'};
   transition: transform 0.2s;
-  width: ${props => props.effort === 'h' ? '60px' : props.effort === 'm' ? '80px' : '100px'};
-  height: ${props => props.effort === 'h' ? '60px' : props.effort === 'm' ? '80px' : '100px'};
   padding: 5px;
   text-align: center;
   overflow: hidden;
   word-wrap: break-word;
+  grid-column: span ${props => props.effort === 'l' ? 2 : 1};
+  grid-row: span ${props => props.effort === 'l' ? 2 : props.effort === 'm' ? 2 : 1};
+
+  @media (min-width: 768px) {
+    font-size: 12px;
+    padding: 10px;
+  }
 
   &:hover {
-    transform: scale(1.1);
+    transform: scale(1.05);
+    z-index: 1;
   }
 `;
 
@@ -312,15 +331,15 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({ selectedMood, setSelectedMood
             <span>High Priority</span>
           </LegendItem>
           <LegendItem>
-            <LegendSize size="100px" />
+            <LegendSize size="80px" />
             <span>Low Effort</span>
           </LegendItem>
           <LegendItem>
-            <LegendSize size="80px" />
+            <LegendSize size="60px" />
             <span>Medium Effort</span>
           </LegendItem>
           <LegendItem>
-            <LegendSize size="60px" />
+            <LegendSize size="40px" />
             <span>High Effort</span>
           </LegendItem>
         </Legend>
