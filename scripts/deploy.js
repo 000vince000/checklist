@@ -4,10 +4,11 @@ const path = require('path');
 ghpages.publish(
   path.join(__dirname, '..', 'dist'),
   {
-    branch: 'gh-pages',
+    branch: 'master', // Changed to 'master'
     repo: 'git@github-000vince000:000vince000/checklist.git',
     message: 'Auto-generated commit',
-    force: true
+    force: true,  // Add this line to force push
+    silent: false,  // Add this line for more verbose output
   },
   function(err) {
     if (err) {
