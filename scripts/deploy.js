@@ -8,6 +8,7 @@ ghpages.publish(
     repo: 'git@github-000vince000:000vince000/checklist.git',
     message: 'Auto-generated commit',
     silent: false,
+    add: true, // This option ensures that the deployment adds to the existing branch
   },
   function(err) {
     if (err) {
