@@ -18,12 +18,13 @@ module.exports = {
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
-    publicPath: '/checklist/',
+    publicPath: '/checklist/', // This should match your GitHub Pages path
   },
   plugins: [
     new CopyPlugin({
       patterns: [
         { from: 'public/index.html', to: 'index.html' },
+        { from: '.nojekyll', to: '.nojekyll' },
       ],
     }),
   ],

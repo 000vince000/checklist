@@ -28,5 +28,5 @@
     "predeploy": "npm run build",
     "deploy": "node scripts/deploy.js"
   },
-  "homepage": "https://000vince000.github.io/checklist"
+  "homepage": "https://000vince000.github.io/checklist/"
 }
