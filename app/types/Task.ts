@@ -9,4 +9,5 @@ export interface Task {
   rejectionCount: number;
   completionTime?: number;
   isCompleted: boolean;
+  isAnimating?: boolean;
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
+import { useSpring, animated } from 'react-spring';
 import { useTaskContext } from '../context/TaskContext';
 import { Task } from '../types/Task';
 import {
@@ -215,8 +216,10 @@ interface TaskHeatmapProps {
   setSelectedMood: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
+const AnimatedTaskBox = animated(TaskBox);
+
 const TaskHeatmap: React.FC<TaskHeatmapProps> = ({ selectedMood, setSelectedMood }) => {
-  const { tasks, completedTasks, updateTask, completeTask } = useTaskContext();
+  const { tasks, completedTasks, updateTask, completeTask, animatingTaskId } = useTaskContext();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [timer, setTimer] = useState<number | null>(null);
   const [timerRunning, setTimerRunning] = useState(false);
@@ -302,19 +305,26 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({ selectedMood, setSelectedMood
     }
   }, [selectedMood]);
 
+  const taskSpring = useSpring({
+    opacity: animatingTaskId ? 0 : 1,
+    transform: animatingTaskId ? 'scale(0.5)' : 'scale(1)',
+    config: { duration: 2000 },
+  });
+
   return (
     <>
       <HeatmapContainer>
         <GridContainer>
           {sortedTasks.map(task => (
-            <TaskBox
+            <AnimatedTaskBox
               key={task.id}
               priority={calculatePriority(task, tasks)}
               effort={task.effort}
               onClick={() => openModal(task)}
+              style={task.id === animatingTaskId ? taskSpring : {}}
             >
               {truncateName(task)}
-            </TaskBox>
+            </AnimatedTaskBox>
           ))}
         </GridContainer>
         <Legend>

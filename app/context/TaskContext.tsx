@@ -8,6 +8,7 @@ interface TaskContextType {
   addTask: (task: Task) => void;
   updateTask: (updatedTask: Task) => void;
   completeTask: (taskId: number, completionTime: number) => void;
+  animatingTaskId: number | null;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -46,6 +47,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return savedCompletedTasks ? JSON.parse(savedCompletedTasks) : [];
   });
 
+  const [animatingTaskId, setAnimatingTaskId] = useState<number | null>(null);
+  const [completingTasks, setCompletingTasks] = useState<Set<number>>(new Set());
+
   const saveToStorage = async () => {
     localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(tasks));
     localStorage.setItem(CLOSED_TASKS_KEY, JSON.stringify(completedTasks));
@@ -77,11 +81,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addTask = (newTask: Task) => {
     console.log('Adding new task:', newTask);
+    setAnimatingTaskId(newTask.id);
     setTasks(prevTasks => {
       const updatedTasks = [...prevTasks, { ...newTask, rejectionCount: 0, isCompleted: false }];
       console.log('Updated tasks after adding:', updatedTasks);
       return updatedTasks;
     });
+    setTimeout(() => setAnimatingTaskId(null), 2000);
   };
 
   const updateTask = (updatedTask: Task) => {
@@ -96,19 +102,34 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const completeTask = (taskId: number, completionTime: number) => {
+    if (completingTasks.has(taskId)) {
+      console.log('Task is already being completed:', taskId);
+      return;
+    }
+
     console.log('Completing task:', taskId);
-    setTasks(prevTasks => {
-      const taskToComplete = prevTasks.find(task => task.id === taskId);
+    setAnimatingTaskId(taskId);
+    setCompletingTasks(prev => new Set(prev).add(taskId));
+    
+    // Immediately remove the task from the active tasks list
+    setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+
+    const taskToComplete = tasks.find(task => task.id === taskId);
+
+    setTimeout(() => {
       if (taskToComplete) {
         setCompletedTasks(prevCompletedTasks => [
           ...prevCompletedTasks,
           { ...taskToComplete, isCompleted: true, completionTime }
         ]);
       }
-      const updatedTasks = prevTasks.filter(task => task.id !== taskId);
-      console.log('Updated tasks after completing:', updatedTasks);
-      return updatedTasks;
-    });
+      setAnimatingTaskId(null);
+      setCompletingTasks(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(taskId);
+        return newSet;
+      });
+    }, 2000); // Wait for 2 seconds before updating the completed tasks
   };
 
   useEffect(() => {
@@ -117,7 +138,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [tasks, completedTasks]);
 
   return (
-    <TaskContext.Provider value={{ tasks, completedTasks, addTask, updateTask, completeTask }}>
+    <TaskContext.Provider value={{ tasks, completedTasks, addTask, updateTask, completeTask, animatingTaskId }}>
       {children}
     </TaskContext.Provider>
   );
