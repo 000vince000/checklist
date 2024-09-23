@@ -1,4 +1,5 @@
 const path = require('path');
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: './app/index.tsx',
@@ -19,6 +20,13 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     publicPath: '/checklist/',
   },
+  plugins: [
+    new CopyPlugin({
+      patterns: [
+        { from: 'public/index.html', to: 'index.html' },
+      ],
+    }),
+  ],
   optimization: {
     minimize: true,
   },
