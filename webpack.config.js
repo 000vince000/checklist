@@ -24,7 +24,7 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         { from: 'public/index.html', to: 'index.html' },
-        { from: '.nojekyll', to: '.nojekyll' },
+        { from: '.nojekyll', to: '.nojekyll', noErrorOnMissing: true },
       ],
     }),
   ],
