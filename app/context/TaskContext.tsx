@@ -8,6 +8,7 @@ interface TaskContextType {
   addTask: (task: Task) => void;
   updateTask: (updatedTask: Task) => void;
   completeTask: (taskId: number, completionTime: number) => void;
+  deleteTask: (taskId: number) => void; // Add this new function
   animatingTaskId: number | null;
 }
 
@@ -130,13 +131,26 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, 2000);
   };
 
+  const deleteTask = (taskId: number) => {
+    console.log('Deleting task:', taskId);
+    setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+  };
+
   useEffect(() => {
     console.log('Current tasks:', tasks);
     console.log('Current completed tasks:', completedTasks);
   }, [tasks, completedTasks]);
 
   return (
-    <TaskContext.Provider value={{ tasks, completedTasks, addTask, updateTask, completeTask, animatingTaskId }}>
+    <TaskContext.Provider value={{ 
+      tasks, 
+      completedTasks, 
+      addTask, 
+      updateTask, 
+      completeTask, 
+      deleteTask, 
+      animatingTaskId 
+    }}>
       {children}
     </TaskContext.Provider>
   );

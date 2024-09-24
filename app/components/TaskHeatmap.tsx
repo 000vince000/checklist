@@ -159,7 +159,7 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
   attributeFilter, 
   typeFilter 
 }) => {
-  const { tasks, completedTasks, updateTask, completeTask, animatingTaskId } = useTaskContext();
+  const { tasks, completedTasks, updateTask, completeTask, deleteTask, animatingTaskId } = useTaskContext();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [timer, setTimer] = useState<number | null>(null);
   const [timerRunning, setTimerRunning] = useState(false);
@@ -240,6 +240,13 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
     }
   };
 
+  const handleDelete = () => {
+    if (selectedTask) {
+      deleteTask(selectedTask.id);
+      closeModal();
+    }
+  };
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (timerRunning && !isPaused) {
@@ -313,6 +320,7 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
         handleDone={handleDone}
         handlePause={handlePause}
         handleAbandon={handleAbandon}
+        handleDelete={handleDelete} // Add this new prop
         timer={timer}
         isPaused={isPaused}
         tasks={tasks}

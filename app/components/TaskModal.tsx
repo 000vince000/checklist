@@ -75,6 +75,13 @@ const AbandonButton = styled(ModalButton)`
   background-color: #8B0000;
 `;
 
+const DeleteButton = styled(ModalButton)`
+  background-color: #8B0000; // Dark red color
+  &:hover {
+    background-color: #A52A2A; // Slightly lighter red on hover
+  }
+`;
+
 interface TaskModalProps {
   selectedTask: Task | null;
   isOpen: boolean;
@@ -84,6 +91,7 @@ interface TaskModalProps {
   handleDone: () => void;
   handlePause: () => void;
   handleAbandon: () => void;
+  handleDelete: () => void; // Add this new prop
   timer: number | null;
   isPaused: boolean;
   tasks: Task[];
@@ -98,6 +106,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   handleDone,
   handlePause,
   handleAbandon,
+  handleDelete, // Add this new prop
   timer,
   isPaused,
   tasks,
@@ -118,8 +127,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
             <p>Rejection Count: {selectedTask.rejectionCount}</p>
             {timer === null ? (
               <>
-                <AcceptButton onClick={handleAccept}>Accept Challenge</AcceptButton>
+                <AcceptButton onClick={handleAccept}>Accept</AcceptButton>
                 <RejectButton onClick={handleReject}>Reject</RejectButton>
+                <DeleteButton onClick={handleDelete}>Delete</DeleteButton>
               </>
             ) : (
               <>
