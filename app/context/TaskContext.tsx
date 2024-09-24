@@ -111,12 +111,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setAnimatingTaskId(taskId);
     setCompletingTasks(prev => new Set(prev).add(taskId));
     
-    // Immediately remove the task from the active tasks list
-    setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-
-    const taskToComplete = tasks.find(task => task.id === taskId);
-
+    // Delay the removal of the task to allow for the animation
     setTimeout(() => {
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+      const taskToComplete = tasks.find(task => task.id === taskId);
       if (taskToComplete) {
         setCompletedTasks(prevCompletedTasks => [
           ...prevCompletedTasks,
@@ -129,7 +127,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         newSet.delete(taskId);
         return newSet;
       });
-    }, 2000); // Wait for 2 seconds before updating the completed tasks
+    }, 2000);
   };
 
   useEffect(() => {
