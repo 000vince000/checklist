@@ -133,11 +133,12 @@ const LuckyButtonStyled = styled.button`
 interface TaskHeatmapProps {
   selectedMood: string | null;
   setSelectedMood: React.Dispatch<React.SetStateAction<string | null>>;
+  searchTerm: string;
 }
 
 const AnimatedTaskBox = animated(TaskBox);
 
-const TaskHeatmap: React.FC<TaskHeatmapProps> = ({ selectedMood, setSelectedMood }) => {
+const TaskHeatmap: React.FC<TaskHeatmapProps> = ({ selectedMood, setSelectedMood, searchTerm }) => {
   const { tasks, completedTasks, updateTask, completeTask, animatingTaskId } = useTaskContext();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [timer, setTimer] = useState<number | null>(null);
@@ -145,11 +146,21 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({ selectedMood, setSelectedMood
   const [isPaused, setIsPaused] = useState(false);
   const [, forceUpdate] = useState({});
 
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(task => 
+      !task.isCompleted && 
+      (task.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       task.note?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       task.attribute.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       task.externalDependency.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       task.effort.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       task.type.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }, [tasks, searchTerm]);
+
   const sortedTasks = useMemo(() => {
-    return tasks
-      .filter(task => !task.isCompleted)
-      .sort((a, b) => calculatePriority(b, tasks) - calculatePriority(a, tasks));
-  }, [tasks]);
+    return filteredTasks.sort((a, b) => calculatePriority(b, tasks) - calculatePriority(a, tasks));
+  }, [filteredTasks, tasks]);
 
   const openModal = (task: Task) => setSelectedTask(task);
   const closeModal = () => {

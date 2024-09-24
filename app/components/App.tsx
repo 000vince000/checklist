@@ -23,12 +23,11 @@ const AppContainer = styled.div`
 const Header = styled.header`
   margin-bottom: 1rem;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
 
   @media (min-width: 768px) {
-    flex-direction: row;
-    justify-content: space-between;
     margin-bottom: 2rem;
   }
 `;
@@ -37,11 +36,10 @@ const Title = styled.h1`
   font-size: 2rem;
   font-weight: 300;
   color: #ffffff;
-  margin-bottom: 1rem;
+  margin: 0;
 
   @media (min-width: 768px) {
     font-size: 2.5rem;
-    margin-bottom: 0;
   }
 `;
 
@@ -98,9 +96,26 @@ const MoodButton = styled.button`
   }
 `;
 
+const SearchBar = styled.input`
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px solid #4CAF50;
+  border-radius: 4px;
+  background-color: #2c2c2c;
+  color: #ffffff;
+  font-size: 16px;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.5);
+  }
+`;
+
 function App() {
   const [isMoodModalOpen, setIsMoodModalOpen] = useState(false);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const openMoodModal = () => setIsMoodModalOpen(true);
   const closeMoodModal = () => setIsMoodModalOpen(false);
@@ -133,9 +148,18 @@ function App() {
             <TaskInput />
             <LuckyButton openMoodModal={openMoodModal} />
           </ButtonContainer>
+          <SearchBar 
+            placeholder="Search tasks..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </Header>
         <Section>
-          <TaskHeatmap selectedMood={selectedMood} setSelectedMood={setSelectedMood} />
+          <TaskHeatmap 
+            selectedMood={selectedMood} 
+            setSelectedMood={setSelectedMood}
+            searchTerm={searchTerm}
+          />
         </Section>
         <Section>
           <TaskSuggestion />
