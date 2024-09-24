@@ -99,16 +99,27 @@ const MoodButton = styled.button`
 const SearchBar = styled.input`
   width: 100%;
   padding: 10px;
-  margin-top: 10px;
-  border: 1px solid #4CAF50;
+  margin-bottom: 1rem;
+  border: 1px solid #4a4a4a;
   border-radius: 4px;
   background-color: #2c2c2c;
   color: #ffffff;
-  font-size: 16px;
+  font-size: 14px;
 
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.5);
+  @media (min-width: 768px) {
+    width: 300px;
+    margin-bottom: 0;
+  }
+`;
+
+const SearchContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+
+  @media (min-width: 768px) {
+    justify-content: flex-start;
+    margin-bottom: 2rem;
   }
 `;
 
@@ -194,11 +205,13 @@ function App() {
             </FilterContainer>
           </div>
         </Header>
-        <SearchBar 
-          placeholder="Search tasks..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+        <SearchContainer>
+          <SearchBar 
+            placeholder="Search tasks..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </SearchContainer>
         <Section>
           <TaskHeatmap 
             selectedMood={selectedMood} 

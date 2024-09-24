@@ -17,11 +17,12 @@ const HeatmapContainer = styled.div`
   display: flex;
   flex-direction: column;
   background-color: #2c2c2c;
-  padding: 10px;
+  padding: 0px;
+  margin: -20px;
   border-radius: 8px;
 
   @media (min-width: 768px) {
-    padding: 20px;
+    padding: 10px;
   }
 `;
 
@@ -30,9 +31,11 @@ const GridContainer = styled.div`
   grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
   grid-auto-rows: minmax(40px, auto);
   grid-auto-flow: dense;
-  gap: 5px;
-  padding: 5px;
+  gap: 5px; // Reduced from 5px
+  padding: 0;
+  margin: 0; // Ensure no margin
   justify-content: center;
+  overflow: hidden; // Prevent any potential overflow
 
   @media (min-width: 768px) {
     grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
@@ -48,10 +51,11 @@ const TaskBox = styled.div<{ priority: number; effort: Task['effort'] }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 8px; // Decreased from 10px for mobile
   color: ${props => props.priority > 3.5 ? 'white' : 'black'};
   transition: transform 0.2s;
-  padding: 5px;
+  padding: 2px; // Reduced from 3px
+  margin: 0; // Ensure no margin
   text-align: center;
   overflow: hidden;
   word-wrap: break-word;
@@ -114,15 +118,20 @@ const LuckyButtonStyled = styled.button`
   background-color: transparent;
   border: 1px solid #FFA500;
   color: #FFA500;
-  padding: 8px 16px;
+  padding: 6px 12px; // Decreased from 8px 16px for mobile
   text-align: center;
   text-decoration: none;
   display: inline-block;
-  font-size: 14px;
+  font-size: 12px; // Decreased from 14px for mobile
   margin: 4px 2px;
   cursor: pointer;
   border-radius: 4px;
   transition: background-color 0.3s ease, color 0.3s ease;
+
+  @media (min-width: 768px) {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
 
   &:hover {
     background-color: #FFA500;
