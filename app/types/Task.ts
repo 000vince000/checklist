@@ -3,7 +3,7 @@ export interface Task {
   name: string;
   attribute: 'urgent' | 'important' | 'unimportant';
   externalDependency: 'yes' | 'no';
-  effort: 'l' | 'm' | 'h';
+  effort: 'large' | 'medium' | 'small';
   type: 'debt' | 'cost' | 'revenue' | 'happiness';
   note?: string;
   rejectionCount: number;

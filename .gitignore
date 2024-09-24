@@ -13,3 +13,5 @@ yarn-error.log*
 *.bak
 .cache/
 venv/
+.vercel
+.env*.local

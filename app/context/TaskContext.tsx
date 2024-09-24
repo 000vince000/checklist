@@ -20,7 +20,7 @@ const CLOSED_TASKS_KEY = 'closedTasks';
 const generateRandomTasks = (count: number): Task[] => {
   const attributes = ['urgent', 'important', 'unimportant'] as const;
   const dependencies = ['yes', 'no'] as const;
-  const efforts = ['l', 'm', 'h'] as const;
+  const efforts = ['small', 'medium', 'large'] as const;
   const types = ['debt', 'cost', 'revenue', 'happiness'] as const;
 
   return Array.from({ length: count }, (_, i) => ({

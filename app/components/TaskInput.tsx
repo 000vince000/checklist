@@ -109,7 +109,7 @@ const TaskInput: React.FC = () => {
   const [newTask, setNewTask] = useState<Partial<Task>>({
     attribute: 'important',
     externalDependency: 'no',
-    effort: 'm',
+    effort: 'medium',
     type: 'debt',
     rejectionCount: 0,
     isCompleted: false
@@ -139,7 +139,7 @@ const TaskInput: React.FC = () => {
       setNewTask({
         attribute: 'important',
         externalDependency: 'no',
-        effort: 'm',
+        effort: 'medium',
         type: 'debt'
       });
       closeModal();
@@ -176,9 +176,9 @@ const TaskInput: React.FC = () => {
             <FormGroup>
               <Label htmlFor="effort">Effort</Label>
               <Select id="effort" value={newTask.effort || ''} onChange={handleInputChange}>
-                <option value="l">Low</option>
-                <option value="m">Medium</option>
-                <option value="h">High</option>
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
               </Select>
             </FormGroup>
             <FormGroup>

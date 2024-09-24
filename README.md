@@ -10,6 +10,7 @@ A modern, minimalist task management application built with React and TypeScript
 - Task timer with pause and abandon functionality
 - Local storage persistence for tasks
 - Completed tasks tracking
+- Google Drive integration for task persistence
 
 ## Tech Stack
 
@@ -17,6 +18,7 @@ A modern, minimalist task management application built with React and TypeScript
 - TypeScript
 - Styled Components
 - Local Storage for data persistence
+- Google Drive API
 
 ## Getting Started
 
@@ -44,6 +46,16 @@ A modern, minimalist task management application built with React and TypeScript
    ```
 
 4. Open your browser and navigate to `http://localhost:3000`
+
+### Google Drive Integration
+
+To enable Google Drive integration, you need to set up your Google API credentials:
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Create a new project or select an existing one.
+3. Enable the Google Drive API for your project.
+4. Create OAuth 2.0 credentials and download the JSON file.
+5. Set the `apiKey` and `clientId` in the `App.tsx` file:
 
 ## Project Structure
 

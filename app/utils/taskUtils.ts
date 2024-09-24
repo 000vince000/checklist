@@ -50,7 +50,7 @@ export const getTaskPrefix = (type: Task['type']) => {
 
 export const truncateName = (task: Task) => {
   const prefix = getTaskPrefix(task.type);
-  const maxLength = task.effort === 'l' ? 20 : task.effort === 'm' ? 12 : 8;
+  const maxLength = task.effort === 'large' ? 20 : task.effort === 'medium' ? 12 : 8;
   const truncatedName = task.name.length > maxLength ? task.name.slice(0, maxLength - 1) + '…' : task.name;
   return prefix + truncatedName;
 };
@@ -75,28 +75,28 @@ export const selectTaskByMood = (mood: string, sortedTasks: Task[], tasks: Task[
           calculatePriority(task, tasks) > calculatePriority(max, tasks) ? task : max, sortedTasks[0]);
     case '🤓':
       return sortedTasks.reduce((max: Task, task: Task) => 
-        (task.effort === 'h' && calculatePriority(task, tasks) > calculatePriority(max, tasks)) ? task : max, sortedTasks[0]);
+        (task.effort === 'large' && calculatePriority(task, tasks) > calculatePriority(max, tasks)) ? task : max, sortedTasks[0]);
     case '🥱': // Tired mood
       console.log('Selecting task for Tired mood');
-      const debtTasksNoDepLowEffort = sortedTasks.filter((task: Task) => {
+      const debtTasksNoDepSmallEffort = sortedTasks.filter((task: Task) => {
         console.log('Checking task:', task);
         console.log('Is debt type:', task.type === 'debt');
         console.log('Has no external dependency:', task.externalDependency === 'no');
-        console.log('Is low effort:', task.effort === 'l');
-        return task.type === 'debt' && task.externalDependency === 'no' && task.effort === 'l';
+        console.log('Is small effort:', task.effort === 'small');
+        return task.type === 'debt' && task.externalDependency === 'no' && task.effort === 'small';
       });
-      console.log('Filtered tasks for Tired mood:', debtTasksNoDepLowEffort);
-      // If no low effort tasks, fall back to medium, then high
-      if (debtTasksNoDepLowEffort.length === 0) {
+      console.log('Filtered tasks for Tired mood:', debtTasksNoDepSmallEffort);
+      // If no small effort tasks, fall back to medium, then large
+      if (debtTasksNoDepSmallEffort.length === 0) {
         const mediumEffortTasks = sortedTasks.filter(task => 
-          task.type === 'debt' && task.externalDependency === 'no' && task.effort === 'm');
+          task.type === 'debt' && task.externalDependency === 'no' && task.effort === 'medium');
         if (mediumEffortTasks.length > 0) return mediumEffortTasks[0];
         
-        const highEffortTasks = sortedTasks.filter(task => 
-          task.type === 'debt' && task.externalDependency === 'no' && task.effort === 'h');
-        if (highEffortTasks.length > 0) return highEffortTasks[0];
+        const largeEffortTasks = sortedTasks.filter(task => 
+          task.type === 'debt' && task.externalDependency === 'no' && task.effort === 'large');
+        if (largeEffortTasks.length > 0) return largeEffortTasks[0];
       }
-      return debtTasksNoDepLowEffort.length > 0 ? debtTasksNoDepLowEffort[0] : undefined;
+      return debtTasksNoDepSmallEffort.length > 0 ? debtTasksNoDepSmallEffort[0] : undefined;
     case '🤪': // Bored mood
       return sortedTasks[Math.floor(Math.random() * sortedTasks.length)];
     default:
