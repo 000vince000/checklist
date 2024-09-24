@@ -3,11 +3,11 @@ export interface Task {
   name: string;
   attribute: 'urgent' | 'important' | 'unimportant';
   externalDependency: 'yes' | 'no';
-  effort: 'large' | 'medium' | 'small';
+  effort: 'small' | 'medium' | 'large';
   type: 'debt' | 'cost' | 'revenue' | 'happiness';
   note?: string;
   rejectionCount: number;
-  completionTime?: number;
   isCompleted: boolean;
-  isAnimating?: boolean;
+  completionTime?: number;
+  parentTaskId?: number | null; // Add this new field
 }

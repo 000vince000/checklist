@@ -247,6 +247,10 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
     }
   };
 
+  const handleUpdateTask = (updatedTask: Task) => {
+    updateTask(updatedTask);
+  };
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (timerRunning && !isPaused) {
@@ -320,7 +324,8 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
         handleDone={handleDone}
         handlePause={handlePause}
         handleAbandon={handleAbandon}
-        handleDelete={handleDelete} // Add this new prop
+        handleDelete={handleDelete}
+        handleUpdateTask={handleUpdateTask} // Add this new prop
         timer={timer}
         isPaused={isPaused}
         tasks={tasks}
