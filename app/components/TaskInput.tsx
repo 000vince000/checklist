@@ -42,12 +42,13 @@ const Modal = styled.div<ModalProps>`
 `;
 
 const ModalContent = styled.div`
-  background-color: #fefefe;
+  background-color: #2c2c2c; // Darker background
   padding: 40px;
   border-radius: 8px;
   width: 90%;
   max-width: 500px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  color: #ffffff; // White text for better contrast
 `;
 
 const CloseButton = styled.span`
@@ -61,6 +62,13 @@ const CloseButton = styled.span`
   &:hover {
     color: #000;
   }
+`;
+
+const ModalHeader = styled.h2`
+  color: #4CAF50; // Green color for the header
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
 `;
 
 const Form = styled.form`
@@ -77,30 +85,64 @@ const FormGroup = styled.div`
 const Label = styled.label`
   margin-bottom: 5px;
   font-weight: 500;
+  color: #4CAF50; // Green color for labels
 `;
 
 const Input = styled.input`
   padding: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid #4CAF50; // Green border
   border-radius: 4px;
   font-size: 16px;
+  background-color: #3c3c3c; // Slightly lighter than the modal background
+  color: #ffffff;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.5);
+  }
 `;
 
 const Select = styled.select`
   padding: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid #4CAF50; // Green border
   border-radius: 4px;
   font-size: 16px;
-  background-color: white;
+  background-color: #3c3c3c; // Slightly lighter than the modal background
+  color: #ffffff;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.5);
+  }
 `;
 
 const Textarea = styled.textarea`
   padding: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid #4CAF50; // Green border
   border-radius: 4px;
   font-size: 16px;
   resize: vertical;
   min-height: 100px;
+  background-color: #3c3c3c; // Slightly lighter than the modal background
+  color: #ffffff;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.5);
+  }
+`;
+
+const SubmitButton = styled(Button)`
+  width: 100%;
+  padding: 12px;
+  font-size: 18px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+
+  &:hover {
+    background-color: #45a049;
+  }
 `;
 
 const TaskInput: React.FC = () => {
@@ -152,7 +194,7 @@ const TaskInput: React.FC = () => {
       <Modal isOpen={isModalOpen}>
         <ModalContent>
           <CloseButton onClick={closeModal}>&times;</CloseButton>
-          <h2>Add New Task</h2>
+          <ModalHeader>Add New Task</ModalHeader>
           <Form onSubmit={handleSubmit}>
             <FormGroup>
               <Label htmlFor="name">Task Name</Label>
@@ -194,7 +236,7 @@ const TaskInput: React.FC = () => {
               <Label htmlFor="note">Note</Label>
               <Textarea id="note" value={newTask.note || ''} onChange={handleInputChange} />
             </FormGroup>
-            <Button type="submit">Add Task</Button>
+            <SubmitButton type="submit">Add Task</SubmitButton>
           </Form>
         </ModalContent>
       </Modal>

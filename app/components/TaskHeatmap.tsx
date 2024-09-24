@@ -8,7 +8,8 @@ import {
   calculatePriority,
   truncateName,
   formatTime,
-  selectTaskByMood
+  selectTaskByMood,
+  getTaskPrefix // Add this import
 } from '../utils/taskUtils';
 import TaskModal from './TaskModal';
 import { useTaskAnimation } from '../hooks/useTaskAnimation';
@@ -31,11 +32,11 @@ const GridContainer = styled.div`
   grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
   grid-auto-rows: minmax(40px, auto);
   grid-auto-flow: dense;
-  gap: 5px; // Reduced from 5px
+  gap: 5px;
   padding: 0;
-  margin: 0; // Ensure no margin
+  margin: 0;
   justify-content: center;
-  overflow: hidden; // Prevent any potential overflow
+  overflow: hidden;
 
   @media (min-width: 768px) {
     grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
@@ -51,7 +52,7 @@ const TaskBox = styled.div<{ priority: number; effort: Task['effort'] }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 8px; // Decreased from 10px for mobile
+  font-size: 8px;
   color: ${props => props.priority > 3.5 ? 'white' : 'black'};
   transition: transform 0.2s;
   padding: 2px; // Reduced from 3px
@@ -59,6 +60,8 @@ const TaskBox = styled.div<{ priority: number; effort: Task['effort'] }>`
   text-align: center;
   overflow: hidden;
   word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
   grid-column: span ${props => props.effort === 'large' ? 3 : props.effort === 'medium' ? 2 : 1};
   grid-row: span ${props => props.effort === 'large' ? 3 : props.effort === 'medium' ? 2 : 1};
 
@@ -118,11 +121,11 @@ const LuckyButtonStyled = styled.button`
   background-color: transparent;
   border: 1px solid #FFA500;
   color: #FFA500;
-  padding: 6px 12px; // Decreased from 8px 16px for mobile
+  padding: 6px 12px;
   text-align: center;
   text-decoration: none;
   display: inline-block;
-  font-size: 12px; // Decreased from 14px for mobile
+  font-size: 12px;
   margin: 4px 2px;
   cursor: pointer;
   border-radius: 4px;
@@ -255,6 +258,12 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
   }, [selectedMood]);
 
   const taskSpring = useTaskAnimation(animatingTaskId);
+
+  const truncateName = (task: Task) => {
+    const prefix = getTaskPrefix(task.type);
+    const maxLength = task.effort === 'large' ? 20 : task.effort === 'medium' ? 80 : 120;
+    return prefix + task.name.slice(0, maxLength);
+  };
 
   return (
     <>
