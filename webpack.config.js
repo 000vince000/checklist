@@ -31,4 +31,12 @@ module.exports = {
   optimization: {
     minimize: true,
   },
+  devServer: {
+    static: {
+      directory: path.join(__dirname, 'dist'),
+    },
+    compress: true,
+    port: 3000,
+    historyApiFallback: true,
+  },
 };
