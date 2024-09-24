@@ -148,7 +148,7 @@ const TaskInput: React.FC = () => {
 
   return (
     <div>
-      <Button onClick={openModal}>+ New Task</Button>
+      <Button onClick={openModal}>+ New</Button>
       <Modal isOpen={isModalOpen}>
         <ModalContent>
           <CloseButton onClick={closeModal}>&times;</CloseButton>

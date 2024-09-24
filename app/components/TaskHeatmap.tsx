@@ -134,11 +134,19 @@ interface TaskHeatmapProps {
   selectedMood: string | null;
   setSelectedMood: React.Dispatch<React.SetStateAction<string | null>>;
   searchTerm: string;
+  attributeFilter: string;
+  typeFilter: string;
 }
 
 const AnimatedTaskBox = animated(TaskBox);
 
-const TaskHeatmap: React.FC<TaskHeatmapProps> = ({ selectedMood, setSelectedMood, searchTerm }) => {
+const TaskHeatmap: React.FC<TaskHeatmapProps> = ({ 
+  selectedMood, 
+  setSelectedMood, 
+  searchTerm, 
+  attributeFilter, 
+  typeFilter 
+}) => {
   const { tasks, completedTasks, updateTask, completeTask, animatingTaskId } = useTaskContext();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [timer, setTimer] = useState<number | null>(null);
@@ -154,9 +162,11 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({ selectedMood, setSelectedMood
        task.attribute.toLowerCase().includes(searchTerm.toLowerCase()) ||
        task.externalDependency.toLowerCase().includes(searchTerm.toLowerCase()) ||
        task.effort.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       task.type.toLowerCase().includes(searchTerm.toLowerCase()))
+       task.type.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (attributeFilter === 'all' || task.attribute === attributeFilter) &&
+      (typeFilter === 'all' || task.type === typeFilter)
     );
-  }, [tasks, searchTerm]);
+  }, [tasks, searchTerm, attributeFilter, typeFilter]);
 
   const sortedTasks = useMemo(() => {
     return filteredTasks.sort((a, b) => calculatePriority(b, tasks) - calculatePriority(a, tasks));
@@ -266,18 +276,6 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({ selectedMood, setSelectedMood
             <LegendColor color={getPriorityColor(7)} />
             <span>High Priority</span>
           </LegendItem>
-          <LegendItem>
-            <LegendSize size="80px" />
-            <span>Low Effort</span>
-          </LegendItem>
-          <LegendItem>
-            <LegendSize size="60px" />
-            <span>Medium Effort</span>
-          </LegendItem>
-          <LegendItem>
-            <LegendSize size="40px" />
-            <span>High Effort</span>
-          </LegendItem>
         </Legend>
       </HeatmapContainer>
       <CompletedTasksSection>
@@ -310,7 +308,7 @@ interface LuckyButtonProps {
 }
 
 export const LuckyButton: React.FC<LuckyButtonProps> = ({ openMoodModal }) => {
-  return <LuckyButtonStyled onClick={openMoodModal}>I'm Feeling Lucky</LuckyButtonStyled>;
+  return <LuckyButtonStyled onClick={openMoodModal}>Feeling Lucky</LuckyButtonStyled>;
 };
 
 export default TaskHeatmap;

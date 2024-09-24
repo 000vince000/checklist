@@ -112,10 +112,32 @@ const SearchBar = styled.input`
   }
 `;
 
+const FilterContainer = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-left: 10px;
+`;
+
+const FilterDropdown = styled.select`
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #2c2c2c;
+  color: #ffffff;
+  border: 1px solid #3498db; // Changed from #4CAF50 to #3498db (blue)
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.5); // Changed from rgba(76, 175, 80, 0.5) to match new color
+  }
+`;
+
 function App() {
   const [isMoodModalOpen, setIsMoodModalOpen] = useState(false);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [attributeFilter, setAttributeFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
 
   const openMoodModal = () => setIsMoodModalOpen(true);
   const closeMoodModal = () => setIsMoodModalOpen(false);
@@ -144,21 +166,46 @@ function App() {
       <AppContainer>
         <Header>
           <Title>Collaborative Checklist</Title>
-          <ButtonContainer>
-            <TaskInput />
-            <LuckyButton openMoodModal={openMoodModal} />
-          </ButtonContainer>
-          <SearchBar 
-            placeholder="Search tasks..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <ButtonContainer>
+              <TaskInput />
+              <LuckyButton openMoodModal={openMoodModal} />
+            </ButtonContainer>
+            <FilterContainer>
+              <FilterDropdown 
+                value={attributeFilter} 
+                onChange={(e) => setAttributeFilter(e.target.value)}
+              >
+                <option value="all">Attributes</option>
+                <option value="urgent">Urgent</option>
+                <option value="important">Important</option>
+                <option value="unimportant">Unimportant</option>
+              </FilterDropdown>
+              <FilterDropdown 
+                value={typeFilter} 
+                onChange={(e) => setTypeFilter(e.target.value)}
+              >
+                <option value="all">Types</option>
+                <option value="debt">👻 Debt</option>
+                <option value="cost">💸 Cost</option>
+                <option value="revenue">💰 Revenue</option>
+                <option value="happiness">❤️ Happiness</option>
+              </FilterDropdown>
+            </FilterContainer>
+          </div>
         </Header>
+        <SearchBar 
+          placeholder="Search tasks..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
         <Section>
           <TaskHeatmap 
             selectedMood={selectedMood} 
             setSelectedMood={setSelectedMood}
             searchTerm={searchTerm}
+            attributeFilter={attributeFilter}
+            typeFilter={typeFilter}
           />
         </Section>
         <Section>
