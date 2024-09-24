@@ -62,8 +62,8 @@ const TaskBox = styled.div<{ priority: number; effort: Task['effort'] }>`
   word-wrap: break-word;
   word-break: break-word;
   hyphens: auto;
-  grid-column: span ${props => props.effort === 'large' ? 3 : props.effort === 'medium' ? 2 : 1};
-  grid-row: span ${props => props.effort === 'large' ? 3 : props.effort === 'medium' ? 2 : 1};
+  grid-column: span ${props => props.effort === 'large' ? 1 : props.effort === 'medium' ? 2 : 3};
+  grid-row: span ${props => props.effort === 'large' ? 1 : props.effort === 'medium' ? 2 : 3};
 
   @media (min-width: 768px) {
     font-size: 12px;
