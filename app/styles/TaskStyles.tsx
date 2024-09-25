@@ -75,17 +75,30 @@ export const FormGroup = styled.div`
   flex-direction: column;
 `;
 
+export const InlineFormGroup = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
 export const Label = styled.label`
-  margin-bottom: 5px;
   font-weight: 500;
   color: #4CAF50;
 `;
 
+export const InlineLabel = styled.label`
+  margin-right: 10px;
+  min-width: 150px; // Ensure a minimum width for labels
+  font-weight: 500;
+  color: #4CAF50;
+  white-space: nowrap; // Prevent label wrapping
+`;
+
 export const Input = styled.input`
-  padding: 10px;
+  flex: 1;
+  padding: 8px; // Reduced from 10px
   border: 1px solid #4CAF50;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 14px; // Reduced from 16px
   background-color: #3c3c3c;
   color: #ffffff;
 
@@ -96,10 +109,11 @@ export const Input = styled.input`
 `;
 
 export const Select = styled.select`
-  padding: 10px;
+  flex: 1;
+  padding: 8px; // Reduced from 10px
   border: 1px solid #4CAF50;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 14px; // Reduced from 16px
   background-color: #3c3c3c;
   color: #ffffff;
 
@@ -110,13 +124,14 @@ export const Select = styled.select`
 `;
 
 export const Textarea = styled.textarea`
-  padding: 10px;
+  width: 100%;
+  padding: 8px; // Reduced from 10px
   border: 1px solid #4CAF50;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 14px; // Reduced from 16px
   background-color: #3c3c3c;
   color: #ffffff;
-  min-height: 100px;
+  min-height: 80px; // Reduced from 100px
   resize: vertical;
 
   &:focus {

@@ -14,7 +14,9 @@ import {
   Input,
   Select,
   Textarea,
-  SubmitButton
+  SubmitButton,
+  InlineFormGroup,
+  InlineLabel
 } from '../styles/TaskStyles';
 
 const TaskInput: React.FC = () => {
@@ -72,38 +74,38 @@ const TaskInput: React.FC = () => {
               <Label htmlFor="name">Task Name</Label>
               <Input type="text" id="name" value={newTask.name || ''} onChange={handleInputChange} required />
             </FormGroup>
-            <FormGroup>
-              <Label htmlFor="attribute">Attribute</Label>
+            <InlineFormGroup>
+              <InlineLabel htmlFor="attribute">Attribute</InlineLabel>
               <Select id="attribute" value={newTask.attribute || ''} onChange={handleInputChange}>
                 <option value="urgent">Urgent</option>
                 <option value="important">Important</option>
                 <option value="unimportant">Unimportant</option>
               </Select>
-            </FormGroup>
-            <FormGroup>
-              <Label htmlFor="externalDependency">External Dependency</Label>
+            </InlineFormGroup>
+            <InlineFormGroup>
+              <InlineLabel htmlFor="externalDependency">External Dependency</InlineLabel>
               <Select id="externalDependency" value={newTask.externalDependency || ''} onChange={handleInputChange}>
                 <option value="yes">Yes</option>
                 <option value="no">No</option>
               </Select>
-            </FormGroup>
-            <FormGroup>
-              <Label htmlFor="effort">Effort</Label>
+            </InlineFormGroup>
+            <InlineFormGroup>
+              <InlineLabel htmlFor="effort">Effort</InlineLabel>
               <Select id="effort" value={newTask.effort || ''} onChange={handleInputChange}>
                 <option value="small">Small</option>
                 <option value="medium">Medium</option>
                 <option value="large">Large</option>
               </Select>
-            </FormGroup>
-            <FormGroup>
-              <Label htmlFor="type">Type</Label>
+            </InlineFormGroup>
+            <InlineFormGroup>
+              <InlineLabel htmlFor="type">Type</InlineLabel>
               <Select id="type" value={newTask.type || ''} onChange={handleInputChange}>
                 <option value="debt">Debt</option>
                 <option value="cost">Cost</option>
                 <option value="revenue">Revenue</option>
                 <option value="happiness">Happiness</option>
               </Select>
-            </FormGroup>
+            </InlineFormGroup>
             <FormGroup>
               <Label htmlFor="note">Note</Label>
               <Textarea id="note" value={newTask.note || ''} onChange={handleInputChange} />

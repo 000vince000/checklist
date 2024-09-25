@@ -15,7 +15,9 @@ import {
   Input,
   Select,
   Textarea,
-  SubmitButton
+  SubmitButton,
+  InlineFormGroup,
+  InlineLabel
 } from '../styles/TaskStyles';
 
 // Additional styled components specific to TaskModal
@@ -63,16 +65,37 @@ const ButtonGroup = styled.div`
   display: flex;
   justify-content: space-between;
   gap: 10px;
+  margin-top: 20px;
 `;
 
-const SaveButton = styled(Button)`
-  background-color: #3498db;
-  &:hover { background-color: #2980b9; }
+const ActionButton = styled(Button)`
+  flex: 1;
+  padding: 10px;
+  font-size: 14px;
 `;
 
-const DeleteButton = styled(Button)`
-  background-color: #8B0000;
-  &:hover { background-color: #A52A2A; }
+const AcceptButton = styled(ActionButton)`
+  background-color: #4CAF50;
+  color: white;
+  &:hover { background-color: #45a049; }
+`;
+
+const RejectButton = styled(ActionButton)`
+  background-color: #ff9800;
+  color: white;
+  &:hover { background-color: #f57c00; }
+`;
+
+const DeleteButton = styled(ActionButton)`
+  background-color: #f44336;
+  color: white;
+  &:hover { background-color: #d32f2f; }
+`;
+
+const SaveButton = styled(ActionButton)`
+  background-color: #2196f3;
+  color: white;
+  &:hover { background-color: #1976d2; }
 `;
 
 interface TaskModalProps {
@@ -171,7 +194,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
         <CloseButton onClick={closeModal}>&times;</CloseButton>
         {editedTask && (
           <>
-            <ModalHeader>{editedTask.name}</ModalHeader>
             <Form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
               <FormGroup>
                 <Label htmlFor="name">Task Name</Label>
@@ -183,8 +205,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   onChange={handleInputChange}
                 />
               </FormGroup>
-              <FormGroup>
-                <Label htmlFor="attribute">Attribute</Label>
+              <InlineFormGroup>
+                <InlineLabel htmlFor="attribute">Attribute</InlineLabel>
                 <Select
                   id="attribute"
                   name="attribute"
@@ -195,9 +217,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   <option value="important">Important</option>
                   <option value="unimportant">Unimportant</option>
                 </Select>
-              </FormGroup>
-              <FormGroup>
-                <Label htmlFor="externalDependency">External Dependency</Label>
+              </InlineFormGroup>
+              <InlineFormGroup>
+                <InlineLabel htmlFor="externalDependency">External Dependency</InlineLabel>
                 <Select
                   id="externalDependency"
                   name="externalDependency"
@@ -207,9 +229,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   <option value="yes">Yes</option>
                   <option value="no">No</option>
                 </Select>
-              </FormGroup>
-              <FormGroup>
-                <Label htmlFor="effort">Effort</Label>
+              </InlineFormGroup>
+              <InlineFormGroup>
+                <InlineLabel htmlFor="effort">Effort</InlineLabel>
                 <Select
                   id="effort"
                   name="effort"
@@ -220,9 +242,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   <option value="medium">Medium</option>
                   <option value="large">Large</option>
                 </Select>
-              </FormGroup>
-              <FormGroup>
-                <Label htmlFor="type">Type</Label>
+              </InlineFormGroup>
+              <InlineFormGroup>
+                <InlineLabel htmlFor="type">Type</InlineLabel>
                 <Select
                   id="type"
                   name="type"
@@ -234,7 +256,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   <option value="revenue">Revenue</option>
                   <option value="happiness">Happiness</option>
                 </Select>
-              </FormGroup>
+              </InlineFormGroup>
               <FormGroup>
                 <Label htmlFor="note">Note</Label>
                 <Textarea
@@ -278,12 +300,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 </TaskProperty>
               </TaskDetails>
               {timer === null ? (
-                <>
-                  <Button onClick={handleAccept}>Accept</Button>
-                  <Button onClick={handleReject}>Reject</Button>
-                  <DeleteButton onClick={handleDelete}>Delete</DeleteButton>
-                  <SubmitButton type="submit">Save</SubmitButton>
-                </>
+                <ButtonGroup>
+                  <AcceptButton type="button" onClick={handleAccept}>Accept</AcceptButton>
+                  <RejectButton type="button" onClick={handleReject}>Reject</RejectButton>
+                  <DeleteButton type="button" onClick={handleDelete}>Delete</DeleteButton>
+                  <SaveButton type="submit">Save</SaveButton>
+                </ButtonGroup>
               ) : (
                 <>
                   <div>{formatTime(timer)}</div>
