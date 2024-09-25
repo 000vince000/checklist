@@ -161,6 +161,7 @@ export const Dropdown = styled.div`
   top: 100%;
   left: 0;
   right: 0;
+  padding: 6px 12px;
   background-color: #3c3c3c;
   border: 1px solid #4CAF50;
   border-top: none;
@@ -168,13 +169,17 @@ export const Dropdown = styled.div`
   overflow-y: auto;
   z-index: 1000;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  @media (max-width: 768px) {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
 `;
 
 export const DropdownItem = styled.div`
   padding: 10px 12px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-
+  
   &:hover {
     background-color: #4CAF50;
     color: white;
@@ -245,6 +250,11 @@ export const NewTaskButton = styled(Button)`
   color: white;
   padding: 10px 20px;
   font-size: 16px;
+
+  @media (max-width: 768px) {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
 
   &:hover {
     background-color: #45a049;

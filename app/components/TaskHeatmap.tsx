@@ -117,31 +117,6 @@ const CompletedTaskItem = styled.div`
   border-radius: 4px;
 `;
 
-const LuckyButtonStyled = styled.button`
-  background-color: transparent;
-  border: 1px solid #FFA500;
-  color: #FFA500;
-  padding: 6px 12px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 12px;
-  margin: 4px 2px;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.3s ease, color 0.3s ease;
-
-  @media (min-width: 768px) {
-    padding: 8px 16px;
-    font-size: 14px;
-  }
-
-  &:hover {
-    background-color: #FFA500;
-    color: white;
-  }
-`;
-
 interface TaskHeatmapProps {
   selectedMood: string | null;
   setSelectedMood: React.Dispatch<React.SetStateAction<string | null>>;
@@ -332,14 +307,6 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
       />
     </>
   );
-};
-
-interface LuckyButtonProps {
-  openMoodModal: () => void;
-}
-
-export const LuckyButton: React.FC<LuckyButtonProps> = ({ openMoodModal }) => {
-  return <LuckyButtonStyled onClick={openMoodModal}>Feeling Lucky</LuckyButtonStyled>;
 };
 
 export default TaskHeatmap;

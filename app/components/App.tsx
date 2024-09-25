@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import TaskInput from './TaskInput';
-import TaskHeatmap, { LuckyButton } from './TaskHeatmap';
+import TaskHeatmap from './TaskHeatmap';
 import TaskSuggestion from './TaskSuggestion';
 import styled from 'styled-components';
 import { TaskProvider } from '../context/TaskContext';
@@ -44,10 +44,81 @@ const Title = styled.h1`
   }
 `;
 
+const ButtonAndFilterContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+
+  @media (max-width: 768px) {
+    margin-top: 10px;
+    justify-content: space-between;
+  }
+`;
+
 const ButtonContainer = styled.div`
   display: flex;
   gap: 10px;
 `;
+
+const FilterContainer = styled.div`
+  display: flex;
+  gap: 10px;
+  
+  @media (max-width: 768px) {
+    flex: 1;
+    justify-content: flex-end;
+  }
+`;
+
+const FilterDropdown = styled.select`
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #2c2c2c;
+  color: #ffffff;
+  border: 1px solid #3498db;
+  cursor: pointer;
+
+  @media (max-width: 768px) {
+    padding: 6px;
+    font-size: 12px;
+    max-width: 90px;
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.5);
+  }
+`;
+
+const LuckyButtonStyled = styled.button`
+  background-color: transparent;
+  border: 1px solid #FFA500;
+  color: #FFA500;
+  padding: 8px 16px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+
+  @media (max-width: 768px) {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  &:hover {
+    background-color: #FFA500;
+    color: white;
+  }
+`;
+
+const LuckyButton: React.FC<{ openMoodModal: () => void }> = ({ openMoodModal }) => {
+  return <LuckyButtonStyled onClick={openMoodModal}>Feeling Lucky</LuckyButtonStyled>;
+};
 
 const Section = styled.section`
   background-color: #2c2c2c;
@@ -124,26 +195,6 @@ const SearchContainer = styled.div`
   }
 `;
 
-const FilterContainer = styled.div`
-  display: flex;
-  gap: 10px;
-  margin-left: 10px;
-`;
-
-const FilterDropdown = styled.select`
-  padding: 8px;
-  border-radius: 4px;
-  background-color: #2c2c2c;
-  color: #ffffff;
-  border: 1px solid #3498db; // Changed from #4CAF50 to #3498db (blue)
-  cursor: pointer;
-
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.5); // Changed from rgba(76, 175, 80, 0.5) to match new color
-  }
-`;
-
 function App() {
   const [isMoodModalOpen, setIsMoodModalOpen] = useState(false);
   const [isTaskInputModalOpen, setIsTaskInputModalOpen] = useState(false);
@@ -181,7 +232,7 @@ function App() {
       <AppContainer>
         <Header>
           <Title>Collaborative Checklist</Title>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <ButtonAndFilterContainer>
             <ButtonContainer>
               <NewTaskButton onClick={openTaskInputModal}>+ New</NewTaskButton>
               <LuckyButton openMoodModal={openMoodModal} />
@@ -207,7 +258,7 @@ function App() {
                 <option value="happiness">❤️ Happiness</option>
               </FilterDropdown>
             </FilterContainer>
-          </div>
+          </ButtonAndFilterContainer>
         </Header>
         <SearchContainer>
           <SearchBar 
