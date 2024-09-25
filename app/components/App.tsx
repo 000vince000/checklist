@@ -4,6 +4,7 @@ import TaskHeatmap, { LuckyButton } from './TaskHeatmap';
 import TaskSuggestion from './TaskSuggestion';
 import styled from 'styled-components';
 import { TaskProvider } from '../context/TaskContext';
+import { NewTaskButton } from '../styles/TaskStyles';
 
 const AppContainer = styled.div`
   max-width: 100%;
@@ -145,6 +146,7 @@ const FilterDropdown = styled.select`
 
 function App() {
   const [isMoodModalOpen, setIsMoodModalOpen] = useState(false);
+  const [isTaskInputModalOpen, setIsTaskInputModalOpen] = useState(false);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [attributeFilter, setAttributeFilter] = useState('all');
@@ -152,6 +154,8 @@ function App() {
 
   const openMoodModal = () => setIsMoodModalOpen(true);
   const closeMoodModal = () => setIsMoodModalOpen(false);
+  const openTaskInputModal = () => setIsTaskInputModalOpen(true);
+  const closeTaskInputModal = () => setIsTaskInputModalOpen(false);
 
   const handleMoodSelection = (mood: string) => {
     setSelectedMood(mood);
@@ -179,7 +183,7 @@ function App() {
           <Title>Collaborative Checklist</Title>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <ButtonContainer>
-              <TaskInput />
+              <NewTaskButton onClick={openTaskInputModal}>+ New</NewTaskButton>
               <LuckyButton openMoodModal={openMoodModal} />
             </ButtonContainer>
             <FilterContainer>
@@ -224,6 +228,10 @@ function App() {
         <Section>
           <TaskSuggestion />
         </Section>
+        <TaskInput
+          isOpen={isTaskInputModalOpen}
+          closeModal={closeTaskInputModal}
+        />
         <MoodModal isOpen={isMoodModalOpen}>
           <MoodModalContent>
             <h2>How are you feeling?</h2>
