@@ -20,6 +20,9 @@ export const calculateBasePriority = (task: Task) => {
   if (task.attribute === 'urgent') priority += 1;
   else if (task.attribute === 'important') priority += 2;
 
+  // Parent Task
+  if (task.parentTaskId) priority += 1;
+
   return priority;
 };
 
