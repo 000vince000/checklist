@@ -126,6 +126,11 @@ const Section = styled.section`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
   margin-bottom: 2rem;
+
+  @media (max-width: 768px) {
+    padding: 1rem; // Reduced padding for mobile
+    margin-bottom: 1rem; // Reduced margin for mobile
+  }
 `;
 
 const MoodModal = styled.div<{ isOpen: boolean }>`
@@ -189,7 +194,11 @@ const SearchContainer = styled.div`
   justify-content: center;
   margin-bottom: 1rem;
 
-  @media (min-width: 768px) {
+  @media (max-width: 768px) {
+    margin-bottom: 0.5rem; // Reduced margin for mobile
+  }
+
+  @media (min-width: 769px) {
     justify-content: flex-start;
     margin-bottom: 2rem;
   }
