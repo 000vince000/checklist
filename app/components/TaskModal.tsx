@@ -17,7 +17,8 @@ import {
   Textarea,
   SubmitButton,
   InlineFormGroup,
-  InlineLabel
+  InlineLabel,
+  DropdownItem // Import DropdownItem from TaskStyles
 } from '../styles/TaskStyles';
 
 // Additional styled components specific to TaskModal
@@ -42,15 +43,7 @@ const Dropdown = styled.div`
   z-index: 1;
 `;
 
-const DropdownItem = styled.div`
-  padding: 10px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #4CAF50;
-    color: white;
-  }
-`;
+// Remove the DropdownItem styled component from here
 
 const TaskDetails = styled.div`
   margin-bottom: 20px;

@@ -148,3 +148,13 @@ export const SubmitButton = styled(Button)`
     background-color: #45a049;
   }
 `;
+
+export const DropdownItem = styled.div`
+  padding: 10px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #4CAF50;
+    color: white;
+  }
+`;
