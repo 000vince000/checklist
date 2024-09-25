@@ -52,7 +52,7 @@ const TaskBox = styled.div<{ priority: number; effort: Task['effort'] }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 8px;
+  font-size: 12px;
   color: ${props => props.priority > 3.5 ? 'white' : 'black'};
   transition: transform 0.2s;
   padding: 2px; // Reduced from 3px

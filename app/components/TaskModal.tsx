@@ -136,34 +136,9 @@ const TaskDetails = styled.div`
   margin-bottom: 20px;
 `;
 
-const TaskProperty = styled.div`
-  display: flex;
-  align-items: center;
+const TaskProperty = styled.p`
   margin: 10px 0;
   font-size: 14px;
-`;
-
-const PropertyLabel = styled.span`
-  flex: 0 0 150px;
-  margin-right: 10px;
-`;
-
-const Input = styled.input`
-  flex: 1;
-  padding: 5px;
-  background-color: #2c2c2c;
-  border: 1px solid #555;
-  border-radius: 4px;
-  color: white;
-`;
-
-const Select = styled.select`
-  flex: 1;
-  padding: 5px;
-  background-color: #2c2c2c;
-  border: 1px solid #555;
-  border-radius: 4px;
-  color: white;
 `;
 
 const ButtonGroup = styled.div`
@@ -175,6 +150,26 @@ const ButtonGroup = styled.div`
 const SaveButton = styled(ModalButton)`
   background-color: #3498db;
   &:hover { background-color: #2980b9; }
+`;
+
+const Input = styled.input`
+  width: 100%;
+  padding: 5px;
+  margin-top: 5px;
+  background-color: #2c2c2c;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: white;
+`;
+
+const Select = styled.select`
+  width: 100%;
+  padding: 5px;
+  margin-top: 5px;
+  background-color: #2c2c2c;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: white;
 `;
 
 interface TaskModalProps {
@@ -303,11 +298,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
             </SearchContainer>
             <TaskDetails>
               <TaskProperty>
-                <PropertyLabel>Parent Task:</PropertyLabel>
-                <span>{selectedParentTask ? selectedParentTask.name : 'None'}</span>
+                Parent Task: {selectedParentTask ? selectedParentTask.name : 'None'}
               </TaskProperty>
               <TaskProperty>
-                <PropertyLabel>Attribute:</PropertyLabel>
+                Attribute: 
                 <Select name="attribute" value={editedTask.attribute} onChange={handleInputChange}>
                   <option value="urgent">Urgent</option>
                   <option value="important">Important</option>
@@ -315,14 +309,14 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 </Select>
               </TaskProperty>
               <TaskProperty>
-                <PropertyLabel>External Dependency:</PropertyLabel>
+                External Dependency: 
                 <Select name="externalDependency" value={editedTask.externalDependency} onChange={handleInputChange}>
                   <option value="yes">Yes</option>
                   <option value="no">No</option>
                 </Select>
               </TaskProperty>
               <TaskProperty>
-                <PropertyLabel>Effort:</PropertyLabel>
+                Effort: 
                 <Select name="effort" value={editedTask.effort} onChange={handleInputChange}>
                   <option value="small">Small</option>
                   <option value="medium">Medium</option>
@@ -330,7 +324,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 </Select>
               </TaskProperty>
               <TaskProperty>
-                <PropertyLabel>Type:</PropertyLabel>
+                Type: 
                 <Select name="type" value={editedTask.type} onChange={handleInputChange}>
                   <option value="debt">Debt</option>
                   <option value="cost">Cost</option>
@@ -339,7 +333,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 </Select>
               </TaskProperty>
               <TaskProperty>
-                <PropertyLabel>Note:</PropertyLabel>
+                Note: 
                 <Input
                   type="text"
                   name="note"
@@ -347,14 +341,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   onChange={handleInputChange}
                 />
               </TaskProperty>
-              <TaskProperty>
-                <PropertyLabel>Priority Score:</PropertyLabel>
-                <span>{calculatePriority(editedTask, tasks).toFixed(2)}</span>
-              </TaskProperty>
-              <TaskProperty>
-                <PropertyLabel>Rejection Count:</PropertyLabel>
-                <span>{editedTask.rejectionCount}</span>
-              </TaskProperty>
+              <TaskProperty>Priority Score: {calculatePriority(editedTask, tasks).toFixed(2)}</TaskProperty>
+              <TaskProperty>Rejection Count: {editedTask.rejectionCount}</TaskProperty>
             </TaskDetails>
             {timer !== null && <Timer>{formatTime(timer)}</Timer>}
             <ButtonGroup>
