@@ -136,6 +136,33 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 onChange={handleInputChange}
               />
             </FormGroup>
+            <FormGroup>
+              <Label htmlFor="parentTask">Parent Task</Label>
+              <SearchContainer>
+                <SearchInput
+                  type="text"
+                  id="parentTask"
+                  placeholder="Search for parent task..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                />
+                {searchResults.length > 0 && (
+                  <Dropdown>
+                    <DropdownItem onClick={() => handleSelectParentTask(null)}>
+                      None
+                    </DropdownItem>
+                    {searchResults.map(task => (
+                      <DropdownItem key={task.id} onClick={() => handleSelectParentTask(task)}>
+                        {task.name}
+                      </DropdownItem>
+                    ))}
+                  </Dropdown>
+                )}
+              </SearchContainer>
+              <TaskProperty>
+                Current Parent Task: {selectedParentTask ? selectedParentTask.name : 'None'}
+              </TaskProperty>
+            </FormGroup>
             <InlineFormGroup>
               <InlineLabel htmlFor="attribute">Attribute</InlineLabel>
               <Select
@@ -197,34 +224,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 onChange={handleInputChange}
               />
             </FormGroup>
-            <FormGroup>
-              <Label htmlFor="parentTask">Parent Task</Label>
-              <SearchContainer>
-                <SearchInput
-                  type="text"
-                  id="parentTask"
-                  placeholder="Search for parent task..."
-                  value={searchTerm}
-                  onChange={handleSearch}
-                />
-                {searchResults.length > 0 && (
-                  <Dropdown>
-                    <DropdownItem onClick={() => handleSelectParentTask(null)}>
-                      None
-                    </DropdownItem>
-                    {searchResults.map(task => (
-                      <DropdownItem key={task.id} onClick={() => handleSelectParentTask(task)}>
-                        {task.name}
-                      </DropdownItem>
-                    ))}
-                  </Dropdown>
-                )}
-              </SearchContainer>
-            </FormGroup>
             <TaskDetails>
-              <TaskProperty>
-                Parent Task: {selectedParentTask ? selectedParentTask.name : 'None'}
-              </TaskProperty>
               <TaskProperty>
                 Priority Score: {calculatePriority(editedTask, tasks).toFixed(2)}
               </TaskProperty>

@@ -191,7 +191,7 @@ export const SearchInput = styled(Input)`
 `;
 
 export const TaskDetails = styled.div`
-  margin-bottom: 20px;
+  margin-bottom: 5px;
 `;
 
 export const TaskProperty = styled.p`
@@ -203,7 +203,7 @@ export const ButtonGroup = styled.div`
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 20px;
+  margin-top: 0px;
 `;
 
 export const ActionButton = styled(Button)`

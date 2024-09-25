@@ -17,11 +17,16 @@ import {
   InlineFormGroup,
   InlineLabel,
   TaskInputContainer,
-  NewTaskButton
+  NewTaskButton,
+  SearchContainer,
+  SearchInput,
+  Dropdown,
+  DropdownItem,
+  TaskProperty
 } from '../styles/TaskStyles';
 
 const TaskInput: React.FC = () => {
-  const { addTask } = useTaskContext();
+  const { addTask, tasks } = useTaskContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTask, setNewTask] = useState<Partial<Task>>({
     attribute: 'important',
@@ -31,12 +36,38 @@ const TaskInput: React.FC = () => {
     rejectionCount: 0,
     isCompleted: false
   });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<Task[]>([]);
+  const [selectedParentTask, setSelectedParentTask] = useState<Task | null>(null);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setNewTask({ ...newTask, [e.target.id]: e.target.value });
+  };
+
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const term = event.target.value;
+    setSearchTerm(term);
+    if (term.trim() === '') {
+      setSearchResults([]);
+    } else {
+      const results = tasks.filter(task =>
+        task.name.toLowerCase().includes(term.toLowerCase())
+      );
+      setSearchResults(results);
+    }
+  };
+
+  const handleSelectParentTask = (task: Task | null) => {
+    setSelectedParentTask(task);
+    setSearchTerm(task ? task.name : '');
+    setSearchResults([]);
+    setNewTask({
+      ...newTask,
+      parentTaskId: task ? task.id : null
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -51,7 +82,8 @@ const TaskInput: React.FC = () => {
         type: newTask.type as Task['type'],
         note: newTask.note,
         rejectionCount: 0,
-        isCompleted: false
+        isCompleted: false,
+        parentTaskId: newTask.parentTaskId
       } as Task);
       setNewTask({
         attribute: 'important',
@@ -59,6 +91,8 @@ const TaskInput: React.FC = () => {
         effort: 'medium',
         type: 'debt'
       });
+      setSelectedParentTask(null);
+      setSearchTerm('');
       closeModal();
     }
   };
@@ -74,6 +108,30 @@ const TaskInput: React.FC = () => {
             <FormGroup>
               <Label htmlFor="name">Task Name</Label>
               <Input type="text" id="name" value={newTask.name || ''} onChange={handleInputChange} required />
+            </FormGroup>
+            <FormGroup>
+              <Label htmlFor="parentTask">Parent Task</Label>
+              <SearchContainer>
+                <SearchInput
+                  type="text"
+                  id="parentTask"
+                  placeholder="Search for parent task..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                />
+                {searchResults.length > 0 && (
+                  <Dropdown>
+                    <DropdownItem onClick={() => handleSelectParentTask(null)}>
+                      None
+                    </DropdownItem>
+                    {searchResults.map(task => (
+                      <DropdownItem key={task.id} onClick={() => handleSelectParentTask(task)}>
+                        {task.name}
+                      </DropdownItem>
+                    ))}
+                  </Dropdown>
+                )}
+              </SearchContainer>
             </FormGroup>
             <InlineFormGroup>
               <InlineLabel htmlFor="attribute">Attribute</InlineLabel>
