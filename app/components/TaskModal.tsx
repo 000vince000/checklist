@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
 import { Task } from '../types/Task';
 import { calculatePriority, formatTime } from '../utils/taskUtils';
 import { useTaskContext } from '../context/TaskContext';
@@ -18,78 +17,18 @@ import {
   SubmitButton,
   InlineFormGroup,
   InlineLabel,
-  DropdownItem // Import DropdownItem from TaskStyles
+  DropdownItem,
+  Dropdown,
+  SearchContainer,
+  SearchInput,
+  TaskDetails,
+  TaskProperty,
+  ButtonGroup,
+  AcceptButton,
+  RejectButton,
+  DeleteButton,
+  SaveButton
 } from '../styles/TaskStyles';
-
-// Additional styled components specific to TaskModal
-const SearchContainer = styled.div`
-  position: relative;
-`;
-
-const SearchInput = styled(Input)`
-  width: 100%;
-`;
-
-const Dropdown = styled.div`
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background-color: #3c3c3c;
-  border: 1px solid #4CAF50;
-  border-top: none;
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 1;
-`;
-
-// Remove the DropdownItem styled component from here
-
-const TaskDetails = styled.div`
-  margin-bottom: 20px;
-`;
-
-const TaskProperty = styled.p`
-  margin: 10px 0;
-  font-size: 14px;
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 20px;
-`;
-
-const ActionButton = styled(Button)`
-  flex: 1;
-  padding: 10px;
-  font-size: 14px;
-`;
-
-const AcceptButton = styled(ActionButton)`
-  background-color: #4CAF50;
-  color: white;
-  &:hover { background-color: #45a049; }
-`;
-
-const RejectButton = styled(ActionButton)`
-  background-color: #ff9800;
-  color: white;
-  &:hover { background-color: #f57c00; }
-`;
-
-const DeleteButton = styled(ActionButton)`
-  background-color: #f44336;
-  color: white;
-  &:hover { background-color: #d32f2f; }
-`;
-
-const SaveButton = styled(ActionButton)`
-  background-color: #2196f3;
-  color: white;
-  &:hover { background-color: #1976d2; }
-`;
 
 interface TaskModalProps {
   selectedTask: Task | null;

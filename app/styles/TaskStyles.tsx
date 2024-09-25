@@ -158,3 +158,71 @@ export const DropdownItem = styled.div`
     color: white;
   }
 `;
+
+export const Dropdown = styled.div`
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #3c3c3c;
+  border: 1px solid #4CAF50;
+  border-top: none;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+`;
+
+export const SearchContainer = styled.div`
+  position: relative;
+`;
+
+export const SearchInput = styled(Input)`
+  width: 100%;
+`;
+
+export const TaskDetails = styled.div`
+  margin-bottom: 20px;
+`;
+
+export const TaskProperty = styled.p`
+  margin: 10px 0;
+  font-size: 14px;
+`;
+
+export const ButtonGroup = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 20px;
+`;
+
+export const ActionButton = styled(Button)`
+  flex: 1;
+  padding: 10px;
+  font-size: 14px;
+`;
+
+export const AcceptButton = styled(ActionButton)`
+  background-color: #4CAF50;
+  color: white;
+  &:hover { background-color: #45a049; }
+`;
+
+export const RejectButton = styled(ActionButton)`
+  background-color: #ff9800;
+  color: white;
+  &:hover { background-color: #f57c00; }
+`;
+
+export const DeleteButton = styled(ActionButton)`
+  background-color: #f44336;
+  color: white;
+  &:hover { background-color: #d32f2f; }
+`;
+
+export const SaveButton = styled(ActionButton)`
+  background-color: #2196f3;
+  color: white;
+  &:hover { background-color: #1976d2; }
+`;
