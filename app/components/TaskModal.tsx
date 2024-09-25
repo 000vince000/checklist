@@ -24,10 +24,14 @@ import {
   TaskDetails,
   TaskProperty,
   ButtonGroup,
+  DoneButton,
+  PauseButton,
+  AbandonButton,
   AcceptButton,
   RejectButton,
   DeleteButton,
-  SaveButton
+  SaveButton,
+  ActionButton
 } from '../styles/TaskStyles';
 
 interface TaskModalProps {
@@ -232,6 +236,11 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 Rejection Count: {editedTask.rejectionCount}
               </TaskProperty>
             </TaskDetails>
+            {timer !== null && (
+              <TaskProperty>
+                Timer: {formatTime(timer)}
+              </TaskProperty>
+            )}
             {timer === null ? (
               <ButtonGroup>
                 <AcceptButton type="button" onClick={handleAccept}>Accept</AcceptButton>
@@ -240,14 +249,13 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 <SaveButton type="submit">Save</SaveButton>
               </ButtonGroup>
             ) : (
-              <>
-                <div>{formatTime(timer)}</div>
-                <Button onClick={handleDone}>Done</Button>
-                <Button onClick={handlePause}>
+              <ButtonGroup>
+                <DoneButton onClick={handleDone}>Done</DoneButton>
+                <PauseButton onClick={handlePause}>
                   {isPaused ? 'Resume' : 'Pause'}
-                </Button>
-                <Button onClick={handleAbandon}>Abandon</Button>
-              </>
+                </PauseButton>
+                <AbandonButton onClick={handleAbandon}>Abandon</AbandonButton>
+              </ButtonGroup>
             )}
           </Form>
         )}
