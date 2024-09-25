@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
 import { Task } from '../types/Task';
 import { useTaskContext } from '../context/TaskContext';
 import {
@@ -16,7 +15,9 @@ import {
   Textarea,
   SubmitButton,
   InlineFormGroup,
-  InlineLabel
+  InlineLabel,
+  TaskInputContainer,
+  NewTaskButton
 } from '../styles/TaskStyles';
 
 const TaskInput: React.FC = () => {
@@ -63,8 +64,8 @@ const TaskInput: React.FC = () => {
   };
 
   return (
-    <div>
-      <Button onClick={openModal}>+ New</Button>
+    <TaskInputContainer>
+      <NewTaskButton onClick={openModal}>+ New</NewTaskButton>
       <Modal isOpen={isModalOpen}>
         <ModalContent>
           <CloseButton onClick={closeModal}>&times;</CloseButton>
@@ -114,7 +115,7 @@ const TaskInput: React.FC = () => {
           </Form>
         </ModalContent>
       </Modal>
-    </div>
+    </TaskInputContainer>
   );
 };
 

@@ -125,81 +125,81 @@ const TaskModal: React.FC<TaskModalProps> = ({
       <ModalContent>
         <CloseButton onClick={closeModal}>&times;</CloseButton>
         {editedTask && (
-          <>
-            <Form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
-              <FormGroup>
-                <Label htmlFor="name">Task Name</Label>
-                <Input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={editedTask.name}
-                  onChange={handleInputChange}
-                />
-              </FormGroup>
-              <InlineFormGroup>
-                <InlineLabel htmlFor="attribute">Attribute</InlineLabel>
-                <Select
-                  id="attribute"
-                  name="attribute"
-                  value={editedTask.attribute}
-                  onChange={handleInputChange}
-                >
-                  <option value="urgent">Urgent</option>
-                  <option value="important">Important</option>
-                  <option value="unimportant">Unimportant</option>
-                </Select>
-              </InlineFormGroup>
-              <InlineFormGroup>
-                <InlineLabel htmlFor="externalDependency">External Dependency</InlineLabel>
-                <Select
-                  id="externalDependency"
-                  name="externalDependency"
-                  value={editedTask.externalDependency}
-                  onChange={handleInputChange}
-                >
-                  <option value="yes">Yes</option>
-                  <option value="no">No</option>
-                </Select>
-              </InlineFormGroup>
-              <InlineFormGroup>
-                <InlineLabel htmlFor="effort">Effort</InlineLabel>
-                <Select
-                  id="effort"
-                  name="effort"
-                  value={editedTask.effort}
-                  onChange={handleInputChange}
-                >
-                  <option value="small">Small</option>
-                  <option value="medium">Medium</option>
-                  <option value="large">Large</option>
-                </Select>
-              </InlineFormGroup>
-              <InlineFormGroup>
-                <InlineLabel htmlFor="type">Type</InlineLabel>
-                <Select
-                  id="type"
-                  name="type"
-                  value={editedTask.type}
-                  onChange={handleInputChange}
-                >
-                  <option value="debt">Debt</option>
-                  <option value="cost">Cost</option>
-                  <option value="revenue">Revenue</option>
-                  <option value="happiness">Happiness</option>
-                </Select>
-              </InlineFormGroup>
-              <FormGroup>
-                <Label htmlFor="note">Note</Label>
-                <Textarea
-                  id="note"
-                  name="note"
-                  value={editedTask.note || ''}
-                  onChange={handleInputChange}
-                />
-              </FormGroup>
+          <Form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
+            <FormGroup>
+              <Label htmlFor="name">Task Name</Label>
+              <Input
+                type="text"
+                id="name"
+                name="name"
+                value={editedTask.name}
+                onChange={handleInputChange}
+              />
+            </FormGroup>
+            <InlineFormGroup>
+              <InlineLabel htmlFor="attribute">Attribute</InlineLabel>
+              <Select
+                id="attribute"
+                name="attribute"
+                value={editedTask.attribute}
+                onChange={handleInputChange}
+              >
+                <option value="urgent">Urgent</option>
+                <option value="important">Important</option>
+                <option value="unimportant">Unimportant</option>
+              </Select>
+            </InlineFormGroup>
+            <InlineFormGroup>
+              <InlineLabel htmlFor="externalDependency">External Dependency</InlineLabel>
+              <Select
+                id="externalDependency"
+                name="externalDependency"
+                value={editedTask.externalDependency}
+                onChange={handleInputChange}
+              >
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </Select>
+            </InlineFormGroup>
+            <InlineFormGroup>
+              <InlineLabel htmlFor="effort">Effort</InlineLabel>
+              <Select
+                id="effort"
+                name="effort"
+                value={editedTask.effort}
+                onChange={handleInputChange}
+              >
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+              </Select>
+            </InlineFormGroup>
+            <InlineFormGroup>
+              <InlineLabel htmlFor="type">Type</InlineLabel>
+              <Select
+                id="type"
+                name="type"
+                value={editedTask.type}
+                onChange={handleInputChange}
+              >
+                <option value="debt">Debt</option>
+                <option value="cost">Cost</option>
+                <option value="revenue">Revenue</option>
+                <option value="happiness">Happiness</option>
+              </Select>
+            </InlineFormGroup>
+            <FormGroup>
+              <Label htmlFor="note">Note</Label>
+              <Textarea
+                id="note"
+                name="note"
+                value={editedTask.note || ''}
+                onChange={handleInputChange}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label htmlFor="parentTask">Parent Task</Label>
               <SearchContainer>
-                <Label htmlFor="parentTask">Parent Task</Label>
                 <SearchInput
                   type="text"
                   id="parentTask"
@@ -220,36 +220,36 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   </Dropdown>
                 )}
               </SearchContainer>
-              <TaskDetails>
-                <TaskProperty>
-                  Parent Task: {selectedParentTask ? selectedParentTask.name : 'None'}
-                </TaskProperty>
-                <TaskProperty>
-                  Priority Score: {calculatePriority(editedTask, tasks).toFixed(2)}
-                </TaskProperty>
-                <TaskProperty>
-                  Rejection Count: {editedTask.rejectionCount}
-                </TaskProperty>
-              </TaskDetails>
-              {timer === null ? (
-                <ButtonGroup>
-                  <AcceptButton type="button" onClick={handleAccept}>Accept</AcceptButton>
-                  <RejectButton type="button" onClick={handleReject}>Reject</RejectButton>
-                  <DeleteButton type="button" onClick={handleDelete}>Delete</DeleteButton>
-                  <SaveButton type="submit">Save</SaveButton>
-                </ButtonGroup>
-              ) : (
-                <>
-                  <div>{formatTime(timer)}</div>
-                  <Button onClick={handleDone}>Done</Button>
-                  <Button onClick={handlePause}>
-                    {isPaused ? 'Resume' : 'Pause'}
-                  </Button>
-                  <Button onClick={handleAbandon}>Abandon</Button>
-                </>
-              )}
-            </Form>
-          </>
+            </FormGroup>
+            <TaskDetails>
+              <TaskProperty>
+                Parent Task: {selectedParentTask ? selectedParentTask.name : 'None'}
+              </TaskProperty>
+              <TaskProperty>
+                Priority Score: {calculatePriority(editedTask, tasks).toFixed(2)}
+              </TaskProperty>
+              <TaskProperty>
+                Rejection Count: {editedTask.rejectionCount}
+              </TaskProperty>
+            </TaskDetails>
+            {timer === null ? (
+              <ButtonGroup>
+                <AcceptButton type="button" onClick={handleAccept}>Accept</AcceptButton>
+                <RejectButton type="button" onClick={handleReject}>Reject</RejectButton>
+                <DeleteButton type="button" onClick={handleDelete}>Delete</DeleteButton>
+                <SaveButton type="submit">Save</SaveButton>
+              </ButtonGroup>
+            ) : (
+              <>
+                <div>{formatTime(timer)}</div>
+                <Button onClick={handleDone}>Done</Button>
+                <Button onClick={handlePause}>
+                  {isPaused ? 'Resume' : 'Pause'}
+                </Button>
+                <Button onClick={handleAbandon}>Abandon</Button>
+              </>
+            )}
+          </Form>
         )}
       </ModalContent>
     </Modal>

@@ -12,7 +12,7 @@ export const Button = styled.button`
   margin: 4px 2px;
   cursor: pointer;
   border-radius: 4px;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: all 0.3s ease;
 
   &:hover {
     background-color: #4CAF50;
@@ -23,20 +23,20 @@ export const Button = styled.button`
 export const Modal = styled.div<{ isOpen: boolean }>`
   display: ${props => props.isOpen ? 'flex' : 'none'};
   position: fixed;
-  z-index: 1;
+  z-index: 1000;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
   overflow: auto;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: rgba(0, 0, 0, 0.5);
   align-items: center;
   justify-content: center;
 `;
 
 export const ModalContent = styled.div`
   background-color: #2c2c2c;
-  padding: 40px;
+  padding: 30px;
   border-radius: 8px;
   width: 90%;
   max-width: 500px;
@@ -53,7 +53,7 @@ export const CloseButton = styled.span`
   transition: color 0.3s ease;
 
   &:hover {
-    color: #000;
+    color: #fff;
   }
 `;
 
@@ -67,40 +67,42 @@ export const ModalHeader = styled.h2`
 export const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 `;
 
 export const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
+  gap: 8px;
 `;
 
 export const InlineFormGroup = styled.div`
   display: flex;
   align-items: center;
+  gap: 12px;
 `;
 
 export const Label = styled.label`
   font-weight: 500;
   color: #4CAF50;
+  margin-bottom: 4px;
 `;
 
-export const InlineLabel = styled.label`
-  margin-right: 10px;
-  min-width: 150px; // Ensure a minimum width for labels
-  font-weight: 500;
-  color: #4CAF50;
-  white-space: nowrap; // Prevent label wrapping
+export const InlineLabel = styled(Label)`
+  min-width: 150px;
+  white-space: nowrap;
+  margin-bottom: 0;
 `;
 
 export const Input = styled.input`
   flex: 1;
-  padding: 8px; // Reduced from 10px
+  padding: 8px 12px;
   border: 1px solid #4CAF50;
   border-radius: 4px;
-  font-size: 14px; // Reduced from 16px
+  font-size: 14px;
   background-color: #3c3c3c;
   color: #ffffff;
+  transition: box-shadow 0.3s ease;
 
   &:focus {
     outline: none;
@@ -110,12 +112,14 @@ export const Input = styled.input`
 
 export const Select = styled.select`
   flex: 1;
-  padding: 8px; // Reduced from 10px
+  padding: 8px 12px;
   border: 1px solid #4CAF50;
   border-radius: 4px;
-  font-size: 14px; // Reduced from 16px
+  font-size: 14px;
   background-color: #3c3c3c;
   color: #ffffff;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease;
 
   &:focus {
     outline: none;
@@ -124,15 +128,15 @@ export const Select = styled.select`
 `;
 
 export const Textarea = styled.textarea`
-  width: 100%;
-  padding: 8px; // Reduced from 10px
+  padding: 8px 12px;
   border: 1px solid #4CAF50;
   border-radius: 4px;
-  font-size: 14px; // Reduced from 16px
+  font-size: 14px;
   background-color: #3c3c3c;
   color: #ffffff;
-  min-height: 80px; // Reduced from 100px
+  min-height: 80px;
   resize: vertical;
+  transition: box-shadow 0.3s ease;
 
   &:focus {
     outline: none;
@@ -143,19 +147,12 @@ export const Textarea = styled.textarea`
 export const SubmitButton = styled(Button)`
   background-color: #4CAF50;
   color: white;
+  padding: 10px 20px;
+  font-size: 16px;
+  margin-top: 10px;
 
   &:hover {
     background-color: #45a049;
-  }
-`;
-
-export const DropdownItem = styled.div`
-  padding: 10px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #4CAF50;
-    color: white;
   }
 `;
 
@@ -169,16 +166,28 @@ export const Dropdown = styled.div`
   border-top: none;
   max-height: 200px;
   overflow-y: auto;
-  z-index: 1;
+  z-index: 1000;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 `;
 
-export const SearchContainer = styled.div`
+export const DropdownItem = styled.div`
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #4CAF50;
+    color: white;
+  }
+`;
+
+export const SearchContainer = styled(FormGroup)`
   position: relative;
+  
 `;
 
 export const SearchInput = styled(Input)`
-  width: 100%;
+  
 `;
 
 export const TaskDetails = styled.div`
@@ -186,14 +195,14 @@ export const TaskDetails = styled.div`
 `;
 
 export const TaskProperty = styled.p`
-  margin: 10px 0;
+  margin: 8px 0;
   font-size: 14px;
 `;
 
 export const ButtonGroup = styled.div`
   display: flex;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   margin-top: 20px;
 `;
 
@@ -225,4 +234,19 @@ export const SaveButton = styled(ActionButton)`
   background-color: #2196f3;
   color: white;
   &:hover { background-color: #1976d2; }
+`;
+
+export const TaskInputContainer = styled.div`
+  margin-bottom: 20px;
+`;
+
+export const NewTaskButton = styled(Button)`
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  font-size: 16px;
+
+  &:hover {
+    background-color: #45a049;
+  }
 `;
