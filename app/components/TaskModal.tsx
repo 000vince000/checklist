@@ -3,132 +3,50 @@ import styled from 'styled-components';
 import { Task } from '../types/Task';
 import { calculatePriority, formatTime } from '../utils/taskUtils';
 import { useTaskContext } from '../context/TaskContext';
+import {
+  Button,
+  Modal,
+  ModalContent,
+  CloseButton,
+  ModalHeader,
+  Form,
+  FormGroup,
+  Label,
+  Input,
+  Select,
+  Textarea,
+  SubmitButton
+} from '../styles/TaskStyles';
 
-const Modal = styled.div<{ isOpen: boolean }>`
-  display: ${props => props.isOpen ? 'flex' : 'none'};
-  position: fixed;
-  z-index: 1;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.4);
-  justify-content: center;
-  align-items: center;
-`;
-
-const ModalContent = styled.div`
-  background-color: #3c3c3c;
-  padding: 30px;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 500px;
-  color: white;
-  position: relative;
-`;
-
-const CloseButton = styled.span`
-  color: #aaa;
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-
-  &:hover,
-  &:focus {
-    color: #fff;
-    text-decoration: none;
-  }
-`;
-
-const ModalButton = styled.button`
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-  color: white;
-  transition: background-color 0.3s;
-`;
-
-const AcceptButton = styled(ModalButton)`
-  background-color: #4CAF50;
-  &:hover { background-color: #45a049; }
-`;
-
-const RejectButton = styled(ModalButton)`
-  background-color: #f44336;
-  &:hover { background-color: #d32f2f; }
-`;
-
-const DoneButton = styled(ModalButton)`
-  background-color: #2196F3;
-  &:hover { background-color: #1e88e5; }
-`;
-
-const Timer = styled.div`
-  font-size: 24px;
-  margin-bottom: 20px;
-  text-align: center;
-`;
-
-const PauseButton = styled(ModalButton)`
-  background-color: #FFA500;
-  &:hover { background-color: #FF8C00; }
-`;
-
-const AbandonButton = styled(ModalButton)`
-  background-color: #8B0000;
-  &:hover { background-color: #A52A2A; }
-`;
-
-const DeleteButton = styled(ModalButton)`
-  background-color: #8B0000;
-  &:hover { background-color: #A52A2A; }
-`;
-
+// Additional styled components specific to TaskModal
 const SearchContainer = styled.div`
   position: relative;
-  margin-bottom: 20px;
-  margin-right: 30px;
 `;
 
-const SearchInput = styled.input`
+const SearchInput = styled(Input)`
   width: 100%;
-  padding: 10px;
-  border: 1px solid #555;
-  border-radius: 4px;
-  background-color: #2c2c2c;
-  color: white;
-  font-size: 14px;
 `;
 
-const Dropdown = styled.ul`
+const Dropdown = styled.div`
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
-  background-color: #2c2c2c;
-  border: 1px solid #555;
+  background-color: #3c3c3c;
+  border: 1px solid #4CAF50;
   border-top: none;
-  border-radius: 0 0 4px 4px;
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  max-height: 150px;
+  max-height: 200px;
   overflow-y: auto;
   z-index: 1;
 `;
 
-const DropdownItem = styled.li`
+const DropdownItem = styled.div`
   padding: 10px;
   cursor: pointer;
-  font-size: 14px;
+
   &:hover {
-    background-color: #3c3c3c;
+    background-color: #4CAF50;
+    color: white;
   }
 `;
 
@@ -147,29 +65,14 @@ const ButtonGroup = styled.div`
   gap: 10px;
 `;
 
-const SaveButton = styled(ModalButton)`
+const SaveButton = styled(Button)`
   background-color: #3498db;
   &:hover { background-color: #2980b9; }
 `;
 
-const Input = styled.input`
-  width: 100%;
-  padding: 5px;
-  margin-top: 5px;
-  background-color: #2c2c2c;
-  border: 1px solid #555;
-  border-radius: 4px;
-  color: white;
-`;
-
-const Select = styled.select`
-  width: 100%;
-  padding: 5px;
-  margin-top: 5px;
-  background-color: #2c2c2c;
-  border: 1px solid #555;
-  border-radius: 4px;
-  color: white;
+const DeleteButton = styled(Button)`
+  background-color: #8B0000;
+  &:hover { background-color: #A52A2A; }
 `;
 
 interface TaskModalProps {
@@ -268,101 +171,130 @@ const TaskModal: React.FC<TaskModalProps> = ({
         <CloseButton onClick={closeModal}>&times;</CloseButton>
         {editedTask && (
           <>
-            <h2 style={{ marginTop: 0, marginBottom: '20px' }}>
-              <Input
-                type="text"
-                name="name"
-                value={editedTask.name}
-                onChange={handleInputChange}
-              />
-            </h2>
-            <SearchContainer>
-              <SearchInput
-                type="text"
-                placeholder="Search for parent task..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-              {searchResults.length > 0 && (
-                <Dropdown>
-                  <DropdownItem onClick={() => handleSelectParentTask(null)}>
-                    None
-                  </DropdownItem>
-                  {searchResults.map(task => (
-                    <DropdownItem key={task.id} onClick={() => handleSelectParentTask(task)}>
-                      {task.name}
-                    </DropdownItem>
-                  ))}
-                </Dropdown>
-              )}
-            </SearchContainer>
-            <TaskDetails>
-              <TaskProperty>
-                Parent Task: {selectedParentTask ? selectedParentTask.name : 'None'}
-              </TaskProperty>
-              <TaskProperty>
-                Attribute: 
-                <Select name="attribute" value={editedTask.attribute} onChange={handleInputChange}>
+            <ModalHeader>{editedTask.name}</ModalHeader>
+            <Form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
+              <FormGroup>
+                <Label htmlFor="name">Task Name</Label>
+                <Input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={editedTask.name}
+                  onChange={handleInputChange}
+                />
+              </FormGroup>
+              <FormGroup>
+                <Label htmlFor="attribute">Attribute</Label>
+                <Select
+                  id="attribute"
+                  name="attribute"
+                  value={editedTask.attribute}
+                  onChange={handleInputChange}
+                >
                   <option value="urgent">Urgent</option>
                   <option value="important">Important</option>
                   <option value="unimportant">Unimportant</option>
                 </Select>
-              </TaskProperty>
-              <TaskProperty>
-                External Dependency: 
-                <Select name="externalDependency" value={editedTask.externalDependency} onChange={handleInputChange}>
+              </FormGroup>
+              <FormGroup>
+                <Label htmlFor="externalDependency">External Dependency</Label>
+                <Select
+                  id="externalDependency"
+                  name="externalDependency"
+                  value={editedTask.externalDependency}
+                  onChange={handleInputChange}
+                >
                   <option value="yes">Yes</option>
                   <option value="no">No</option>
                 </Select>
-              </TaskProperty>
-              <TaskProperty>
-                Effort: 
-                <Select name="effort" value={editedTask.effort} onChange={handleInputChange}>
+              </FormGroup>
+              <FormGroup>
+                <Label htmlFor="effort">Effort</Label>
+                <Select
+                  id="effort"
+                  name="effort"
+                  value={editedTask.effort}
+                  onChange={handleInputChange}
+                >
                   <option value="small">Small</option>
                   <option value="medium">Medium</option>
                   <option value="large">Large</option>
                 </Select>
-              </TaskProperty>
-              <TaskProperty>
-                Type: 
-                <Select name="type" value={editedTask.type} onChange={handleInputChange}>
+              </FormGroup>
+              <FormGroup>
+                <Label htmlFor="type">Type</Label>
+                <Select
+                  id="type"
+                  name="type"
+                  value={editedTask.type}
+                  onChange={handleInputChange}
+                >
                   <option value="debt">Debt</option>
                   <option value="cost">Cost</option>
                   <option value="revenue">Revenue</option>
                   <option value="happiness">Happiness</option>
                 </Select>
-              </TaskProperty>
-              <TaskProperty>
-                Note: 
-                <Input
-                  type="text"
+              </FormGroup>
+              <FormGroup>
+                <Label htmlFor="note">Note</Label>
+                <Textarea
+                  id="note"
                   name="note"
                   value={editedTask.note || ''}
                   onChange={handleInputChange}
                 />
-              </TaskProperty>
-              <TaskProperty>Priority Score: {calculatePriority(editedTask, tasks).toFixed(2)}</TaskProperty>
-              <TaskProperty>Rejection Count: {editedTask.rejectionCount}</TaskProperty>
-            </TaskDetails>
-            {timer !== null && <Timer>{formatTime(timer)}</Timer>}
-            <ButtonGroup>
+              </FormGroup>
+              <SearchContainer>
+                <Label htmlFor="parentTask">Parent Task</Label>
+                <SearchInput
+                  type="text"
+                  id="parentTask"
+                  placeholder="Search for parent task..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                />
+                {searchResults.length > 0 && (
+                  <Dropdown>
+                    <DropdownItem onClick={() => handleSelectParentTask(null)}>
+                      None
+                    </DropdownItem>
+                    {searchResults.map(task => (
+                      <DropdownItem key={task.id} onClick={() => handleSelectParentTask(task)}>
+                        {task.name}
+                      </DropdownItem>
+                    ))}
+                  </Dropdown>
+                )}
+              </SearchContainer>
+              <TaskDetails>
+                <TaskProperty>
+                  Parent Task: {selectedParentTask ? selectedParentTask.name : 'None'}
+                </TaskProperty>
+                <TaskProperty>
+                  Priority Score: {calculatePriority(editedTask, tasks).toFixed(2)}
+                </TaskProperty>
+                <TaskProperty>
+                  Rejection Count: {editedTask.rejectionCount}
+                </TaskProperty>
+              </TaskDetails>
               {timer === null ? (
                 <>
-                  <AcceptButton onClick={handleAccept}>Accept</AcceptButton>
-                  <RejectButton onClick={handleReject}>Reject</RejectButton>
+                  <Button onClick={handleAccept}>Accept</Button>
+                  <Button onClick={handleReject}>Reject</Button>
                   <DeleteButton onClick={handleDelete}>Delete</DeleteButton>
-                  <SaveButton onClick={handleSave}>Save</SaveButton>
+                  <SubmitButton type="submit">Save</SubmitButton>
                 </>
               ) : (
                 <>
-                  <DoneButton onClick={handleDone}>Done</DoneButton>
-                  <PauseButton onClick={handlePause}>
+                  <div>{formatTime(timer)}</div>
+                  <Button onClick={handleDone}>Done</Button>
+                  <Button onClick={handlePause}>
                     {isPaused ? 'Resume' : 'Pause'}
-                  </PauseButton>
-                  <AbandonButton onClick={handleAbandon}>Abandon</AbandonButton>
+                  </Button>
+                  <Button onClick={handleAbandon}>Abandon</Button>
                 </>
               )}
-            </ButtonGroup>
+            </Form>
           </>
         )}
       </ModalContent>
