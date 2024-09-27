@@ -21,15 +21,18 @@ const GoogleAuthButton: React.FC = () => {
     };
 
     const initClient = () => {
-      const clientId = window.env.REACT_APP_GOOGLE_CLIENT_ID;
-      const apiKey = window.env.REACT_APP_GOOGLE_API_KEY;
-      const discoveryDocs = JSON.parse(window.env.REACT_APP_GOOGLE_DISCOVERY_DOCS || '[]');
+      console.log('Initializing Google API client');
+      const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+      const apiKey = process.env.REACT_APP_GOOGLE_API_KEY;
+      const discoveryDocs = JSON.parse(process.env.REACT_APP_GOOGLE_DISCOVERY_DOCS || '[]');
+      
       window.gapi.client.init({
         apiKey: apiKey,
         clientId: clientId,
         discoveryDocs: discoveryDocs,
         scope: 'https://www.googleapis.com/auth/drive.file'
       }).then(() => {
+        console.log('Google API client initialized successfully');
         const authInstance = window.gapi.auth2.getAuthInstance();
         setIsSignedIn(authInstance.isSignedIn.get());
         authInstance.isSignedIn.listen(updateSignInStatus);
@@ -39,10 +42,12 @@ const GoogleAuthButton: React.FC = () => {
     };
 
     const updateSignInStatus = (isSignedIn: boolean) => {
+      console.log('Sign-in status updated:', isSignedIn);
       setIsSignedIn(isSignedIn);
     };
 
     if (window.gapi) {
+      console.log('Google API is available');
       loadGoogleAPI();
     } else {
       console.error('Google API not loaded');
