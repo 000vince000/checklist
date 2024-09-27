@@ -1,5 +1,10 @@
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
+const webpack = require('webpack');
+const dotenv = require('dotenv');
+
+// Load environment variables from .env file
+const env = dotenv.config().parsed;
 
 module.exports = {
   entry: './app/index.tsx',
@@ -23,10 +28,26 @@ module.exports = {
   plugins: [
     new CopyPlugin({
       patterns: [
-        { from: 'public/index.html', to: 'index.html' },
+        { 
+          from: 'public/index.html', 
+          to: 'index.html',
+          transform(content) {
+            return content.toString().replace(
+              /%REACT_APP_GOOGLE_CLIENT_ID%/g,
+              env.REACT_APP_GOOGLE_CLIENT_ID
+            ).replace(
+              /%REACT_APP_GOOGLE_API_KEY%/g,
+              env.REACT_APP_GOOGLE_API_KEY
+            ).replace(
+              /%REACT_APP_GOOGLE_DISCOVERY_DOCS%/g,
+              env.REACT_APP_GOOGLE_DISCOVERY_DOCS
+            );
+          },
+        },
         { from: '.nojekyll', to: '.nojekyll', noErrorOnMissing: true },
       ],
     }),
+    // Remove the DefinePlugin instances as we're not using process.env anymore
   ],
   optimization: {
     minimize: true,

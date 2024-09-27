@@ -1,6 +1,5 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { Task } from '../types/Task';
-import { saveToGoogleDrive, loadFromGoogleDrive } from '../utils/googleDriveUtils';
 
 interface TaskContextType {
   tasks: Task[];
@@ -55,9 +54,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(tasks));
     localStorage.setItem(CLOSED_TASKS_KEY, JSON.stringify(completedTasks));
     
-    // Save to Google Drive
-    await saveToGoogleDrive(JSON.stringify(tasks), 'tasks.json');
-    await saveToGoogleDrive(JSON.stringify(completedTasks), 'completedTasks.json');
+    // // Save to Google Drive
+    // await saveToGoogleDrive(JSON.stringify(tasks), 'tasks.json');
+    // await saveToGoogleDrive(JSON.stringify(completedTasks), 'completedTasks.json');
   };
 
   const loadFromStorage = async () => {
@@ -65,11 +64,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const localCompletedTasks = localStorage.getItem(CLOSED_TASKS_KEY);
 
     // Try to load from Google Drive
-    const driveTasks = await loadFromGoogleDrive('tasks.json');
-    const driveCompletedTasks = await loadFromGoogleDrive('completedTasks.json');
+    // const driveTasks = await loadFromGoogleDrive('tasks.json');
+    // const driveCompletedTasks = await loadFromGoogleDrive('completedTasks.json');
 
-    setTasks(driveTasks || (localTasks ? JSON.parse(localTasks) : generateRandomTasks(20)));
-    setCompletedTasks(driveCompletedTasks || (localCompletedTasks ? JSON.parse(localCompletedTasks) : []));
+    // setTasks(driveTasks || (localTasks ? JSON.parse(localTasks) : generateRandomTasks(20)));
+    // setCompletedTasks(driveCompletedTasks || (localCompletedTasks ? JSON.parse(localCompletedTasks) : []));
   };
 
   useEffect(() => {
