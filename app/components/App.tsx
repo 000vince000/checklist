@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import TaskInput from './TaskInput';
 import TaskHeatmap from './TaskHeatmap';
 import TaskSuggestion from './TaskSuggestion';
+import GoogleAuthButton from './GoogleAuthButton'; // Add this import
 import styled from 'styled-components';
 import { TaskProvider } from '../context/TaskContext';
 import { NewTaskButton } from '../styles/TaskStyles';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const AppContainer = styled.div`
   max-width: 100%;
@@ -223,75 +225,78 @@ function App() {
   };
 
   return (
-    <TaskProvider>
-      <AppContainer>
-        <Header>
-          <Title>Collaborative Checklist</Title>
-          <ButtonAndFilterContainer>
-            <ButtonContainer>
-              <NewTaskButton onClick={openTaskInputModal}>+ New</NewTaskButton>
-              <LuckyButton openMoodModal={openMoodModal} />
-            </ButtonContainer>
-            <FilterContainer>
-              <FilterDropdown 
-                value={attributeFilter} 
-                onChange={(e) => setAttributeFilter(e.target.value)}
-              >
-                <option value="all">Attributes</option>
-                <option value="urgent">Urgent</option>
-                <option value="important">Important</option>
-                <option value="unimportant">Unimportant</option>
-              </FilterDropdown>
-              <FilterDropdown 
-                value={typeFilter} 
-                onChange={(e) => setTypeFilter(e.target.value)}
-              >
-                <option value="all">Types</option>
-                <option value="debt">👻 Debt</option>
-                <option value="cost">💸 Cost</option>
-                <option value="revenue">💰 Revenue</option>
-                <option value="happiness">❤️ Happiness</option>
-              </FilterDropdown>
-            </FilterContainer>
-          </ButtonAndFilterContainer>
-        </Header>
-        <SearchContainer>
-          <SearchBar 
-            placeholder="Search tasks..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID || ''}>
+      <TaskProvider>
+        <AppContainer>
+          <Header>
+            <Title>Collaborative Checklist</Title>
+            <ButtonAndFilterContainer>
+              <ButtonContainer>
+                <NewTaskButton onClick={openTaskInputModal}>+ New</NewTaskButton>
+                <LuckyButton openMoodModal={openMoodModal} />
+                <GoogleAuthButton />
+              </ButtonContainer>
+              <FilterContainer>
+                <FilterDropdown 
+                  value={attributeFilter} 
+                  onChange={(e) => setAttributeFilter(e.target.value)}
+                >
+                  <option value="all">Attributes</option>
+                  <option value="urgent">Urgent</option>
+                  <option value="important">Important</option>
+                  <option value="unimportant">Unimportant</option>
+                </FilterDropdown>
+                <FilterDropdown 
+                  value={typeFilter} 
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                >
+                  <option value="all">Types</option>
+                  <option value="debt">👻 Debt</option>
+                  <option value="cost">💸 Cost</option>
+                  <option value="revenue">💰 Revenue</option>
+                  <option value="happiness">❤️ Happiness</option>
+                </FilterDropdown>
+              </FilterContainer>
+            </ButtonAndFilterContainer>
+          </Header>
+          <SearchContainer>
+            <SearchBar 
+              placeholder="Search tasks..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </SearchContainer>
+          <Section>
+            <TaskHeatmap 
+              selectedMood={selectedMood} 
+              setSelectedMood={setSelectedMood}
+              searchTerm={searchTerm}
+              attributeFilter={attributeFilter}
+              typeFilter={typeFilter}
+            />
+          </Section>
+          <Section>
+            <TaskSuggestion />
+          </Section>
+          <TaskInput
+            isOpen={isTaskInputModalOpen}
+            closeModal={closeTaskInputModal}
           />
-        </SearchContainer>
-        <Section>
-          <TaskHeatmap 
-            selectedMood={selectedMood} 
-            setSelectedMood={setSelectedMood}
-            searchTerm={searchTerm}
-            attributeFilter={attributeFilter}
-            typeFilter={typeFilter}
-          />
-        </Section>
-        <Section>
-          <TaskSuggestion />
-        </Section>
-        <TaskInput
-          isOpen={isTaskInputModalOpen}
-          closeModal={closeTaskInputModal}
-        />
-        <MoodModal isOpen={isMoodModalOpen}>
-          <MoodModalContent>
-            <h2>How are you feeling?</h2>
-            <div>
-              <MoodButton onClick={() => handleMoodSelection('💪')}>💪 Determined</MoodButton>
-              <MoodButton onClick={() => handleMoodSelection('🧘')}>🧘 Zen</MoodButton>
-              <MoodButton onClick={() => handleMoodSelection('🤓')}>🤓 Geeky</MoodButton>
-              <MoodButton onClick={() => handleMoodSelection('🥱')}>🥱 Tired</MoodButton>
-              <MoodButton onClick={() => handleMoodSelection('🤪')}>🤪 Bored</MoodButton>
-            </div>
-          </MoodModalContent>
-        </MoodModal>
-      </AppContainer>
-    </TaskProvider>
+          <MoodModal isOpen={isMoodModalOpen}>
+            <MoodModalContent>
+              <h2>How are you feeling?</h2>
+              <div>
+                <MoodButton onClick={() => handleMoodSelection('💪')}>💪 Determined</MoodButton>
+                <MoodButton onClick={() => handleMoodSelection('🧘')}>🧘 Zen</MoodButton>
+                <MoodButton onClick={() => handleMoodSelection('🤓')}>🤓 Geeky</MoodButton>
+                <MoodButton onClick={() => handleMoodSelection('🥱')}>🥱 Tired</MoodButton>
+                <MoodButton onClick={() => handleMoodSelection('🤪')}>🤪 Bored</MoodButton>
+              </div>
+            </MoodModalContent>
+          </MoodModal>
+        </AppContainer>
+      </TaskProvider>
+    </GoogleOAuthProvider>
   );
 }
 

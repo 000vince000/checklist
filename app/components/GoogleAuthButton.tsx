@@ -3,79 +3,77 @@ import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 
 declare global {
   interface Window {
-    gapi: any;
+    google?: any;
   }
 }
 
 const GoogleAuthButton: React.FC = () => {
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
 
-  const updateSignInStatus = useCallback((signedIn: boolean) => {
-    console.log('Sign-in status updated:', signedIn);
-    setIsSignedIn(signedIn);
+  const handleCredentialResponse = useCallback((response: CredentialResponse) => {
+    console.log("Encoded JWT ID token: " + response.credential);
+    setIsSignedIn(true);
+    // Here you can send the token to your backend for verification
   }, []);
-
-  const initClient = useCallback(() => {
-    console.log('Initializing Google API client');
-    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
-    const apiKey = process.env.REACT_APP_GOOGLE_API_KEY;
-    const discoveryDocs = JSON.parse(process.env.REACT_APP_GOOGLE_DISCOVERY_DOCS || '[]');
-    
-    window.gapi.client.init({
-      apiKey: apiKey,
-      clientId: clientId,
-      discoveryDocs: discoveryDocs,
-      scope: 'https://www.googleapis.com/auth/drive.file'
-    }).then(() => {
-      console.log('Google API client initialized successfully');
-      const authInstance = window.gapi.auth2.getAuthInstance();
-      setIsSignedIn(authInstance.isSignedIn.get());
-      authInstance.isSignedIn.listen(updateSignInStatus);
-    }).catch((error: unknown) => {
-      console.error('Error initializing Google API client:', error);
-    });
-  }, [updateSignInStatus]);
-
-  const loadGoogleAPI = useCallback(() => {
-    console.log('Loading Google API');
-    window.gapi.load('client:auth2', initClient);
-  }, [initClient]);
 
   useEffect(() => {
     console.log('GoogleAuthButton component rendered');
-    console.log('process.env:', process.env);
     console.log('Client ID:', process.env.REACT_APP_GOOGLE_CLIENT_ID);
-    console.log('API Key:', process.env.REACT_APP_GOOGLE_API_KEY);
-    console.log('Discovery Docs:', process.env.REACT_APP_GOOGLE_DISCOVERY_DOCS);
+    console.log('Current origin:', window.location.origin);
 
-    if (window.gapi) {
-      console.log('Google API is available');
-      loadGoogleAPI();
+    const loadGoogleScript = () => {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        console.log('Google Identity Services script loaded');
+        setIsGoogleLoaded(true);
+      };
+      script.onerror = (error) => {
+        console.error('Error loading Google Identity Services script:', error);
+      };
+      document.body.appendChild(script);
+    };
+
+    if (!window.google) {
+      console.log('Loading Google Identity Services script');
+      loadGoogleScript();
     } else {
-      console.error('Google API not loaded');
+      console.log('Google Identity Services already loaded');
+      setIsGoogleLoaded(true);
     }
-  }, [loadGoogleAPI]);
+  }, []);
 
-  const handleSignInClick = () => {
-    window.gapi.auth2.getAuthInstance().signIn();
+  useEffect(() => {
+    if (isGoogleLoaded && window.google) {
+      window.google.accounts.id.initialize({
+        client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse
+      });
+    }
+  }, [isGoogleLoaded, handleCredentialResponse]);
+
+  const handleSignOut = () => {
+    if (window.google) {
+      window.google.accounts.id.disableAutoSelect();
+      setIsSignedIn(false);
+      console.log('User signed out.');
+    }
   };
 
-  const handleSignOutClick = () => {
-    window.gapi.auth2.getAuthInstance().signOut();
-  };
-
-  const handleGoogleLogin = (response: CredentialResponse) => {
-    // Your login logic here
-    console.log(response);
-  };
+  if (!isGoogleLoaded) {
+    return <div>Loading Google Sign-In...</div>;
+  }
 
   return (
     <div>
       {isSignedIn ? (
-        <button onClick={handleSignOutClick}>Sign Out</button>
+        <button onClick={handleSignOut}>Sign Out</button>
       ) : (
         <GoogleLogin
-          onSuccess={handleGoogleLogin}
+          onSuccess={handleCredentialResponse}
           onError={() => {
             console.log('Login Failed');
           }}
