@@ -47,7 +47,9 @@ module.exports = {
         { from: '.nojekyll', to: '.nojekyll', noErrorOnMissing: true },
       ],
     }),
-    // Remove the DefinePlugin instances as we're not using process.env anymore
+    new webpack.DefinePlugin({
+      'process.env': JSON.stringify(dotenv.config().parsed)
+    }),
   ],
   optimization: {
     minimize: true,
