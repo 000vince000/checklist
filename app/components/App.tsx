@@ -234,6 +234,20 @@ function App() {
       });
   }, []);
 
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      if (event.message.includes('Cross-Origin-Opener-Policy')) {
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener('error', handleError);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+    };
+  }, []);
+
   return (
     <TaskProvider>
       <AppContainer>
@@ -295,7 +309,7 @@ function App() {
           <MoodModalContent>
             <h2>How are you feeling?</h2>
             <div>
-              <MoodButton onClick={() => handleMoodSelection('💪')}>💪 Determined</MoodButton>
+              <MoodButton onClick={() => handleMoodSelection('💪')}> Determined</MoodButton>
               <MoodButton onClick={() => handleMoodSelection('🧘')}>🧘 Zen</MoodButton>
               <MoodButton onClick={() => handleMoodSelection('🤓')}>🤓 Geeky</MoodButton>
               <MoodButton onClick={() => handleMoodSelection('🥱')}>🥱 Tired</MoodButton>

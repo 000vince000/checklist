@@ -32,4 +32,9 @@ module.exports = {
   plugins: [
     new webpack.DefinePlugin(envKeys)
   ],
+  devServer: {
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+    },
+  },
 };
