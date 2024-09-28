@@ -2,14 +2,19 @@ import React, { useEffect, useState, useCallback } from 'react';
 
 declare global {
   interface Window {
-    google?: {
+    gapi: any;
+    google: {
       accounts: {
         id: {
           initialize: (config: any) => void;
           renderButton: (element: HTMLElement | null, options: any) => void;
           prompt: () => void;
-          getAuthResponse: () => { id_token: string } | null;
-          disableAutoSelect: () => void;
+          revoke: (token: string, callback: () => void) => void;
+        };
+        oauth2: {
+          initTokenClient: (config: any) => {
+            requestAccessToken: (options?: { prompt?: string }) => Promise<any>;
+          };
         };
       };
     };
@@ -27,58 +32,51 @@ const GoogleAuthButton: React.FC = () => {
     }
   }, []);
 
-  const checkExistingSession = useCallback(() => {
-    const token = localStorage.getItem('google_auth_token');
-    if (token) {
-      // Here, we're assuming the presence of a token means the user is signed in
-      // In a production app, you might want to verify this token with your backend
-      setIsSignedIn(true);
-      console.log('Existing session found');
-    }
-  }, []);
-
   useEffect(() => {
-    const googleScript = document.createElement('script');
-    googleScript.src = 'https://accounts.google.com/gsi/client';
-    googleScript.async = true;
-    googleScript.defer = true;
-    document.body.appendChild(googleScript);
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
 
-    googleScript.onload = () => {
-      if (window.google) {
+    script.onload = () => {
+      if (window.google && window.google.accounts && window.google.accounts.id) {
         window.google.accounts.id.initialize({
           client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
           callback: handleCredentialResponse
         });
 
-        checkExistingSession();
-
-        if (!isSignedIn) {
+        const token = localStorage.getItem('google_auth_token');
+        if (token) {
+          setIsSignedIn(true);
+        } else {
           window.google.accounts.id.renderButton(
-            document.getElementById("googleSignInDiv"),
-            { theme: "outline", size: "large" }
+            document.getElementById('googleSignInDiv'),
+            { theme: 'outline', size: 'large' }
           );
-          // Disable auto-select to prevent automatic sign-in prompts
-          window.google.accounts.id.disableAutoSelect();
         }
+      } else {
+        console.error('Google Identity Services not loaded properly');
       }
     };
 
     return () => {
-      document.body.removeChild(googleScript);
+      document.body.removeChild(script);
     };
-  }, [handleCredentialResponse, checkExistingSession, isSignedIn]);
+  }, [handleCredentialResponse]);
 
   const handleSignOut = () => {
-    setIsSignedIn(false);
-    localStorage.removeItem('google_auth_token');
-    console.log('User signed out');
-    // Re-render the sign-in button
-    if (window.google) {
-      window.google.accounts.id.renderButton(
-        document.getElementById("googleSignInDiv"),
-        { theme: "outline", size: "large" }
-      );
+    const token = localStorage.getItem('google_auth_token');
+    if (token && window.google && window.google.accounts && window.google.accounts.id) {
+      window.google.accounts.id.revoke(token, () => {
+        localStorage.removeItem('google_auth_token');
+        setIsSignedIn(false);
+        console.log('User signed out');
+        window.google.accounts.id.renderButton(
+          document.getElementById('googleSignInDiv'),
+          { theme: 'outline', size: 'large' }
+        );
+      });
     }
   };
 
