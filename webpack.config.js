@@ -1,6 +1,7 @@
 const webpack = require('webpack');
 const dotenv = require('dotenv');
 const path = require('path');  // Add this line
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 // Call dotenv and it will return an Object with a parsed key 
 const env = dotenv.config().parsed;
@@ -30,11 +31,14 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
   },
   plugins: [
-    new webpack.DefinePlugin(envKeys)
+    new webpack.DefinePlugin(envKeys),
+    new HtmlWebpackPlugin({
+      template: path.resolve(__dirname, 'public/index.html'),
+    }),
   ],
   devServer: {
     headers: {
-      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+      'Content-Security-Policy': "frame-ancestors 'self' https://accounts.google.com"
     },
   },
 };

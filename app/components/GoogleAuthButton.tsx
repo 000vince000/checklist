@@ -1,119 +1,84 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { initializeGoogleDriveAPI, getAccessToken } from '../services/googleDriveService';
+import React, { useEffect, useRef, useState } from 'react';
+import styled from 'styled-components';
 
-declare global {
-  interface Window {
-    gapi: any;
-    google: {
-      accounts: {
-        id: {
-          initialize: (config: any) => void;
-          renderButton: (element: HTMLElement | null, options: any) => void;
-          prompt: () => void;
-          revoke: (token: string, callback: () => void) => void;
-        };
-        oauth2: {
-          initTokenClient: (config: any) => {
-            requestAccessToken: (options?: { prompt?: string }) => Promise<any>;
-          };
-        };
-      };
-    };
-  }
-}
+const Button = styled.button`
+  background-color: #4285F4;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+`;
 
 const GoogleAuthButton: React.FC = () => {
-  const [isSignedIn, setIsSignedIn] = useState(false);
+  const buttonRef = useRef<HTMLDivElement>(null);
+  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
 
-  const handleCredentialResponse = useCallback(async (response: any) => {
-    if (response.credential) {
-      localStorage.setItem('google_auth_token', response.credential);
-      setIsSignedIn(true);
-      console.log('User signed in');
-      
-      // Fetch and store access token
-      try {
-        await getAccessToken();
-      } catch (error) {
-        console.error('Error getting access token:', error);
-      }
-    }
-  }, []);
+  useEffect(() => {
+    const loadGoogleScript = () => {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        console.log('Google API script loaded');
+        setIsGoogleLoaded(true);
+      };
+      script.onerror = () => {
+        console.error('Failed to load Google API script');
+      };
+      document.body.appendChild(script);
+    };
 
-  const checkSignInStatus = useCallback(async () => {
-    const token = localStorage.getItem('google_auth_token');
-    if (token) {
-      try {
-        // Verify the token with Google
-        const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${token}`);
-        if (response.ok) {
-          setIsSignedIn(true);
-          // Refresh the access token
-          await getAccessToken();
-        } else {
-          // Token is invalid, remove it
-          localStorage.removeItem('google_auth_token');
-          setIsSignedIn(false);
-        }
-      } catch (error) {
-        console.error('Error verifying token:', error);
-        setIsSignedIn(false);
-      }
+    if (!window.google) {
+      loadGoogleScript();
     } else {
-      setIsSignedIn(false);
+      setIsGoogleLoaded(true);
     }
   }, []);
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      await initializeGoogleDriveAPI();
-      await checkSignInStatus();
-
-      if (window.google && window.google.accounts && window.google.accounts.id) {
+    if (isGoogleLoaded && window.google && window.google.accounts && window.google.accounts.id) {
+      try {
+        console.log('Initializing Google Sign-In');
         window.google.accounts.id.initialize({
           client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
           callback: handleCredentialResponse,
-          auto_select: true,
-          prompt_parent_id: 'googleSignInDiv'
         });
-
-        if (!isSignedIn) {
-          window.google.accounts.id.renderButton(
-            document.getElementById('googleSignInDiv'),
-            { theme: 'outline', size: 'large' }
-          );
-          window.google.accounts.id.prompt();
-        }
-      } else {
-        console.error('Google Identity Services not loaded properly');
+        console.log('Rendering Google Sign-In button');
+        window.google.accounts.id.renderButton(buttonRef.current, {
+          theme: 'outline',
+          size: 'large',
+        });
+        console.log('Google Sign-In button rendered');
+      } catch (error) {
+        console.error('Error initializing Google Sign-In:', error);
       }
-    };
+    }
+  }, [isGoogleLoaded]);
 
-    initializeAuth();
-  }, [handleCredentialResponse, checkSignInStatus, isSignedIn]);
+  const handleCredentialResponse = (response: any) => {
+    console.log('Google Sign-In response:', response);
+    if (response.credential) {
+      console.log('Successfully signed in with Google');
+    } else {
+      console.error('Failed to sign in with Google');
+    }
+  };
 
-  const handleSignOut = () => {
-    const token = localStorage.getItem('google_auth_token');
-    if (token && window.google && window.google.accounts && window.google.accounts.id) {
-      window.google.accounts.id.revoke(token, () => {
-        localStorage.removeItem('google_auth_token');
-        setIsSignedIn(false);
-        console.log('User signed out');
-        window.google.accounts.id.renderButton(
-          document.getElementById('googleSignInDiv'),
-          { theme: 'outline', size: 'large' }
-        );
-      });
+  const handleClick = () => {
+    console.log('Button clicked');
+    if (window.google && window.google.accounts && window.google.accounts.id) {
+      window.google.accounts.id.prompt();
+    } else {
+      console.error('Google API not loaded');
     }
   };
 
   return (
-    <div>
-      {isSignedIn ? (
-        <button onClick={handleSignOut}>Sign Out</button>
-      ) : (
-        <div id="googleSignInDiv"></div>
-      )}
+    <div ref={buttonRef}>
+      {!isGoogleLoaded && <Button onClick={handleClick}>Sign in with Google</Button>}
     </div>
   );
 };

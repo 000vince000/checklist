@@ -6,7 +6,6 @@ import GoogleAuthButton from './GoogleAuthButton';
 import styled from 'styled-components';
 import { TaskProvider } from '../context/TaskContext';
 import { NewTaskButton } from '../styles/TaskStyles';
-import { initializeGoogleDriveAPI } from '../services/googleDriveService';
 
 const AppContainer = styled.div`
   max-width: 100%;
@@ -225,13 +224,7 @@ function App() {
   };
 
   useEffect(() => {
-    initializeGoogleDriveAPI()
-      .then(() => {
-        console.log('Google Drive API initialized successfully');
-      })
-      .catch((error) => {
-        console.error('Failed to initialize Google Drive API', error);
-      });
+    console.log('Google Client ID:', process.env.REACT_APP_GOOGLE_CLIENT_ID);
   }, []);
 
   useEffect(() => {
