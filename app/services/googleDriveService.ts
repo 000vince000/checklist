@@ -133,64 +133,75 @@ export const saveToGoogleDrive = async (data: string, fileName: string): Promise
     const metadata = {
       name: fileName,
       mimeType: 'application/json',
-      parents: ['root']
     };
 
     console.log('Checking for existing file');
     const existingFileResponse = await window.gapi.client.drive.files.list({
-      q: `name='${fileName}' and 'root' in parents`,
+      q: `name='${fileName}' and trashed=false`,
       fields: 'files(id, name, webViewLink)',
     });
 
     const existingFiles = existingFileResponse.result.files;
     console.log('Existing files:', existingFiles);
 
-    let method = 'POST';
-    let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink';
-
+    let fileId: string | null = null;
     if (existingFiles && existingFiles.length > 0) {
-      console.log('Existing file found, attempting to update');
-      const fileId = existingFiles[0].id;
-      method = 'PATCH';
-      url = `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart&fields=id,name,webViewLink`;
+      console.log('Existing file found, updating');
+      fileId = existingFiles[0].id;
     } else {
       console.log('No existing file found, creating new file');
     }
 
-    const form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-    form.append('file', file);
+    let response;
+    if (fileId) {
+      // Update existing file
+      response = await window.gapi.client.request({
+        path: `/upload/drive/v3/files/${fileId}`,
+        method: 'PATCH',
+        params: { uploadType: 'multipart' },
+        headers: {
+          'Content-Type': 'multipart/related; boundary=foo_bar_baz'
+        },
+        body: `
+--foo_bar_baz
+Content-Type: application/json; charset=UTF-8
 
-    console.log('Sending request to Google Drive API');
-    let response = await fetch(url, {
-      method: method,
-      headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
-      body: form,
-    });
+${JSON.stringify(metadata)}
 
-    if (!response.ok) {
-      if (response.status === 403 && method === 'PATCH') {
-        console.log('Update failed, attempting to create a new file');
-        method = 'POST';
-        url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink';
-        response = await fetch(url, {
-          method: method,
-          headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
-          body: form,
-        });
-      }
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+--foo_bar_baz
+Content-Type: application/json
+
+${data}
+--foo_bar_baz--`
+      });
+    } else {
+      // Create new file
+      response = await window.gapi.client.request({
+        path: '/upload/drive/v3/files',
+        method: 'POST',
+        params: { uploadType: 'multipart' },
+        headers: {
+          'Content-Type': 'multipart/related; boundary=foo_bar_baz'
+        },
+        body: `
+--foo_bar_baz
+Content-Type: application/json; charset=UTF-8
+
+${JSON.stringify(metadata)}
+
+--foo_bar_baz
+Content-Type: application/json
+
+${data}
+--foo_bar_baz--`
+      });
     }
 
-    const result = await response.json();
-    console.log('File save response:', result);
-    console.log('File web view link:', result.webViewLink);
+    console.log('File save response:', response);
 
     // Verify the file exists after saving
     const verifyResponse = await window.gapi.client.drive.files.list({
-      q: `name='${fileName}' and 'root' in parents`,
+      q: `name='${fileName}' and trashed=false`,
       fields: 'files(id, name, webViewLink)',
     });
     console.log('Verify file exists:', verifyResponse.result.files);
