@@ -70,7 +70,7 @@ export const initializeGoogleDriveAPI = () => {
   });
 };
 
-const getAccessToken = async () => {
+export const getAccessToken = async (): Promise<string> => {
   if (!isInitialized || !tokenClient) {
     await initializeGoogleDriveAPI();
   }
@@ -95,7 +95,13 @@ const getAccessToken = async () => {
       }
     };
 
-    tokenClient.requestAccessToken({ prompt: 'consent' });
+    if (localStorage.getItem('google_auth_token')) {
+      // If we have a token in localStorage, try to get a new access token without prompting
+      tokenClient.requestAccessToken({ prompt: '' });
+    } else {
+      // If no token in localStorage, we need to prompt for consent
+      tokenClient.requestAccessToken({ prompt: 'consent' });
+    }
   });
 };
 
