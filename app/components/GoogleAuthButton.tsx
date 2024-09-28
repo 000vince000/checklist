@@ -1,78 +1,93 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 
 declare global {
   interface Window {
-    google?: any;
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: any) => void;
+          renderButton: (element: HTMLElement | null, options: any) => void;
+          prompt: () => void;
+          getAuthResponse: () => { id_token: string } | null;
+          disableAutoSelect: () => void;
+        };
+      };
+    };
   }
 }
 
 const GoogleAuthButton: React.FC = () => {
   const [isSignedIn, setIsSignedIn] = useState(false);
-  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
 
-  const handleCredentialResponse = useCallback((response: CredentialResponse) => {
-    setIsSignedIn(true);
-    // Here you can send the token to your backend for verification
+  const handleCredentialResponse = useCallback((response: any) => {
+    if (response.credential) {
+      setIsSignedIn(true);
+      localStorage.setItem('google_auth_token', response.credential);
+      console.log('User signed in');
+    }
+  }, []);
+
+  const checkExistingSession = useCallback(() => {
+    const token = localStorage.getItem('google_auth_token');
+    if (token) {
+      // Here, we're assuming the presence of a token means the user is signed in
+      // In a production app, you might want to verify this token with your backend
+      setIsSignedIn(true);
+      console.log('Existing session found');
+    }
   }, []);
 
   useEffect(() => {
-    const loadGoogleScript = () => {
-      const script = document.createElement('script');
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
-        console.log('Google Identity Services script loaded');
-        setIsGoogleLoaded(true);
-      };
-      script.onerror = (error) => {
-        console.error('Error loading Google Identity Services script:', error);
-      };
-      document.body.appendChild(script);
+    const googleScript = document.createElement('script');
+    googleScript.src = 'https://accounts.google.com/gsi/client';
+    googleScript.async = true;
+    googleScript.defer = true;
+    document.body.appendChild(googleScript);
+
+    googleScript.onload = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+          callback: handleCredentialResponse
+        });
+
+        checkExistingSession();
+
+        if (!isSignedIn) {
+          window.google.accounts.id.renderButton(
+            document.getElementById("googleSignInDiv"),
+            { theme: "outline", size: "large" }
+          );
+          // Disable auto-select to prevent automatic sign-in prompts
+          window.google.accounts.id.disableAutoSelect();
+        }
+      }
     };
 
-    if (!window.google) {
-      console.log('Loading Google Identity Services script');
-      loadGoogleScript();
-    } else {
-      console.log('Google Identity Services already loaded');
-      setIsGoogleLoaded(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isGoogleLoaded && window.google) {
-      window.google.accounts.id.initialize({
-        client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
-        callback: handleCredentialResponse
-      });
-    }
-  }, [isGoogleLoaded, handleCredentialResponse]);
+    return () => {
+      document.body.removeChild(googleScript);
+    };
+  }, [handleCredentialResponse, checkExistingSession, isSignedIn]);
 
   const handleSignOut = () => {
+    setIsSignedIn(false);
+    localStorage.removeItem('google_auth_token');
+    console.log('User signed out');
+    // Re-render the sign-in button
     if (window.google) {
-      window.google.accounts.id.disableAutoSelect();
-      setIsSignedIn(false);
-      console.log('User signed out.');
+      window.google.accounts.id.renderButton(
+        document.getElementById("googleSignInDiv"),
+        { theme: "outline", size: "large" }
+      );
     }
   };
-
-  if (!isGoogleLoaded) {
-    return <div>Loading Google Sign-In...</div>;
-  }
 
   return (
     <div>
       {isSignedIn ? (
         <button onClick={handleSignOut}>Sign Out</button>
       ) : (
-        <GoogleLogin
-          onSuccess={handleCredentialResponse}
-          onError={() => {
-            console.log('Login Failed');
-          }}
-        />
+        <div id="googleSignInDiv"></div>
       )}
     </div>
   );
