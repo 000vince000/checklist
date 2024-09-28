@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { Task } from '../types/Task';
-import { loadFromGoogleDrive, saveToGoogleDrive } from '../services/googleDriveService';
+import { googleDriveService } from '../services/googleDriveService';
 
 interface TaskContextType {
   tasks: Task[];
@@ -51,13 +51,34 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [animatingTaskId, setAnimatingTaskId] = useState<number | null>(null);
   const [completingTasks, setCompletingTasks] = useState<Set<number>>(new Set());
 
+  const saveTasksToGoogleDrive = async (tasks: Task[], completedTasks: Task[]) => {
+    try {
+      await googleDriveService.saveToGoogleDrive(JSON.stringify({ tasks, completedTasks }), 'tasks.json');
+      console.log('Tasks saved to Google Drive');
+    } catch (error) {
+      console.error('Error saving tasks to Google Drive:', error);
+    }
+  };
+
+  const loadTasksFromGoogleDrive = async (): Promise<{ tasks: Task[], completedTasks: Task[] } | null> => {
+    try {
+      const data = await googleDriveService.loadFromGoogleDrive('tasks.json');
+      if (data) {
+        return JSON.parse(data);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error loading tasks from Google Drive:', error);
+      return null;
+    }
+  };
+
   const saveToStorage = async () => {
     localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(tasks));
     localStorage.setItem(CLOSED_TASKS_KEY, JSON.stringify(completedTasks));
     
     // Save to Google Drive
-    await saveToGoogleDrive(JSON.stringify(tasks), 'tasks.json');
-    await saveToGoogleDrive(JSON.stringify(completedTasks), 'completedTasks.json');
+    await saveTasksToGoogleDrive(tasks, completedTasks);
   };
 
   const loadFromStorage = async () => {
@@ -65,10 +86,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const localCompletedTasks = localStorage.getItem(CLOSED_TASKS_KEY);
 
     // Try to load from Google Drive
-    const driveTasks = await loadFromGoogleDrive('tasks.json');
-    const driveCompletedTasks = await loadFromGoogleDrive('completedTasks.json');
+    const driveTasks = await loadTasksFromGoogleDrive();
+    const driveCompletedTasks = driveTasks ? driveTasks.completedTasks : [];
 
-    setTasks(driveTasks || (localTasks ? JSON.parse(localTasks) : generateRandomTasks(20)));
+    setTasks(driveTasks ? driveTasks.tasks : (localTasks ? JSON.parse(localTasks) : generateRandomTasks(20)));
     setCompletedTasks(driveCompletedTasks || (localCompletedTasks ? JSON.parse(localCompletedTasks) : []));
   };
 

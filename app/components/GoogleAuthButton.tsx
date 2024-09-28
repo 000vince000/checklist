@@ -11,9 +11,44 @@ const Button = styled.button`
   font-size: 16px;
 `;
 
+// Update the global type definition
+declare global {
+  interface Window {
+    google: {
+      accounts: {
+        id: {
+          initialize: (config: any) => void;
+          renderButton: (element: HTMLElement | null, options: any) => void;
+          prompt: () => void;
+        };
+        oauth2: {
+          initTokenClient: (config: TokenClientConfig) => TokenClient;
+        };
+      };
+    };
+  }
+}
+
+interface TokenClientConfig {
+  client_id: string;
+  scope: string;
+  callback?: (response: TokenResponse) => void;
+}
+
+interface TokenClient {
+  requestAccessToken: (options?: { prompt?: string }) => void;
+  callback: (response: TokenResponse) => void;
+}
+
+interface TokenResponse {
+  access_token?: string;
+  error?: string;
+}
+
 const GoogleAuthButton: React.FC = () => {
   const buttonRef = useRef<HTMLDivElement>(null);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(false);
 
   useEffect(() => {
     const loadGoogleScript = () => {
@@ -62,8 +97,10 @@ const GoogleAuthButton: React.FC = () => {
     console.log('Google Sign-In response:', response);
     if (response.credential) {
       console.log('Successfully signed in with Google');
+      setIsSignedIn(true);
     } else {
       console.error('Failed to sign in with Google');
+      setIsSignedIn(false);
     }
   };
 
@@ -79,6 +116,7 @@ const GoogleAuthButton: React.FC = () => {
   return (
     <div ref={buttonRef}>
       {!isGoogleLoaded && <Button onClick={handleClick}>Sign in with Google</Button>}
+      {isGoogleLoaded && isSignedIn && <Button onClick={handleClick}>Signed In</Button>}
     </div>
   );
 };
