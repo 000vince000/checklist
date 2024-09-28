@@ -12,16 +12,11 @@ const GoogleAuthButton: React.FC = () => {
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
 
   const handleCredentialResponse = useCallback((response: CredentialResponse) => {
-    console.log("Encoded JWT ID token: " + response.credential);
     setIsSignedIn(true);
     // Here you can send the token to your backend for verification
   }, []);
 
   useEffect(() => {
-    console.log('GoogleAuthButton component rendered');
-    console.log('Client ID:', process.env.REACT_APP_GOOGLE_CLIENT_ID);
-    console.log('Current origin:', window.location.origin);
-
     const loadGoogleScript = () => {
       const script = document.createElement('script');
       script.src = 'https://accounts.google.com/gsi/client';
