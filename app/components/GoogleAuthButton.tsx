@@ -83,12 +83,10 @@ const GoogleAuthButton: React.FC = () => {
           client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
           callback: handleCredentialResponse,
         });
-        console.log('Rendering Google Sign-In button');
         window.google.accounts.id.renderButton(buttonRef.current, {
           theme: 'outline',
           size: 'large',
         });
-        console.log('Google Sign-In button rendered');
 
         // Check if user is already signed in
         if (isSignedIn) {
@@ -101,7 +99,6 @@ const GoogleAuthButton: React.FC = () => {
   }, [isGoogleLoaded, isSignedIn]);
 
   const handleCredentialResponse = (response: any) => {
-    console.log('Google Sign-In response:', response);
     if (response.credential) {
       console.log('Successfully signed in with Google');
       setIsSignedIn(true);
