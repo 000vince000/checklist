@@ -222,7 +222,6 @@ function App() {
   };
 
   useEffect(() => {
-    console.log('Google Client ID:', process.env.REACT_APP_GOOGLE_CLIENT_ID);
   }, []);
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
 import { Task } from '../types/Task';
 import { googleDriveService } from '../services/googleDriveService';
 
@@ -38,73 +38,53 @@ const generateRandomTasks = (count: number): Task[] => {
 };
 
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    const savedTasks = localStorage.getItem(OPEN_TASKS_KEY);
-    return savedTasks ? JSON.parse(savedTasks) : generateRandomTasks(20);
-  });
-
-  const [completedTasks, setCompletedTasks] = useState<Task[]>(() => {
-    const savedCompletedTasks = localStorage.getItem(CLOSED_TASKS_KEY);
-    return savedCompletedTasks ? JSON.parse(savedCompletedTasks) : [];
-  });
-
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
   const [animatingTaskId, setAnimatingTaskId] = useState<number | null>(null);
   const [completingTasks, setCompletingTasks] = useState<Set<number>>(new Set());
 
-  const saveTasksToGoogleDrive = async (tasks: Task[], completedTasks: Task[]) => {
-    try {
-      await googleDriveService.saveToGoogleDrive({ tasks, completedTasks }, 'tasks.json');
-      console.log('Tasks saved to Google Drive');
-    } catch (error) {
-      console.error('Error saving tasks to Google Drive:', error);
-    }
-  };
-
-  const loadTasksFromGoogleDrive = async () => {
-    try {
-      const data = await googleDriveService.loadFromGoogleDrive('tasks.json');
-      if (data) {
-        console.log('Data loaded from Google Drive:', data);
-        if (typeof data === 'string') {
-          return JSON.parse(data);
-        } else if (typeof data === 'object') {
-          return data;
-        }
-      }
-      return null;
-    } catch (error) {
-      console.error('Error loading tasks from Google Drive:', error);
-      return null;
-    }
-  };
-
-  const saveToStorage = async () => {
+  const saveToLocalStorage = useCallback(() => {
     localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(tasks));
     localStorage.setItem(CLOSED_TASKS_KEY, JSON.stringify(completedTasks));
-    
-    // Save to Google Drive
-    await saveTasksToGoogleDrive(tasks, completedTasks);
-  };
+    console.log('Saved to local storage');
+  }, [tasks, completedTasks]);
 
-  const loadFromStorage = async () => {
-    const localTasks = localStorage.getItem(OPEN_TASKS_KEY);
-    const localCompletedTasks = localStorage.getItem(CLOSED_TASKS_KEY);
+  const saveToGoogleDrive = useCallback(async () => {
+    console.log('Saving to Google Drive');
+    try {
+      await googleDriveService.saveToGoogleDrive({ tasks, completedTasks });
+      console.log('Tasks saved to Google Drive successfully');
+    } catch (error) {
+      console.error('Error saving to Google Drive:', error);
+    }
+  }, [tasks, completedTasks]);
 
-    // Try to load from Google Drive
-    const driveTasks = await loadTasksFromGoogleDrive();
-    const driveCompletedTasks = driveTasks ? driveTasks.completedTasks : [];
-
-    setTasks(driveTasks ? driveTasks.tasks : (localTasks ? JSON.parse(localTasks) : generateRandomTasks(20)));
-    setCompletedTasks(driveCompletedTasks || (localCompletedTasks ? JSON.parse(localCompletedTasks) : []));
-  };
-
-  useEffect(() => {
-    loadFromStorage();
+  const loadFromGoogleDrive = useCallback(async () => {
+    try {
+      const driveData = await googleDriveService.loadFromGoogleDrive();
+      if (driveData) {
+        setTasks(driveData.tasks);
+        setCompletedTasks(driveData.completedTasks);
+        console.log('Tasks loaded from Google Drive');
+      } else {
+        console.log('No data found in Google Drive, using local storage or generating random tasks');
+        const localTasks = localStorage.getItem(OPEN_TASKS_KEY);
+        const localCompletedTasks = localStorage.getItem(CLOSED_TASKS_KEY);
+        setTasks(localTasks ? JSON.parse(localTasks) : generateRandomTasks(20));
+        setCompletedTasks(localCompletedTasks ? JSON.parse(localCompletedTasks) : []);
+      }
+    } catch (error) {
+      console.error('Error loading from Google Drive:', error);
+      const localTasks = localStorage.getItem(OPEN_TASKS_KEY);
+      const localCompletedTasks = localStorage.getItem(CLOSED_TASKS_KEY);
+      setTasks(localTasks ? JSON.parse(localTasks) : generateRandomTasks(20));
+      setCompletedTasks(localCompletedTasks ? JSON.parse(localCompletedTasks) : []);
+    }
   }, []);
 
   useEffect(() => {
-    saveToStorage();
-  }, [tasks, completedTasks]);
+    loadFromGoogleDrive();
+  }, [loadFromGoogleDrive]);
 
   const addTask = (newTask: Task) => {
     console.log('Adding new task:', newTask);
@@ -112,9 +92,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setTasks(prevTasks => {
       const updatedTasks = [...prevTasks, { ...newTask, rejectionCount: 0, isCompleted: false }];
       console.log('Updated tasks after adding:', updatedTasks);
+      localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(updatedTasks));
       return updatedTasks;
     });
     setTimeout(() => setAnimatingTaskId(null), 2000);
+    saveToGoogleDrive();
   };
 
   const updateTask = (updatedTask: Task) => {
@@ -124,8 +106,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         task.id === updatedTask.id ? updatedTask : task
       );
       console.log('Updated tasks after updating:', updatedTasks);
+      localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(updatedTasks));
       return updatedTasks;
     });
+    saveToGoogleDrive();
   };
 
   const completeTask = (taskId: number, completionTime: number) => {
@@ -138,28 +122,42 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setAnimatingTaskId(taskId);
     setCompletingTasks(prev => new Set(prev).add(taskId));
     
-    // Delay the removal of the task to allow for the animation
     setTimeout(() => {
-      setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-      const taskToComplete = tasks.find(task => task.id === taskId);
-      if (taskToComplete) {
-        setCompletedTasks(prevCompletedTasks => [
-          ...prevCompletedTasks,
-          { ...taskToComplete, isCompleted: true, completionTime }
-        ]);
-      }
+      setTasks(prevTasks => {
+        const updatedTasks = prevTasks.filter(task => task.id !== taskId);
+        localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(updatedTasks));
+        return updatedTasks;
+      });
+      setCompletedTasks(prevCompletedTasks => {
+        const taskToComplete = tasks.find(task => task.id === taskId);
+        if (taskToComplete) {
+          const updatedCompletedTasks = [
+            ...prevCompletedTasks,
+            { ...taskToComplete, isCompleted: true, completionTime }
+          ];
+          localStorage.setItem(CLOSED_TASKS_KEY, JSON.stringify(updatedCompletedTasks));
+          return updatedCompletedTasks;
+        }
+        return prevCompletedTasks;
+      });
       setAnimatingTaskId(null);
       setCompletingTasks(prev => {
         const newSet = new Set(prev);
         newSet.delete(taskId);
         return newSet;
       });
+      saveToGoogleDrive();
     }, 2000);
   };
 
   const deleteTask = (taskId: number) => {
     console.log('Deleting task:', taskId);
-    setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+    setTasks(prevTasks => {
+      const updatedTasks = prevTasks.filter(task => task.id !== taskId);
+      localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(updatedTasks));
+      return updatedTasks;
+    });
+    saveToGoogleDrive();
   };
 
   useEffect(() => {

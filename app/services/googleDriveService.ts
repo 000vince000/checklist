@@ -15,6 +15,13 @@ interface TokenResponse {
   error?: string;
 }
 
+const ROOT_FOLDER_NAME = 'Collaborative Checklist App';
+const TASKS_FILE_NAME = 'tasks.json';
+const COMPLETED_TASKS_FILE_NAME = 'completed_tasks.json';
+let rootFolderId: string | null = null;
+let domainFolderId: string | null = null;
+let initializationPromise: Promise<void> | null = null;
+
 class GoogleDriveService {
   private static instance: GoogleDriveService;
   private tokenClient: TokenClient | null = null;
@@ -129,32 +136,147 @@ class GoogleDriveService {
     });
   }
 
-  public async loadFromGoogleDrive(fileName: string): Promise<any> {
+  private async createFolderIfNotExists(folderName: string, parentId?: string): Promise<string> {
+    const token = await this.getAccessToken();
+    const query = parentId
+      ? `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and '${parentId}' in parents and trashed=false`
+      : `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+
+    const response = await this.fetchWithAuth(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name)`, token);
+    const data = await response.json();
+
+    if (data.files && data.files.length > 0) {
+      return data.files[0].id;
+    }
+
+    const metadata = {
+      name: folderName,
+      mimeType: 'application/vnd.google-apps.folder',
+      parents: parentId ? [parentId] : undefined,
+    };
+
+    const createResponse = await fetch('https://www.googleapis.com/drive/v3/files', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(metadata),
+    });
+
+    const folder = await createResponse.json();
+    return folder.id;
+  }
+
+  private async initializeFolders(): Promise<void> {
+    if (initializationPromise) {
+      await initializationPromise;
+      return;
+    }
+
+    initializationPromise = (async () => {
+      try {
+        if (!rootFolderId) {
+          rootFolderId = await this.createFolderIfNotExists(ROOT_FOLDER_NAME);
+        }
+        if (!domainFolderId) {
+          const domain = window.location.hostname;
+          domainFolderId = await this.createFolderIfNotExists(domain, rootFolderId);
+        }
+      } catch (error) {
+        console.error('Error initializing folders:', error);
+        throw error;
+      } finally {
+        initializationPromise = null;
+      }
+    })();
+
+    await initializationPromise;
+  }
+
+  public async saveToGoogleDrive(data: { tasks: any[], completedTasks: any[] }): Promise<void> {
+    await this.initializeFolders();
+
     try {
       const token = await this.getAccessToken();
-      const response = await this.fetchWithAuth(`https://www.googleapis.com/drive/v3/files?q=name='${fileName}'&fields=files(id,name,mimeType,modifiedTime)`, token);
-      const data = await response.json();
-      console.log('Files found in Google Drive:', data.files);
+      
+      // Save tasks
+      await this.saveFile(TASKS_FILE_NAME, data.tasks, token);
+      
+      // Save completed tasks
+      await this.saveFile(COMPLETED_TASKS_FILE_NAME, data.completedTasks, token);
 
-      const files = data.files;
-      if (files && files.length > 0) {
-        const fileId = files[0].id;
-        console.log(`Retrieving file content for: ${files[0].name} (ID: ${fileId})`);
-        const fileResponse = await this.fetchWithAuth(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, token);
-        const fileContent = await fileResponse.text();
-        console.log('File content retrieved:', fileContent.substring(0, 200) + '...'); // Log first 200 characters
+      console.log('Tasks and completed tasks saved successfully');
+    } catch (error) {
+      console.error('Error saving to Google Drive:', error);
+      throw error;
+    }
+  }
 
-        try {
-          const parsedContent = JSON.parse(fileContent);
-          console.log('Parsed file content:', parsedContent);
-          return parsedContent;
-        } catch (parseError) {
-          console.error('Error parsing file content:', parseError);
-          return fileContent;
-        }
-      } else {
-        console.log('No files found with the specified name:', fileName);
+  private async saveFile(fileName: string, data: any, token: string): Promise<void> {
+    const jsonData = JSON.stringify(data);
+    const file = new Blob([jsonData], {type: 'application/json'});
+    
+    interface FileMetadata {
+      name: string;
+      mimeType: string;
+      parents?: string[];
+    }
+
+    const metadata: FileMetadata = {
+      name: fileName,
+      mimeType: 'application/json',
+      parents: [domainFolderId!],
+    };
+
+    const existingFile = await this.findFile(fileName);
+
+    let method = 'POST';
+    let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+
+    if (existingFile) {
+      // Update the existing file
+      method = 'PATCH';
+      url = `https://www.googleapis.com/upload/drive/v3/files/${existingFile.id}?uploadType=multipart`;
+      delete metadata.parents;
+    }
+
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
+    form.append('file', file);
+
+    const response = await fetch(url, {
+      method: method,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: form,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Google Drive API error: ${response.status} ${response.statusText}, ${JSON.stringify(errorData)}`);
+    }
+
+    console.log(`File ${fileName} ${method === 'POST' ? 'saved' : 'updated'} successfully:`, await response.json());
+  }
+
+  public async loadFromGoogleDrive(): Promise<{ tasks: any[], completedTasks: any[] } | null> {
+    await this.initializeFolders();
+
+    try {
+      const token = await this.getAccessToken();
+      
+      const tasks = await this.loadFile(TASKS_FILE_NAME, token);
+      const completedTasks = await this.loadFile(COMPLETED_TASKS_FILE_NAME, token);
+
+      if (tasks !== null || completedTasks !== null) {
+        return {
+          tasks: tasks || [],
+          completedTasks: completedTasks || []
+        };
       }
+
       return null;
     } catch (error) {
       console.error('Error loading from Google Drive:', error);
@@ -162,42 +284,63 @@ class GoogleDriveService {
     }
   }
 
-  public async saveToGoogleDrive(data: any, fileName: string): Promise<void> {
-    try {
-      const token = await this.getAccessToken();
-      const jsonData = JSON.stringify(data);
-      const file = new Blob([jsonData], {type: 'application/json'});
-      const metadata = {
-        name: fileName,
-        mimeType: 'application/json',
-      };
+  private async loadFile(fileName: string, token: string): Promise<any | null> {
+    const existingFile = await this.findFile(fileName);
 
-      const searchResponse = await this.fetchWithAuth(`https://www.googleapis.com/drive/v3/files?q=name='${fileName}'`, token);
-      const searchData = await searchResponse.json();
+    if (existingFile) {
+      const fileResponse = await this.fetchWithAuth(`https://www.googleapis.com/drive/v3/files/${existingFile.id}?alt=media`, token);
+      const fileContent = await fileResponse.text();
 
-      const { method, url } = this.getSaveRequestDetails(searchData);
-
-      const form = new FormData();
-      form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
-      form.append('file', file);
-
-      const response = await fetch(url, {
-        method: method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: form,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Google Drive API error: ${response.status} ${response.statusText}, ${JSON.stringify(errorData)}`);
+      try {
+        const parsedContent = JSON.parse(fileContent);
+        console.log(`Parsed ${fileName} content:`, parsedContent);
+        return parsedContent;
+      } catch (parseError) {
+        console.error(`Error parsing ${fileName} content:`, parseError);
+        return null;
       }
+    } else {
+      console.log(`No ${fileName} found in Google Drive`);
+      return null;
+    }
+  }
 
-      console.log(`File ${method === 'POST' ? 'saved' : 'updated'} successfully:`, await response.json());
-    } catch (error) {
-      console.error('Error saving to Google Drive:', error);
-      throw error;
+  private async findFile(fileName: string): Promise<{ id: string, name: string } | null> {
+    const token = await this.getAccessToken();
+    const response = await this.fetchWithAuth(
+      `https://www.googleapis.com/drive/v3/files?q=name='${fileName}' and '${domainFolderId}' in parents and trashed=false&fields=files(id,name)`,
+      token
+    );
+    const data = await response.json();
+
+    if (data.files && data.files.length > 0) {
+      // Return the first file found
+      return data.files[0];
+    }
+    return null;
+  }
+
+  private async findAllFiles(fileName: string): Promise<Array<{ id: string, name: string }>> {
+    const token = await this.getAccessToken();
+    const response = await this.fetchWithAuth(
+      `https://www.googleapis.com/drive/v3/files?q=name='${fileName}' and '${domainFolderId}' in parents and trashed=false&fields=files(id,name)&orderBy=createdTime`,
+      token
+    );
+    const data = await response.json();
+
+    return data.files || [];
+  }
+
+  private async deleteFile(fileId: string, token: string): Promise<void> {
+    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to delete file with ID ${fileId}`);
     }
   }
 
