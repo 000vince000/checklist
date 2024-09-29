@@ -254,6 +254,7 @@ export const NewTaskButton = styled(Button)`
   @media (max-width: 768px) {
     padding: 6px 12px;
     font-size: 12px;
+    margin: -2px;
   }
 
   &:hover {

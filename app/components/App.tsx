@@ -61,6 +61,10 @@ const ButtonAndFilterContainer = styled.div`
 const ButtonContainer = styled.div`
   display: flex;
   gap: 10px;
+
+  @media (max-width: 768px) {
+    margin: 0px 0px; // Reduced margin for mobile 
+  }
 `;
 
 const FilterContainer = styled.div`
@@ -93,23 +97,13 @@ const FilterDropdown = styled.select`
   }
 `;
 
-const LuckyButtonStyled = styled.button`
+const LuckyButtonStyled = styled(NewTaskButton)`
   background-color: transparent;
   border: 1px solid #FFA500;
   color: #FFA500;
-  padding: 8px 16px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 14px;
-  margin: 4px 2px;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.3s ease, color 0.3s ease;
 
   @media (max-width: 768px) {
-    padding: 6px 12px;
-    font-size: 12px;
+    
   }
 
   &:hover {
