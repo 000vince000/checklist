@@ -18,6 +18,7 @@ interface TokenResponse {
 const ROOT_FOLDER_NAME = 'Collaborative Checklist App';
 const TASKS_FILE_NAME = 'tasks.json';
 const COMPLETED_TASKS_FILE_NAME = 'completed_tasks.json';
+const DELETED_TASKS_FILE_NAME = 'deleted_tasks.json';
 let rootFolderId: string | null = null;
 let domainFolderId: string | null = null;
 let initializationPromise: Promise<void> | null = null;
@@ -194,19 +195,28 @@ class GoogleDriveService {
     await initializationPromise;
   }
 
-  public async saveToGoogleDrive(data: { tasks: any[], completedTasks: any[] }): Promise<void> {
-    await this.initializeFolders();
+  public async saveToGoogleDrive(data: { tasks: any[], completedTasks: any[], deletedTasks: any[] }): Promise<void> {
+    console.log('saveToGoogleDrive called with data:', JSON.stringify(data));
+    try {
+      await this.initializeFolders();
+    } catch (error) {
+      console.error('Error initializing folders:', error);
+      throw error;
+    }
 
     try {
       const token = await this.getAccessToken();
       
-      // Save tasks
+      console.log('Saving tasks');
       await this.saveFile(TASKS_FILE_NAME, data.tasks, token);
       
-      // Save completed tasks
+      console.log('Saving completed tasks');
       await this.saveFile(COMPLETED_TASKS_FILE_NAME, data.completedTasks, token);
 
-      console.log('Tasks and completed tasks saved successfully');
+      console.log('Saving deleted tasks');
+      await this.saveFile(DELETED_TASKS_FILE_NAME, data.deletedTasks, token);
+
+      console.log('All tasks saved successfully to Google Drive');
     } catch (error) {
       console.error('Error saving to Google Drive:', error);
       throw error;
@@ -261,7 +271,7 @@ class GoogleDriveService {
     console.log(`File ${fileName} ${method === 'POST' ? 'saved' : 'updated'} successfully:`, await response.json());
   }
 
-  public async loadFromGoogleDrive(): Promise<{ tasks: any[], completedTasks: any[] } | null> {
+  public async loadFromGoogleDrive(): Promise<{ tasks: any[], completedTasks: any[], deletedTasks: any[] } | null> {
     await this.initializeFolders();
 
     try {
@@ -269,11 +279,13 @@ class GoogleDriveService {
       
       const tasks = await this.loadFile(TASKS_FILE_NAME, token);
       const completedTasks = await this.loadFile(COMPLETED_TASKS_FILE_NAME, token);
+      const deletedTasks = await this.loadFile(DELETED_TASKS_FILE_NAME, token);
 
-      if (tasks !== null || completedTasks !== null) {
+      if (tasks !== null || completedTasks !== null || deletedTasks !== null) {
         return {
           tasks: tasks || [],
-          completedTasks: completedTasks || []
+          completedTasks: completedTasks || [],
+          deletedTasks: deletedTasks || []
         };
       }
 
