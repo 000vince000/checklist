@@ -48,7 +48,9 @@ interface TokenResponse {
 const GoogleAuthButton: React.FC = () => {
   const buttonRef = useRef<HTMLDivElement>(null);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
-  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(() => {
+    return localStorage.getItem('isSignedIn') === 'true';
+  });
 
   useEffect(() => {
     const loadGoogleScript = () => {
@@ -87,25 +89,36 @@ const GoogleAuthButton: React.FC = () => {
           size: 'large',
         });
         console.log('Google Sign-In button rendered');
+
+        // Check if user is already signed in
+        if (isSignedIn) {
+          window.dispatchEvent(new CustomEvent('authStateChange', { detail: true }));
+        }
       } catch (error) {
         console.error('Error initializing Google Sign-In:', error);
       }
     }
-  }, [isGoogleLoaded]);
+  }, [isGoogleLoaded, isSignedIn]);
 
   const handleCredentialResponse = (response: any) => {
     console.log('Google Sign-In response:', response);
     if (response.credential) {
       console.log('Successfully signed in with Google');
       setIsSignedIn(true);
-      // Dispatch an event to notify App component
+      localStorage.setItem('isSignedIn', 'true');
       window.dispatchEvent(new CustomEvent('authStateChange', { detail: true }));
     } else {
       console.error('Failed to sign in with Google');
       setIsSignedIn(false);
-      // Dispatch an event to notify App component
+      localStorage.removeItem('isSignedIn');
       window.dispatchEvent(new CustomEvent('authStateChange', { detail: false }));
     }
+  };
+
+  const handleSignOut = () => {
+    setIsSignedIn(false);
+    localStorage.removeItem('isSignedIn');
+    window.dispatchEvent(new CustomEvent('authStateChange', { detail: false }));
   };
 
   const handleClick = () => {
@@ -120,7 +133,7 @@ const GoogleAuthButton: React.FC = () => {
   return (
     <div ref={buttonRef}>
       {!isGoogleLoaded && <Button onClick={handleClick}>Sign in with Google</Button>}
-      {isGoogleLoaded && isSignedIn && <Button onClick={handleClick}>Signed In</Button>}
+      {isGoogleLoaded && isSignedIn && <Button onClick={handleSignOut}>Sign Out</Button>}
     </div>
   );
 };

@@ -207,7 +207,9 @@ const SearchContainer = styled.div`
 `;
 
 function App() {
-  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(() => {
+    return localStorage.getItem('isSignedIn') === 'true';
+  });
   const [isMoodModalOpen, setIsMoodModalOpen] = useState(false);
   const [isTaskInputModalOpen, setIsTaskInputModalOpen] = useState(false);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
@@ -244,17 +246,17 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // Add a listener for authentication state changes
     const handleAuthChange = (e: Event) => {
       if (e instanceof CustomEvent<boolean>) {
         setIsSignedIn(e.detail);
+        localStorage.setItem('isSignedIn', e.detail.toString());
       }
     };
 
-    window.addEventListener('authStateChange', handleAuthChange);
+    window.addEventListener('authStateChange', handleAuthChange as EventListener);
 
     return () => {
-      window.removeEventListener('authStateChange', handleAuthChange);
+      window.removeEventListener('authStateChange', handleAuthChange as EventListener);
     };
   }, []);
 
