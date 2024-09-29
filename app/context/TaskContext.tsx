@@ -17,8 +17,8 @@ const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
 const OPEN_TASKS_KEY = 'openTasks';
 const CLOSED_TASKS_KEY = 'closedTasks';
+const DELETED_TASKS_KEY = 'deletedTasks';
 
-// Helper function to generate random tasks
 const generateRandomTasks = (count: number): Task[] => {
   const attributes = ['urgent', 'important', 'unimportant'] as const;
   const dependencies = ['yes', 'no'] as const;
@@ -45,19 +45,17 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [animatingTaskId, setAnimatingTaskId] = useState<number | null>(null);
   const [completingTasks, setCompletingTasks] = useState<Set<number>>(new Set());
 
-  const saveToLocalStorage = useCallback(() => {
-    localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(tasks));
-    localStorage.setItem(CLOSED_TASKS_KEY, JSON.stringify(completedTasks));
-    // We don't save deletedTasks to local storage
-    console.log('Saved to local storage');
-  }, [tasks, completedTasks]);
+  const updateLocalStorage = useCallback((key: string, data: any) => {
+    localStorage.setItem(key, JSON.stringify(data));
+    console.log(`${key} updated in local storage`);
+  }, []);
 
   const saveToGoogleDrive = useCallback(async () => {
     console.log('Saving to Google Drive');
     try {
       const currentTasks = JSON.parse(localStorage.getItem(OPEN_TASKS_KEY) || '[]');
       const currentCompletedTasks = JSON.parse(localStorage.getItem(CLOSED_TASKS_KEY) || '[]');
-      const currentDeletedTasks = JSON.parse(localStorage.getItem('deletedTasks') || '[]');
+      const currentDeletedTasks = JSON.parse(localStorage.getItem(DELETED_TASKS_KEY) || '[]');
       
       await googleDriveService.saveToGoogleDrive({ 
         tasks: currentTasks, 
@@ -69,23 +67,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.error('Error saving to Google Drive:', error);
       throw error;
     }
-  }, []); // No dependencies as it always reads from localStorage
-
-  const saveChanges = useCallback(async () => {
-    console.log('saveChanges called, current tasks:', tasks);
-    console.log('Saving changes - starting with local storage');
-    saveToLocalStorage();
-    console.log('Local storage save completed');
-    
-    console.log('Starting Google Drive save');
-    try {
-      await saveToGoogleDrive();
-      console.log('Google Drive save completed successfully');
-    } catch (error) {
-      console.error('Error during Google Drive save:', error);
-      throw error; // Re-throw the error to be caught in the calling function
-    }
-  }, [saveToLocalStorage, saveToGoogleDrive, tasks]);
+  }, []);
 
   const loadFromGoogleDrive = useCallback(async () => {
     try {
@@ -93,78 +75,57 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (driveData) {
         setTasks(driveData.tasks);
         setCompletedTasks(driveData.completedTasks);
-        setDeletedTasks(driveData.deletedTasks || []); // Add this line
+        setDeletedTasks(driveData.deletedTasks || []);
+        updateLocalStorage(OPEN_TASKS_KEY, driveData.tasks);
+        updateLocalStorage(CLOSED_TASKS_KEY, driveData.completedTasks);
+        updateLocalStorage(DELETED_TASKS_KEY, driveData.deletedTasks);
         console.log('Tasks loaded from Google Drive');
       } else {
         console.log('No data found in Google Drive, using local storage or generating random tasks');
-        const localTasks = localStorage.getItem(OPEN_TASKS_KEY);
-        const localCompletedTasks = localStorage.getItem(CLOSED_TASKS_KEY);
-        setTasks(localTasks ? JSON.parse(localTasks) : generateRandomTasks(20));
-        setCompletedTasks(localCompletedTasks ? JSON.parse(localCompletedTasks) : []);
-        setDeletedTasks([]); // Initialize deletedTasks as empty
+        const localTasks = JSON.parse(localStorage.getItem(OPEN_TASKS_KEY) || 'null') || generateRandomTasks(20);
+        const localCompletedTasks = JSON.parse(localStorage.getItem(CLOSED_TASKS_KEY) || '[]');
+        const localDeletedTasks = JSON.parse(localStorage.getItem(DELETED_TASKS_KEY) || '[]');
+        setTasks(localTasks);
+        setCompletedTasks(localCompletedTasks);
+        setDeletedTasks(localDeletedTasks);
       }
     } catch (error) {
       console.error('Error loading from Google Drive:', error);
-      const localTasks = localStorage.getItem(OPEN_TASKS_KEY);
-      const localCompletedTasks = localStorage.getItem(CLOSED_TASKS_KEY);
-      setTasks(localTasks ? JSON.parse(localTasks) : generateRandomTasks(20));
-      setCompletedTasks(localCompletedTasks ? JSON.parse(localCompletedTasks) : []);
-      setDeletedTasks([]); // Initialize deletedTasks as empty
+      // Fallback to local storage or generate random tasks
+      const localTasks = JSON.parse(localStorage.getItem(OPEN_TASKS_KEY) || 'null') || generateRandomTasks(20);
+      const localCompletedTasks = JSON.parse(localStorage.getItem(CLOSED_TASKS_KEY) || '[]');
+      const localDeletedTasks = JSON.parse(localStorage.getItem(DELETED_TASKS_KEY) || '[]');
+      setTasks(localTasks);
+      setCompletedTasks(localCompletedTasks);
+      setDeletedTasks(localDeletedTasks);
     }
-  }, []);
+  }, [updateLocalStorage]);
 
   useEffect(() => {
     loadFromGoogleDrive();
   }, [loadFromGoogleDrive]);
 
-  const addTask = (newTask: Task) => {
+  const addTask = useCallback((newTask: Task) => {
     console.log('Adding new task:', newTask);
-
     setTasks(prevTasks => {
       const updatedTasks = [...prevTasks, { ...newTask, rejectionCount: 0, isCompleted: false }];
-      console.log('Updated tasks after adding:', updatedTasks);
-      
-      // Save to local storage immediately after state update
-      localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(updatedTasks));
-      console.log('New task saved to local storage');
-      
-      // Schedule Google Drive save for next tick
-      Promise.resolve().then(() => {
-        console.log('Saving to Google Drive');
-        saveToGoogleDrive().catch(error => {
-          console.error('Failed to save new task to Google Drive:', error);
-        });
-      });
-
+      updateLocalStorage(OPEN_TASKS_KEY, updatedTasks);
       return updatedTasks;
     });
-  };
+    saveToGoogleDrive().catch(error => console.error('Failed to save new task to Google Drive:', error));
+  }, [updateLocalStorage, saveToGoogleDrive]);
 
-  const updateTask = (updatedTask: Task) => {
+  const updateTask = useCallback((updatedTask: Task) => {
     console.log('Updating task:', updatedTask);
     setTasks(prevTasks => {
-      const updatedTasks = prevTasks.map(task => 
-        task.id === updatedTask.id ? updatedTask : task
-      );
-      console.log('Updated tasks after updating:', updatedTasks);
-
-      // Update local storage
-      localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(updatedTasks));
-      console.log('Tasks updated in local storage');
-
-      // Trigger remote upload
-      setTimeout(() => {
-        console.log('Saving to Google Drive after task update');
-        saveToGoogleDrive().catch(error => {
-          console.error('Failed to save task update to Google Drive:', error);
-        });
-      }, 0);
-
+      const updatedTasks = prevTasks.map(task => task.id === updatedTask.id ? updatedTask : task);
+      updateLocalStorage(OPEN_TASKS_KEY, updatedTasks);
       return updatedTasks;
     });
-  };
+    saveToGoogleDrive().catch(error => console.error('Failed to save task update to Google Drive:', error));
+  }, [updateLocalStorage, saveToGoogleDrive]);
 
-  const completeTask = async (taskId: number, completionTime: number) => {
+  const completeTask = useCallback((taskId: number, completionTime: number) => {
     if (completingTasks.has(taskId)) {
       console.log('Task is already being completed:', taskId);
       return;
@@ -174,44 +135,27 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setAnimatingTaskId(taskId);
     setCompletingTasks(prev => new Set(prev).add(taskId));
     
-    setTimeout(async () => {
-      let updatedTasks: Task[] = [];
-      let updatedCompletedTasks: Task[] = [];
-
+    setTimeout(() => {
       setTasks(prevTasks => {
-        updatedTasks = prevTasks.filter(task => task.id !== taskId);
+        const updatedTasks = prevTasks.filter(task => task.id !== taskId);
+        updateLocalStorage(OPEN_TASKS_KEY, updatedTasks);
         return updatedTasks;
       });
 
       setCompletedTasks(prevCompletedTasks => {
         const taskToComplete = tasks.find(task => task.id === taskId);
         if (taskToComplete) {
-          updatedCompletedTasks = [
+          const updatedCompletedTasks = [
             ...prevCompletedTasks,
             { ...taskToComplete, isCompleted: true, completionTime }
           ];
+          updateLocalStorage(CLOSED_TASKS_KEY, updatedCompletedTasks);
           return updatedCompletedTasks;
         }
         return prevCompletedTasks;
       });
 
-      // Update local storage
-      localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(updatedTasks));
-      localStorage.setItem(CLOSED_TASKS_KEY, JSON.stringify(updatedCompletedTasks));
-      console.log('Local storage updated after task completion');
-
-      // Save to Google Drive with the most up-to-date data
-      try {
-        console.log('Saving to Google Drive after task completion');
-        await googleDriveService.saveToGoogleDrive({
-          tasks: updatedTasks,
-          completedTasks: updatedCompletedTasks,
-          deletedTasks: deletedTasks // Assuming deletedTasks is up-to-date
-        });
-        console.log('Task completion saved to Google Drive successfully');
-      } catch (error) {
-        console.error('Failed to save task completion to Google Drive:', error);
-      }
+      saveToGoogleDrive().catch(error => console.error('Failed to save task completion to Google Drive:', error));
 
       setAnimatingTaskId(null);
       setCompletingTasks(prev => {
@@ -220,24 +164,19 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return newSet;
       });
     }, 2000);
-  };
+  }, [tasks, updateLocalStorage, saveToGoogleDrive, completingTasks]);
 
-  const deleteTask = (taskId: number) => {
+  const deleteTask = useCallback((taskId: number) => {
     console.log('Deleting task:', taskId);
-
     setTasks(prevTasks => {
       const updatedTasks = prevTasks.filter(task => task.id !== taskId);
       const taskToDelete = prevTasks.find(task => task.id === taskId);
-
-      // Update local storage immediately
-      localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(updatedTasks));
-      console.log('Task removed from local storage');
+      updateLocalStorage(OPEN_TASKS_KEY, updatedTasks);
 
       if (taskToDelete) {
         setDeletedTasks(prevDeletedTasks => {
           const updatedDeletedTasks = [...prevDeletedTasks, taskToDelete];
-          localStorage.setItem('deletedTasks', JSON.stringify(updatedDeletedTasks));
-          console.log('Deleted task added to deletedTasks in local storage');
+          updateLocalStorage(DELETED_TASKS_KEY, updatedDeletedTasks);
           return updatedDeletedTasks;
         });
       }
@@ -245,39 +184,27 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return updatedTasks;
     });
 
-    // Use setTimeout to ensure all state updates and local storage changes have been applied
-    setTimeout(() => {
-      const currentTasks = JSON.parse(localStorage.getItem(OPEN_TASKS_KEY) || '[]');
-      const currentCompletedTasks = JSON.parse(localStorage.getItem(CLOSED_TASKS_KEY) || '[]');
-      const currentDeletedTasks = JSON.parse(localStorage.getItem('deletedTasks') || '[]');
-
-      console.log('Saving to Google Drive after task deletion');
-      googleDriveService.saveToGoogleDrive({
-        tasks: currentTasks,
-        completedTasks: currentCompletedTasks,
-        deletedTasks: currentDeletedTasks
-      }).catch(error => {
-        console.error('Failed to save task deletion to Google Drive:', error);
-      });
-    }, 0);
-  };
+    saveToGoogleDrive().catch(error => console.error('Failed to save task deletion to Google Drive:', error));
+  }, [updateLocalStorage, saveToGoogleDrive]);
 
   useEffect(() => {
     console.log('Current tasks:', tasks);
     console.log('Current completed tasks:', completedTasks);
   }, [tasks, completedTasks]);
 
+  const contextValue = {
+    tasks,
+    completedTasks,
+    deletedTasks,
+    addTask,
+    updateTask,
+    completeTask,
+    deleteTask,
+    animatingTaskId
+  };
+
   return (
-    <TaskContext.Provider value={{ 
-      tasks, 
-      completedTasks, 
-      deletedTasks, 
-      addTask, 
-      updateTask, 
-      completeTask, 
-      deleteTask, 
-      animatingTaskId 
-    }}>
+    <TaskContext.Provider value={contextValue}>
       {children}
     </TaskContext.Provider>
   );
