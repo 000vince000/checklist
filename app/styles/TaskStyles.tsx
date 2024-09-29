@@ -252,7 +252,7 @@ export const NewTaskButton = styled(Button)`
   font-size: 16px;
 
   @media (max-width: 768px) {
-    padding: 6px 12px;
+    padding: 6px 6px;
     font-size: 12px;
     margin: -2px;
   }
