@@ -53,18 +53,23 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const saveTasksToGoogleDrive = async (tasks: Task[], completedTasks: Task[]) => {
     try {
-      await googleDriveService.saveToGoogleDrive(JSON.stringify({ tasks, completedTasks }), 'tasks.json');
+      await googleDriveService.saveToGoogleDrive({ tasks, completedTasks }, 'tasks.json');
       console.log('Tasks saved to Google Drive');
     } catch (error) {
       console.error('Error saving tasks to Google Drive:', error);
     }
   };
 
-  const loadTasksFromGoogleDrive = async (): Promise<{ tasks: Task[], completedTasks: Task[] } | null> => {
+  const loadTasksFromGoogleDrive = async () => {
     try {
       const data = await googleDriveService.loadFromGoogleDrive('tasks.json');
       if (data) {
-        return JSON.parse(data);
+        console.log('Data loaded from Google Drive:', data);
+        if (typeof data === 'string') {
+          return JSON.parse(data);
+        } else if (typeof data === 'object') {
+          return data;
+        }
       }
       return null;
     } catch (error) {

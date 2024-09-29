@@ -98,9 +98,13 @@ const GoogleAuthButton: React.FC = () => {
     if (response.credential) {
       console.log('Successfully signed in with Google');
       setIsSignedIn(true);
+      // Dispatch an event to notify App component
+      window.dispatchEvent(new CustomEvent('authStateChange', { detail: true }));
     } else {
       console.error('Failed to sign in with Google');
       setIsSignedIn(false);
+      // Dispatch an event to notify App component
+      window.dispatchEvent(new CustomEvent('authStateChange', { detail: false }));
     }
   };
 

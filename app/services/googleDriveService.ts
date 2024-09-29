@@ -132,13 +132,28 @@ class GoogleDriveService {
   public async loadFromGoogleDrive(fileName: string): Promise<any> {
     try {
       const token = await this.getAccessToken();
-      const response = await this.fetchWithAuth(`https://www.googleapis.com/drive/v3/files?q=name='${fileName}'&fields=files(id,name)`, token);
+      const response = await this.fetchWithAuth(`https://www.googleapis.com/drive/v3/files?q=name='${fileName}'&fields=files(id,name,mimeType,modifiedTime)`, token);
       const data = await response.json();
+      console.log('Files found in Google Drive:', data.files);
+
       const files = data.files;
       if (files && files.length > 0) {
         const fileId = files[0].id;
+        console.log(`Retrieving file content for: ${files[0].name} (ID: ${fileId})`);
         const fileResponse = await this.fetchWithAuth(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, token);
-        return await fileResponse.json();
+        const fileContent = await fileResponse.text();
+        console.log('File content retrieved:', fileContent.substring(0, 200) + '...'); // Log first 200 characters
+
+        try {
+          const parsedContent = JSON.parse(fileContent);
+          console.log('Parsed file content:', parsedContent);
+          return parsedContent;
+        } catch (parseError) {
+          console.error('Error parsing file content:', parseError);
+          return fileContent;
+        }
+      } else {
+        console.log('No files found with the specified name:', fileName);
       }
       return null;
     } catch (error) {
@@ -147,10 +162,11 @@ class GoogleDriveService {
     }
   }
 
-  public async saveToGoogleDrive(data: string, fileName: string): Promise<void> {
+  public async saveToGoogleDrive(data: any, fileName: string): Promise<void> {
     try {
       const token = await this.getAccessToken();
-      const file = new Blob([data], {type: 'application/json'});
+      const jsonData = JSON.stringify(data);
+      const file = new Blob([jsonData], {type: 'application/json'});
       const metadata = {
         name: fileName,
         mimeType: 'application/json',

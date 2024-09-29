@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import TaskInput from './TaskInput';
 import TaskHeatmap from './TaskHeatmap';
 import TaskSuggestion from './TaskSuggestion';
-import GoogleAuthButton from './GoogleAuthButton';
+import LoginView from './LoginView';
+// Remove the GoogleAuthButton import as it's no longer needed here
 import styled from 'styled-components';
 import { TaskProvider } from '../context/TaskContext';
 import { NewTaskButton } from '../styles/TaskStyles';
@@ -206,6 +207,7 @@ const SearchContainer = styled.div`
 `;
 
 function App() {
+  const [isSignedIn, setIsSignedIn] = useState(false);
   const [isMoodModalOpen, setIsMoodModalOpen] = useState(false);
   const [isTaskInputModalOpen, setIsTaskInputModalOpen] = useState(false);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
@@ -241,6 +243,25 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    // Add a listener for authentication state changes
+    const handleAuthChange = (e: Event) => {
+      if (e instanceof CustomEvent<boolean>) {
+        setIsSignedIn(e.detail);
+      }
+    };
+
+    window.addEventListener('authStateChange', handleAuthChange);
+
+    return () => {
+      window.removeEventListener('authStateChange', handleAuthChange);
+    };
+  }, []);
+
+  if (!isSignedIn) {
+    return <LoginView />;
+  }
+
   return (
     <TaskProvider>
       <AppContainer>
@@ -250,7 +271,6 @@ function App() {
             <ButtonContainer>
               <NewTaskButton onClick={openTaskInputModal}>+ New</NewTaskButton>
               <LuckyButton openMoodModal={openMoodModal} />
-              <GoogleAuthButton />
             </ButtonContainer>
             <FilterContainer>
               <FilterDropdown 
