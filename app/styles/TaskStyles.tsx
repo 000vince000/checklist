@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
 export const Button = styled.button`
   background-color: transparent;
@@ -21,7 +21,7 @@ export const Button = styled.button`
 `;
 
 export const Modal = styled.div<{ isOpen: boolean }>`
-  display: ${props => props.isOpen ? 'flex' : 'none'};
+  display: ${({ isOpen }) => isOpen ? 'flex' : 'none'};
   position: fixed;
   z-index: 1000;
   left: 0;
@@ -278,4 +278,19 @@ export const AbandonButton = styled(ActionButton)`
   background-color: #f44336;
   color: white;
   &:hover { background-color: #d32f2f; }
+`;
+
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+export const AnimatedTaskItem = styled.div<{ isAnimating: boolean }>`
+  animation: ${({ isAnimating }) => isAnimating ? `${fadeIn} 0.5s ease-out` : 'none'};
 `;

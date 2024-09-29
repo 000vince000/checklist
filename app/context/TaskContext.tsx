@@ -107,12 +107,23 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addTask = useCallback((newTask: Task) => {
     console.log('Adding new task:', newTask);
+    
     setTasks(prevTasks => {
       const updatedTasks = [...prevTasks, { ...newTask, rejectionCount: 0, isCompleted: false }];
       updateLocalStorage(OPEN_TASKS_KEY, updatedTasks);
       return updatedTasks;
     });
+
+    // Start the animation
+    setAnimatingTaskId(newTask.id);
+
+    // Save to Google Drive
     saveToGoogleDrive().catch(error => console.error('Failed to save new task to Google Drive:', error));
+
+    // End the animation after 500ms (matching the animation duration in CSS)
+    setTimeout(() => {
+      setAnimatingTaskId(null);
+    }, 500);
   }, [updateLocalStorage, saveToGoogleDrive]);
 
   const updateTask = useCallback((updatedTask: Task) => {
