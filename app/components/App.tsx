@@ -241,8 +241,8 @@ function App() {
   useEffect(() => {
     const handleAuthChange = (e: Event) => {
       if (e instanceof CustomEvent<boolean>) {
-        setIsSignedIn(e.detail);
-        localStorage.setItem('isSignedIn', e.detail.toString());
+        setIsSignedIn(e.detail.isSignedIn);
+        localStorage.setItem('isSignedIn', e.detail.isSignedIn);
       }
     };
 
