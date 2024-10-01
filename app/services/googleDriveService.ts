@@ -349,38 +349,12 @@ class GoogleDriveService {
     return data.files || [];
   }
 
-  private async deleteFile(fileId: string, token: string): Promise<void> {
-    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      console.error(`Failed to delete file with ID ${fileId}`);
-    }
-  }
-
   private async fetchWithAuth(url: string, token: string): Promise<Response> {
     return fetch(url, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     });
-  }
-
-  private getSaveRequestDetails(searchData: any): { method: string; url: string } {
-    let method = 'POST';
-    let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-
-    if (searchData.files && searchData.files.length > 0) {
-      const fileId = searchData.files[0].id;
-      method = 'PATCH';
-      url = `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`;
-    }
-
-    return { method, url };
   }
 
   public setUsername(username: string) {
