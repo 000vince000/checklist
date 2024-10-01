@@ -19,8 +19,6 @@ const ROOT_FOLDER_NAME = 'Collaborative Checklist App';
 const TASKS_FILE_NAME = 'tasks.json';
 const COMPLETED_TASKS_FILE_NAME = 'completed_tasks.json';
 const DELETED_TASKS_FILE_NAME = 'deleted_tasks.json';
-let rootFolderId: string | null = null;
-let domainFolderId: string | null = null;
 let initializationPromise: Promise<void> | null = null;
 
 class GoogleDriveService {
@@ -30,6 +28,8 @@ class GoogleDriveService {
   private tokenExpirationTime: number = 0;
   private hasGivenConsent: boolean = false;
   private isInitialized: boolean = false;
+  private rootFolderId: string | null = null;
+  private domainFolderId: string | null = null;
 
   private readonly CLIENT_ID: string;
   private readonly SCOPES: string = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
@@ -170,29 +170,22 @@ class GoogleDriveService {
   }
 
   private async initializeFolders(): Promise<void> {
-    if (initializationPromise) {
-      await initializationPromise;
+    if (this.rootFolderId && this.domainFolderId) {
       return;
     }
 
-    initializationPromise = (async () => {
-      try {
-        if (!rootFolderId) {
-          rootFolderId = await this.createFolderIfNotExists(ROOT_FOLDER_NAME);
-        }
-        if (!domainFolderId) {
-          const domain = window.location.hostname;
-          domainFolderId = await this.createFolderIfNotExists(domain, rootFolderId);
-        }
-      } catch (error) {
-        console.error('Error initializing folders:', error);
-        throw error;
-      } finally {
-        initializationPromise = null;
+    try {
+      if (!this.rootFolderId) {
+        this.rootFolderId = await this.createFolderIfNotExists(ROOT_FOLDER_NAME);
       }
-    })();
-
-    await initializationPromise;
+      if (!this.domainFolderId) {
+        const domain = window.location.hostname;
+        this.domainFolderId = await this.createFolderIfNotExists(domain, this.rootFolderId);
+      }
+    } catch (error) {
+      console.error('Error initializing folders:', error);
+      throw error;
+    }
   }
 
   public async saveToGoogleDrive(data: { tasks: any[], completedTasks: any[], deletedTasks: any[] }): Promise<void> {
@@ -224,51 +217,33 @@ class GoogleDriveService {
   }
 
   private async saveFile(fileName: string, data: any, token: string): Promise<void> {
-    const jsonData = JSON.stringify(data);
-    const file = new Blob([jsonData], {type: 'application/json'});
-    
-    interface FileMetadata {
-      name: string;
-      mimeType: string;
-      parents?: string[];
-    }
+    const existingFile = await this.findFile(fileName);
+    const method = existingFile ? 'PATCH' : 'POST';
+    const url = existingFile 
+      ? `https://www.googleapis.com/upload/drive/v3/files/${existingFile.id}?uploadType=multipart`
+      : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
 
-    const metadata: FileMetadata = {
+    const metadata = {
       name: fileName,
       mimeType: 'application/json',
-      parents: [domainFolderId!],
+      ...(existingFile ? {} : { parents: [this.domainFolderId!] })
     };
 
-    const existingFile = await this.findFile(fileName);
-
-    let method = 'POST';
-    let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-
-    if (existingFile) {
-      // Update the existing file
-      method = 'PATCH';
-      url = `https://www.googleapis.com/upload/drive/v3/files/${existingFile.id}?uploadType=multipart`;
-      delete metadata.parents;
-    }
-
     const form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
-    form.append('file', file);
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', new Blob([JSON.stringify(data)], { type: 'application/json' }));
 
     const response = await fetch(url, {
       method: method,
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+      headers: { 'Authorization': `Bearer ${token}` },
       body: form,
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Google Drive API error: ${response.status} ${response.statusText}, ${JSON.stringify(errorData)}`);
+      throw new Error(`Failed to ${existingFile ? 'update' : 'create'} file: ${response.statusText}`);
     }
 
-    console.log(`File ${fileName} ${method === 'POST' ? 'saved' : 'updated'} successfully:`, await response.json());
+    console.log(`File ${fileName} ${existingFile ? 'updated' : 'created'} successfully`);
   }
 
   public async loadFromGoogleDrive(): Promise<{ tasks: any[], completedTasks: any[], deletedTasks: any[] } | null> {
@@ -317,25 +292,20 @@ class GoogleDriveService {
     }
   }
 
-  private async findFile(fileName: string): Promise<{ id: string, name: string } | null> {
+  private async findFile(fileName: string): Promise<{ id: string } | null> {
     const token = await this.getAccessToken();
-    const response = await this.fetchWithAuth(
-      `https://www.googleapis.com/drive/v3/files?q=name='${fileName}' and '${domainFolderId}' in parents and trashed=false&fields=files(id,name)`,
-      token
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=name='${fileName}' and '${this.domainFolderId}' in parents and trashed=false`,
+      { headers: { 'Authorization': `Bearer ${token}` } }
     );
     const data = await response.json();
-
-    if (data.files && data.files.length > 0) {
-      // Return the first file found
-      return data.files[0];
-    }
-    return null;
+    return data.files && data.files.length > 0 ? { id: data.files[0].id } : null;
   }
 
   private async findAllFiles(fileName: string): Promise<Array<{ id: string, name: string }>> {
     const token = await this.getAccessToken();
     const response = await this.fetchWithAuth(
-      `https://www.googleapis.com/drive/v3/files?q=name='${fileName}' and '${domainFolderId}' in parents and trashed=false&fields=files(id,name)&orderBy=createdTime`,
+      `https://www.googleapis.com/drive/v3/files?q=name='${fileName}' and '${this.domainFolderId}' in parents and trashed=false&fields=files(id,name)&orderBy=createdTime`,
       token
     );
     const data = await response.json();
