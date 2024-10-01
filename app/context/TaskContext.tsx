@@ -84,6 +84,20 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const loadFromGoogleDrive = useCallback(async () => {
     console.log('loadFromGoogleDrive called');
     try {
+      const isSignedIn = localStorage.getItem('isSignedIn') === 'true';
+      if (!isSignedIn) {
+        console.log('User not signed in, skipping Google Drive load');
+        return;
+      }
+
+      const userEmail = localStorage.getItem('userEmail');
+      if (!userEmail) {
+        console.log('User email not found, skipping Google Drive load');
+        return;
+      }
+
+      googleDriveService.setUsername(userEmail);
+
       const driveData = await googleDriveService.loadFromGoogleDrive();
       if (driveData) {
         const newState: TaskState = {

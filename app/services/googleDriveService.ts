@@ -30,6 +30,8 @@ class GoogleDriveService {
   private isInitialized: boolean = false;
   private rootFolderId: string | null = null;
   private domainFolderId: string | null = null;
+  private userFolderId: string | null = null;
+  private username: string | null = null;
 
   private readonly CLIENT_ID: string;
   private readonly SCOPES: string = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
@@ -169,8 +171,17 @@ class GoogleDriveService {
     return folder.id;
   }
 
+  private async ensureUsername(): Promise<void> {
+    console.log('Current username:', this.username); // Add this log
+    if (!this.username) {
+      throw new Error('Username is not set. Please call setUsername before performing any operations.');
+    }
+  }
+
   private async initializeFolders(): Promise<void> {
-    if (this.rootFolderId && this.domainFolderId) {
+    await this.ensureUsername();
+
+    if (this.rootFolderId && this.domainFolderId && this.userFolderId) {
       return;
     }
 
@@ -182,6 +193,9 @@ class GoogleDriveService {
         const domain = window.location.hostname;
         this.domainFolderId = await this.createFolderIfNotExists(domain, this.rootFolderId);
       }
+      if (!this.userFolderId) {
+        this.userFolderId = await this.createFolderIfNotExists(this.username!, this.domainFolderId);
+      }
     } catch (error) {
       console.error('Error initializing folders:', error);
       throw error;
@@ -189,6 +203,9 @@ class GoogleDriveService {
   }
 
   public async saveToGoogleDrive(data: { tasks: any[], completedTasks: any[], deletedTasks: any[] }): Promise<void> {
+    console.log('saveToGoogleDrive called, current username:', this.username); // Add this log
+    await this.ensureUsername();
+
     console.log('saveToGoogleDrive called with data:', JSON.stringify(data));
     try {
       await this.initializeFolders();
@@ -217,7 +234,13 @@ class GoogleDriveService {
   }
 
   private async saveFile(fileName: string, data: any, token: string): Promise<void> {
-    const existingFile = await this.findFile(fileName);
+    const existingFiles = await this.findAllFiles(fileName);
+
+    if (existingFiles.length > 1) {
+      throw new Error(`Multiple files found with name ${fileName}. Please resolve this manually and try again.`);
+    }
+
+    const existingFile = existingFiles[0];
     const method = existingFile ? 'PATCH' : 'POST';
     const url = existingFile 
       ? `https://www.googleapis.com/upload/drive/v3/files/${existingFile.id}?uploadType=multipart`
@@ -226,7 +249,7 @@ class GoogleDriveService {
     const metadata = {
       name: fileName,
       mimeType: 'application/json',
-      ...(existingFile ? {} : { parents: [this.domainFolderId!] })
+      ...(existingFile ? {} : { parents: [this.userFolderId!] })
     };
 
     const form = new FormData();
@@ -247,7 +270,15 @@ class GoogleDriveService {
   }
 
   public async loadFromGoogleDrive(): Promise<{ tasks: any[], completedTasks: any[], deletedTasks: any[] } | null> {
-    await this.initializeFolders();
+    console.log('loadFromGoogleDrive called, current username:', this.username); // Add this log
+    await this.ensureUsername();
+
+    try {
+      await this.initializeFolders();
+    } catch (error) {
+      console.error('Error initializing folders:', error);
+      throw error;
+    }
 
     try {
       const token = await this.getAccessToken();
@@ -267,12 +298,18 @@ class GoogleDriveService {
       return null;
     } catch (error) {
       console.error('Error loading from Google Drive:', error);
-      return null;
+      throw error; // Re-throw the error to be handled by the caller
     }
   }
 
   private async loadFile(fileName: string, token: string): Promise<any | null> {
-    const existingFile = await this.findFile(fileName);
+    const existingFiles = await this.findAllFiles(fileName);
+
+    if (existingFiles.length > 1) {
+      throw new Error(`Multiple files found with name ${fileName}. Please resolve this manually and try again.`);
+    }
+
+    const existingFile = existingFiles[0];
 
     if (existingFile) {
       const fileResponse = await this.fetchWithAuth(`https://www.googleapis.com/drive/v3/files/${existingFile.id}?alt=media`, token);
@@ -305,11 +342,10 @@ class GoogleDriveService {
   private async findAllFiles(fileName: string): Promise<Array<{ id: string, name: string }>> {
     const token = await this.getAccessToken();
     const response = await this.fetchWithAuth(
-      `https://www.googleapis.com/drive/v3/files?q=name='${fileName}' and '${this.domainFolderId}' in parents and trashed=false&fields=files(id,name)&orderBy=createdTime`,
+      `https://www.googleapis.com/drive/v3/files?q=name='${fileName}' and '${this.userFolderId}' in parents and trashed=false&fields=files(id,name)&orderBy=createdTime`,
       token
     );
     const data = await response.json();
-
     return data.files || [];
   }
 
@@ -345,6 +381,11 @@ class GoogleDriveService {
     }
 
     return { method, url };
+  }
+
+  public setUsername(username: string) {
+    this.username = username;
+    console.log('Username set in GoogleDriveService:', username); // Add this log
   }
 }
 

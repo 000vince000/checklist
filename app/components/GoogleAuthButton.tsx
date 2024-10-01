@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
+import { googleDriveService } from '../services/googleDriveService';
 
 const Button = styled.button`
   background-color: #4285F4;
@@ -51,6 +52,7 @@ const GoogleAuthButton: React.FC = () => {
   const [isSignedIn, setIsSignedIn] = useState(() => {
     return localStorage.getItem('isSignedIn') === 'true';
   });
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const loadGoogleScript = () => {
@@ -101,21 +103,29 @@ const GoogleAuthButton: React.FC = () => {
   const handleCredentialResponse = (response: any) => {
     if (response.credential) {
       console.log('Successfully signed in with Google');
+      const decodedToken = JSON.parse(atob(response.credential.split('.')[1]));
+      const email = decodedToken.email;
+      setUserEmail(email);
       setIsSignedIn(true);
       localStorage.setItem('isSignedIn', 'true');
-      window.dispatchEvent(new CustomEvent('authStateChange', { detail: true }));
+      localStorage.setItem('userEmail', email);
+      googleDriveService.setUsername(email);
+      console.log('Username set in googleDriveService:', email);
+      window.dispatchEvent(new CustomEvent('authStateChange', { detail: { isSignedIn: true, email } }));
     } else {
       console.error('Failed to sign in with Google');
-      setIsSignedIn(false);
-      localStorage.removeItem('isSignedIn');
-      window.dispatchEvent(new CustomEvent('authStateChange', { detail: false }));
+      handleSignOut();
     }
   };
 
   const handleSignOut = () => {
     setIsSignedIn(false);
+    setUserEmail(null);
     localStorage.removeItem('isSignedIn');
-    window.dispatchEvent(new CustomEvent('authStateChange', { detail: false }));
+    localStorage.removeItem('userEmail');
+    googleDriveService.setUsername('');
+    console.log('Username cleared in googleDriveService'); // Add this log
+    window.dispatchEvent(new CustomEvent('authStateChange', { detail: { isSignedIn: false, email: null } }));
   };
 
   const handleClick = () => {
