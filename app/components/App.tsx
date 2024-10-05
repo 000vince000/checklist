@@ -363,7 +363,7 @@ function AppContent() {
         <MoodModalContent>
           <h2>How are you feeling?</h2>
           <div>
-            <MoodButton onClick={() => handleMoodSelection('💪')}> Determined</MoodButton>
+            <MoodButton onClick={() => handleMoodSelection('💪')}>💪 Determined</MoodButton>
             <MoodButton onClick={() => handleMoodSelection('🧘')}>🧘 Zen</MoodButton>
             <MoodButton onClick={() => handleMoodSelection('🤓')}>🤓 Geeky</MoodButton>
             <MoodButton onClick={() => handleMoodSelection('🥱')}>🥱 Tired</MoodButton>
