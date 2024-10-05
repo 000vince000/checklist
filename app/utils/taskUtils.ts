@@ -85,15 +85,15 @@ export const selectTaskByMood = (mood: string, sortedTasks: Task[], tasks: Task[
     case '🥱':
       // select the smallest effort task with no external dependency and no parent task
       const tasksNoDepSmallEffort = sortedTasks.filter((task: Task) => {
-        return task.externalDependency === 'no' && task.effort === 'small' && task.parentTaskId === null;
+        return task.externalDependency === 'no' && task.effort === 'small' && !task.parentTaskId;
       });
       if (tasksNoDepSmallEffort.length === 0) {
         const mediumEffortTasks = sortedTasks.filter(task => 
-          task.externalDependency === 'no' && task.effort === 'medium' && task.parentTaskId === null);
+          task.externalDependency === 'no' && task.effort === 'medium' && !task.parentTaskId);
         if (mediumEffortTasks.length > 0) return mediumEffortTasks[0];
         
         const largeEffortTasks = sortedTasks.filter(task => 
-          task.externalDependency === 'no' && task.effort === 'large' && task.parentTaskId === null);
+          task.externalDependency === 'no' && task.effort === 'large' && !task.parentTaskId);
         if (largeEffortTasks.length > 0) return largeEffortTasks[0];
       }
       return tasksNoDepSmallEffort.length > 0 ? tasksNoDepSmallEffort[0] : undefined;
