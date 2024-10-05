@@ -262,7 +262,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
             <TaskDetails>
               {childTasks.length > 0 ? (
                 <TaskProperty>
-                  Child Tasks:
+                  Subtasks:
                   <ul>
                     {childTasks.map(child => (
                       <li key={child.id}>{child.name} (ID: {child.id})</li>
