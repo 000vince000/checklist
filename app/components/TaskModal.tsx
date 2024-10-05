@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Task } from '../types/Task';
 import { calculatePriority, formatTime } from '../utils/taskUtils';
 import { useTaskContext } from '../context/TaskContext';
@@ -33,7 +33,6 @@ import {
   SaveButton,
   ActionButton
 } from '../styles/TaskStyles';
-import { useRef } from 'react';
 
 interface TaskModalProps {
   selectedTask: Task | null;
@@ -72,6 +71,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [selectedParentTask, setSelectedParentTask] = useState<Task | null>(null);
   const [editedTask, setEditedTask] = useState<Task | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [childTasks, setChildTasks] = useState<{id: number, name: string}[]>([]); // Change id type to number
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -85,8 +85,19 @@ const TaskModal: React.FC<TaskModalProps> = ({
         setSelectedParentTask(null);
         setSearchTerm('');
       }
+      // Search for child tasks
+      console.log('Searching for child tasks of:', selectedTask.id);
+      const children = searchChildTasks(selectedTask.id);
+      setChildTasks(children);
     }
   }, [selectedTask, allTasks, completedTasks]);
+
+  const searchChildTasks = (parentId: number) => {
+    console.log('All tasks:', [...allTasks, ...completedTasks]);
+    const children = [...allTasks, ...completedTasks].filter(task => task.parentTaskId === parentId);
+    console.log(`Child tasks for parent ${parentId}:`, children);
+    return children.map(task => ({ id: task.id, name: task.name }));
+  };
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const term = event.target.value;
@@ -249,6 +260,18 @@ const TaskModal: React.FC<TaskModalProps> = ({
               />
             </FormGroup>
             <TaskDetails>
+              {childTasks.length > 0 ? (
+                <TaskProperty>
+                  Child Tasks:
+                  <ul>
+                    {childTasks.map(child => (
+                      <li key={child.id}>{child.name} (ID: {child.id})</li>
+                    ))}
+                  </ul>
+                </TaskProperty>
+              ) : (
+                <TaskProperty>No child tasks found</TaskProperty>
+              )}
               <TaskProperty>
                 Priority Score: {calculatePriority(editedTask, tasks).toFixed(2)}
               </TaskProperty>

@@ -34,3 +34,15 @@ export const DropdownItem = styled.div`
     background-color: #f0f0f0;
   }
 `;
+
+export const ChildTasksList = styled.ul`
+  list-style-type: none;
+  padding-left: 0;
+  margin-top: 5px;
+`;
+
+export const ChildTaskItem = styled.li`
+  margin-bottom: 3px;
+  font-size: 0.9em;
+  color: #666;
+`;
