@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback, useMemo } from 'react';
 import { Task } from '../types/Task';
 import { googleDriveService } from '../services/googleDriveService';
 
@@ -11,6 +11,7 @@ interface TaskContextType {
   completeTask: (taskId: number, completionTime: number) => void;
   deleteTask: (taskId: number) => void;
   animatingTaskId: number | null;
+  topWords: [string, number][];
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -218,6 +219,33 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, [updateStorageAndSync]);
 
+  const excludedWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'this', 'that']);
+  const reservedWords = new Set(['id', 'name', 'attribute', 'externalDependency', 'effort', 'type', 'note', 'rejectionCount', 'isCompleted', 'completionTime','note','task','random']);
+
+  const topWords = useMemo(() => {
+    const openTasks = taskState.openTasks;
+    const words = openTasks.flatMap(task => 
+      (task.name.toLowerCase() + ' ' + (task.note || '').toLowerCase()).split(/\s+/)
+    );
+    const wordFrequency = words.reduce((acc, word) => {
+      if (word.length > 2 && !excludedWords.has(word) && !reservedWords.has(word)) {
+        acc[word] = (acc[word] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(wordFrequency)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+  }, [taskState.openTasks]);
+
+  useEffect(() => {
+    console.log("Top 3 most frequent words in open tasks:");
+    topWords.forEach(([word, count], index) => {
+      console.log(`${index + 1}. "${word}" (${count} occurrences)`);
+    });
+  }, [topWords]);
+
   const contextValue = {
     tasks: taskState.openTasks,
     completedTasks: taskState.completedTasks,
@@ -226,7 +254,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     updateTask,
     completeTask,
     deleteTask,
-    animatingTaskId
+    animatingTaskId,
+    topWords
   };
 
   return (

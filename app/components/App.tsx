@@ -5,7 +5,7 @@ import TaskSuggestion from './TaskSuggestion';
 import LoginView from './LoginView';
 // Remove the GoogleAuthButton import as it's no longer needed here
 import styled from 'styled-components';
-import { TaskProvider } from '../context/TaskContext';
+import { TaskProvider, useTaskContext } from '../context/TaskContext';
 import { NewTaskButton } from '../styles/TaskStyles';
 
 const AppContainer = styled.div`
@@ -179,25 +179,32 @@ const SearchBar = styled.input`
   color: #ffffff;
   font-size: 14px;
 
+  @media (max-width: 768px) {
+    margin-bottom: 0rem; // Reduced margin for mobile
+  }
+
   @media (min-width: 768px) {
     width: 300px;
-    margin-bottom: 0;
+    margin-bottom: 0px;
   }
 `;
 
-const SearchContainer = styled.div`
+const SearchAndTopWordsContainer = styled.div`
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
+  align-items: center;
   margin-bottom: 1rem;
+  gap: 10px;
+  flex-wrap: wrap; // Add this line
 
   @media (max-width: 768px) {
-    margin-bottom: 0.5rem; // Reduced margin for mobile
+    // Remove the flex-direction: column; line
   }
+`;
 
-  @media (min-width: 769px) {
-    justify-content: flex-start;
-    margin-bottom: 2rem;
-  }
+const TopWordButton = styled(LuckyButtonStyled)`
+  font-size: 0.8rem;
+  padding: 5px 10px;
 `;
 
 function App() {
@@ -259,74 +266,104 @@ function App() {
 
   return (
     <TaskProvider>
-      <AppContainer>
-        <Header>
-          <Title>Collaborative Checklist</Title>
-          <ButtonAndFilterContainer>
-            <ButtonContainer>
-              <NewTaskButton onClick={openTaskInputModal}>+ New</NewTaskButton>
-              <LuckyButton openMoodModal={openMoodModal} />
-            </ButtonContainer>
-            <FilterContainer>
-              <FilterDropdown 
-                value={attributeFilter} 
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setAttributeFilter(e.target.value)}
-              >
-                <option value="all">Attributes</option>
-                <option value="urgent">Urgent</option>
-                <option value="important">Important</option>
-                <option value="unimportant">Unimportant</option>
-              </FilterDropdown>
-              <FilterDropdown 
-                value={typeFilter} 
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTypeFilter(e.target.value)}
-              >
-                <option value="all">Types</option>
-                <option value="debt">👻 Debt</option>
-                <option value="cost">💸 Cost</option>
-                <option value="revenue">💰 Revenue</option>
-                <option value="happiness">❤️ Happiness</option>
-              </FilterDropdown>
-            </FilterContainer>
-          </ButtonAndFilterContainer>
-        </Header>
-        <SearchContainer>
-          <SearchBar 
-            placeholder="Search tasks..."
-            value={searchTerm}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-          />
-        </SearchContainer>
-        <Section>
-          <TaskHeatmap 
-            selectedMood={selectedMood} 
-            setSelectedMood={setSelectedMood}
-            searchTerm={searchTerm}
-            attributeFilter={attributeFilter}
-            typeFilter={typeFilter}
-          />
-        </Section>
-        <Section>
-          <TaskSuggestion />
-        </Section>
-        <TaskInput
-          isOpen={isTaskInputModalOpen}
-          closeModal={closeTaskInputModal}
-        />
-        <MoodModal isOpen={isMoodModalOpen}>
-          <MoodModalContent>
-            <h2>How are you feeling?</h2>
-            <div>
-              <MoodButton onClick={() => handleMoodSelection('💪')}> Determined</MoodButton>
-              <MoodButton onClick={() => handleMoodSelection('🧘')}>🧘 Zen</MoodButton>
-              <MoodButton onClick={() => handleMoodSelection('🤓')}>🤓 Geeky</MoodButton>
-              <MoodButton onClick={() => handleMoodSelection('🥱')}>🥱 Tired</MoodButton>
-              <MoodButton onClick={() => handleMoodSelection('🤪')}>🤪 Bored</MoodButton>
-            </div>
-          </MoodModalContent>
-        </MoodModal>
-      </AppContainer>
+      <AppContent />
     </TaskProvider>
+  );
+}
+
+// New component to use context within TaskProvider
+function AppContent() {
+  const { topWords } = useTaskContext();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [attributeFilter, setAttributeFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [isMoodModalOpen, setIsMoodModalOpen] = useState(false);
+  const [isTaskInputModalOpen, setIsTaskInputModalOpen] = useState(false);
+  const [selectedMood, setSelectedMood] = useState<string | null>(null);
+
+  const openMoodModal = () => setIsMoodModalOpen(true);
+  const closeMoodModal = () => setIsMoodModalOpen(false);
+  const openTaskInputModal = () => setIsTaskInputModalOpen(true);
+  const closeTaskInputModal = () => setIsTaskInputModalOpen(false);
+
+  const handleMoodSelection = (mood: string) => {
+    setSelectedMood(mood);
+    closeMoodModal();
+  };
+
+  return (
+    <AppContainer>
+      <Header>
+        <Title>Collaborative Checklist</Title>
+        <ButtonAndFilterContainer>
+          <ButtonContainer>
+            <NewTaskButton onClick={openTaskInputModal}>+ New</NewTaskButton>
+            <LuckyButton openMoodModal={openMoodModal} />
+          </ButtonContainer>
+          <FilterContainer>
+            <FilterDropdown 
+              value={attributeFilter} 
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setAttributeFilter(e.target.value)}
+            >
+              <option value="all">Attributes</option>
+              <option value="urgent">Urgent</option>
+              <option value="important">Important</option>
+              <option value="unimportant">Unimportant</option>
+            </FilterDropdown>
+            <FilterDropdown 
+              value={typeFilter} 
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTypeFilter(e.target.value)}
+            >
+              <option value="all">Types</option>
+              <option value="debt">👻 Debt</option>
+              <option value="cost">💸 Cost</option>
+              <option value="revenue">💰 Revenue</option>
+              <option value="happiness">❤️ Happiness</option>
+            </FilterDropdown>
+          </FilterContainer>
+        </ButtonAndFilterContainer>
+      </Header>
+      <SearchAndTopWordsContainer>
+        <SearchBar 
+          placeholder="Search tasks..."
+          value={searchTerm}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+        />
+        {topWords.map(([word, count]) => (
+          <TopWordButton key={word} onClick={() => setSearchTerm(word)}>
+            {word} ({count})
+          </TopWordButton>
+        ))}
+      </SearchAndTopWordsContainer>
+      <Section>
+        <TaskHeatmap 
+          selectedMood={selectedMood} 
+          setSelectedMood={setSelectedMood}
+          searchTerm={searchTerm}
+          attributeFilter={attributeFilter}
+          typeFilter={typeFilter}
+        />
+      </Section>
+      <Section>
+        <TaskSuggestion />
+      </Section>
+      <TaskInput
+        isOpen={isTaskInputModalOpen}
+        closeModal={closeTaskInputModal}
+      />
+      <MoodModal isOpen={isMoodModalOpen}>
+        <MoodModalContent>
+          <h2>How are you feeling?</h2>
+          <div>
+            <MoodButton onClick={() => handleMoodSelection('💪')}> Determined</MoodButton>
+            <MoodButton onClick={() => handleMoodSelection('🧘')}>🧘 Zen</MoodButton>
+            <MoodButton onClick={() => handleMoodSelection('🤓')}>🤓 Geeky</MoodButton>
+            <MoodButton onClick={() => handleMoodSelection('🥱')}>🥱 Tired</MoodButton>
+            <MoodButton onClick={() => handleMoodSelection('🤪')}>🤪 Bored</MoodButton>
+          </div>
+        </MoodModalContent>
+      </MoodModal>
+    </AppContainer>
   );
 }
 
