@@ -361,6 +361,32 @@ class GoogleDriveService {
     this.username = username;
     console.log('Username set in GoogleDriveService:', username); // Add this log
   }
+
+  public async fetchSharedTasks(): Promise<void> {
+    try {
+      const token = await this.getAccessToken();
+      // &includeItemsFromAllDrives=true <-- to be added to URL
+      const response = await this.fetchWithAuth(
+        `https://www.googleapis.com/drive/v3/files?q=name='tasks.json' and trashed=false&fields=files(id,name,owners)`,
+        token
+      );
+      const data = await response.json();
+      
+      if (data.files && data.files.length > 0) {
+        const sharedTaskFile = data.files[0];
+        console.log('Shared tasks.json file found:', sharedTaskFile);
+        if (sharedTaskFile.owners && sharedTaskFile.owners.length > 0) {
+          console.log('Owner of the shared tasks.json:', sharedTaskFile.owners[0].emailAddress);
+        } else {
+          console.log('No owner information found for the shared tasks.json');
+        }
+      } else {
+        console.log('No shared tasks.json file found in Google Drive');
+      }
+    } catch (error) {
+      console.error('Error fetching shared tasks:', error);
+    }
+  }
 }
 
 export const googleDriveService = GoogleDriveService.getInstance();

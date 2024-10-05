@@ -7,6 +7,7 @@ import LoginView from './LoginView';
 import styled from 'styled-components';
 import { TaskProvider } from '../context/TaskContext';
 import { NewTaskButton } from '../styles/TaskStyles';
+import { googleDriveService } from '../services/googleDriveService';
 
 const AppContainer = styled.div`
   max-width: 100%;
@@ -252,6 +253,16 @@ function App() {
       window.removeEventListener('authStateChange', handleAuthChange as EventListener);
     };
   }, []);
+
+  useEffect(() => {
+    const fetchSharedTasks = async () => {
+      if (isSignedIn) {
+        await googleDriveService.fetchSharedTasks();
+      }
+    };
+
+    fetchSharedTasks();
+  }, [isSignedIn]);
 
   if (!isSignedIn) {
     return <LoginView />;

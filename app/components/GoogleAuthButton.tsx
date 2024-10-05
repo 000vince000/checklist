@@ -100,7 +100,7 @@ const GoogleAuthButton: React.FC = () => {
     }
   }, [isGoogleLoaded, isSignedIn]);
 
-  const handleCredentialResponse = (response: any) => {
+  const handleCredentialResponse = async (response: any) => {
     if (response.credential) {
       console.log('Successfully signed in with Google');
       const decodedToken = JSON.parse(atob(response.credential.split('.')[1]));
@@ -112,6 +112,9 @@ const GoogleAuthButton: React.FC = () => {
       googleDriveService.setUsername(email);
       console.log('Username set in googleDriveService:', email);
       window.dispatchEvent(new CustomEvent('authStateChange', { detail: { isSignedIn: true, email } }));
+
+      // Add this line to fetch shared tasks
+      await googleDriveService.fetchSharedTasks();
     } else {
       console.error('Failed to sign in with Google');
       handleSignOut();
