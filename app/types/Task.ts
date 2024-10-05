@@ -10,4 +10,5 @@ export interface Task {
   isCompleted: boolean;
   completionTime?: number;
   parentTaskId?: number | null; // Add this new field
+  isRunning?: boolean;  // Add this line
 }

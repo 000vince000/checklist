@@ -258,6 +258,42 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     topWords
   };
 
+  useEffect(() => {
+    let lastUpdateTime = Date.now();
+    let animationFrameId: number;
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const elapsed = now - lastUpdateTime;
+      lastUpdateTime = now;
+
+      setTaskState((prevState: TaskState) => {
+        const updatedOpenTasks = prevState.openTasks.map(task => {
+          if (task.isCompleted === false) {
+            return {
+              ...task,
+              completionTime: (task.completionTime || 0) + elapsed / 1000
+            };
+          }
+          return task;
+        });
+
+        return {
+          ...prevState,
+          openTasks: updatedOpenTasks
+        };
+      });
+
+      animationFrameId = requestAnimationFrame(updateTimer);
+    };
+
+    animationFrameId = requestAnimationFrame(updateTimer);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
   return (
     <TaskContext.Provider value={contextValue}>
       {children}
