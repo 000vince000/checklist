@@ -291,6 +291,10 @@ function AppContent() {
     closeMoodModal();
   };
 
+  const handleTopWordClick = (word: string) => {
+    setSearchTerm(prevTerm => prevTerm === word ? '' : word);
+  };
+
   return (
     <AppContainer>
       <Header>
@@ -330,7 +334,11 @@ function AppContent() {
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
         />
         {topWords.map(([word, count]) => (
-          <TopWordButton key={word} onClick={() => setSearchTerm(word)}>
+          <TopWordButton 
+            key={word} 
+            onClick={() => handleTopWordClick(word)}
+            style={{ backgroundColor: searchTerm === word ? '#FFA500' : 'transparent' }}
+          >
             {word} ({count})
           </TopWordButton>
         ))}
