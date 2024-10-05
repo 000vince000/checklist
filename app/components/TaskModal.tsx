@@ -33,6 +33,7 @@ import {
   SaveButton,
   ActionButton
 } from '../styles/TaskStyles';
+import { useRef } from 'react';
 
 interface TaskModalProps {
   selectedTask: Task | null;
@@ -70,6 +71,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [searchResults, setSearchResults] = useState<Task[]>([]);
   const [selectedParentTask, setSelectedParentTask] = useState<Task | null>(null);
   const [editedTask, setEditedTask] = useState<Task | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (selectedTask) {
@@ -77,8 +80,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
       if (selectedTask.parentTaskId) {
         const parentTask = [...allTasks, ...completedTasks].find(task => task.id === selectedTask.parentTaskId);
         setSelectedParentTask(parentTask || null);
+        setSearchTerm(parentTask ? parentTask.name : '');
       } else {
         setSelectedParentTask(null);
+        setSearchTerm('');
       }
     }
   }, [selectedTask, allTasks, completedTasks]);
@@ -90,7 +95,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
       setSearchResults([]);
     } else {
       const results = [...allTasks, ...completedTasks].filter(task =>
-        task.name.toLowerCase().includes(term.toLowerCase())
+        task.name.toLowerCase().includes(term.toLowerCase()) &&
+        task.id !== editedTask?.id // Exclude the current task from search results
       );
       setSearchResults(results);
     }
@@ -98,7 +104,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   const handleSelectParentTask = (task: Task | null) => {
     setSelectedParentTask(task);
-    setSearchTerm(task ? task.name : '');
+    setSearchTerm('');
     setSearchResults([]);
     if (editedTask) {
       setEditedTask({
@@ -124,6 +130,15 @@ const TaskModal: React.FC<TaskModalProps> = ({
     }
   };
 
+  const handleSearchFocus = () => {
+    setIsDropdownOpen(true);
+  };
+
+  const handleSearchBlur = () => {
+    // Use setTimeout to allow clicking on dropdown items before closing
+    setTimeout(() => setIsDropdownOpen(false), 200);
+  };
+
   return (
     <Modal isOpen={isOpen}>
       <ModalContent>
@@ -144,28 +159,33 @@ const TaskModal: React.FC<TaskModalProps> = ({
               <Label htmlFor="parentTask">Parent Task</Label>
               <SearchContainer>
                 <SearchInput
+                  ref={searchInputRef}
                   type="text"
                   id="parentTask"
-                  placeholder="Search for parent task..."
+                  placeholder={selectedParentTask ? selectedParentTask.name : "Search for parent task..."}
                   value={searchTerm}
                   onChange={handleSearch}
+                  onFocus={handleSearchFocus}
+                  onBlur={handleSearchBlur}
                 />
-                {searchResults.length > 0 && (
+                {isDropdownOpen && (searchResults.length > 0 || selectedParentTask) && (
                   <Dropdown>
-                    <DropdownItem onClick={() => handleSelectParentTask(null)}>
-                      None
-                    </DropdownItem>
+                    {selectedParentTask && (
+                      <DropdownItem onClick={() => handleSelectParentTask(null)}>
+                        Clear parent task
+                      </DropdownItem>
+                    )}
                     {searchResults.map(task => (
-                      <DropdownItem key={task.id} onClick={() => handleSelectParentTask(task)}>
+                      <DropdownItem 
+                        key={task.id} 
+                        onClick={() => handleSelectParentTask(task)}
+                      >
                         {task.name}
                       </DropdownItem>
                     ))}
                   </Dropdown>
                 )}
               </SearchContainer>
-              <TaskProperty>
-                Current Parent Task: {selectedParentTask ? selectedParentTask.name : 'None'}
-              </TaskProperty>
             </FormGroup>
             <InlineFormGroup>
               <InlineLabel htmlFor="attribute">Attribute</InlineLabel>
