@@ -140,9 +140,14 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const addTask = useCallback((newTask: Task) => {
     console.log('Adding new task:', newTask);
     setTaskState((prevState: TaskState) => {
+      const taskWithCreatedAt = {
+        ...newTask,
+        rejectionCount: 0,
+        createdAt: new Date().toISOString().split('T')[0] // use only date without time
+      };
       const newState = {
         ...prevState,
-        openTasks: [...prevState.openTasks, { ...newTask, rejectionCount: 0, isCompleted: false }]
+        openTasks: [...prevState.openTasks, taskWithCreatedAt]
       };
       updateStorageAndSync(newState);
       return newState;
@@ -154,9 +159,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateTask = useCallback((updatedTask: Task) => {
     console.log('Updating task:', updatedTask);
     setTaskState((prevState: TaskState) => {
+      const taskWithUpdatedAt = {
+        ...updatedTask,
+        updatedAt: new Date().toISOString().split('T')[0]
+      };
       const newState = {
         ...prevState,
-        openTasks: prevState.openTasks.map((task: Task) => task.id === updatedTask.id ? updatedTask : task)
+        openTasks: prevState.openTasks.map((task: Task) => task.id === updatedTask.id ? taskWithUpdatedAt : task)
       };
       updateStorageAndSync(newState);
       return newState;
@@ -164,32 +173,30 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [updateStorageAndSync]);
 
   const completeTask = useCallback((taskId: number, completionTime: number) => {
-    console.log('completeTask called for taskId:', taskId);
     if (completingTasks.has(taskId)) {
-      console.log('Task is already being completed:', taskId);
       return;
     }
 
-    console.log('Starting to complete task:', taskId);
     setAnimatingTaskId(taskId);
     setCompletingTasks((prev: Set<number>) => new Set(prev).add(taskId));
     
     setTimeout(() => {
-      console.log('setTimeout callback triggered for taskId:', taskId);
       setTaskState((prevState: TaskState) => {
-        console.log('setTaskState callback triggered for taskId:', taskId);
         const taskToComplete = prevState.openTasks.find((task: Task) => task.id === taskId);
         if (!taskToComplete) {
           console.warn(`Task with id ${taskId} not found in the tasks list`);
           return prevState;
         }
-        const completedTask = { ...taskToComplete, isCompleted: true, completionTime };
+        const taskWithClosedAt = {
+          ...taskToComplete,
+          closedAt: new Date().toISOString().split('T')[0]
+        };
+        const completedTask = { ...taskWithClosedAt, isCompleted: true, completionTime };
         const newState = {
           openTasks: prevState.openTasks.filter((task: Task) => task.id !== taskId),
           completedTasks: [...prevState.completedTasks, completedTask],
           deletedTasks: prevState.deletedTasks
         };
-        console.log('Calling updateStorageAndSync from setTaskState');
         updateStorageAndSync(newState);
         return newState;
       });
