@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Task } from '../types/Task';
 import { googleDriveService } from '../services/googleDriveService';
 
@@ -239,11 +239,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .slice(0, 3);
   }, [taskState.openTasks]);
 
+  const prevTopWordsRef = useRef<[string, number][]>([]);
+
   useEffect(() => {
-    console.log("Top 3 most frequent words in open tasks:");
-    topWords.forEach(([word, count], index) => {
-      console.log(`${index + 1}. "${word}" (${count} occurrences)`);
-    });
+    if (JSON.stringify(topWords) !== JSON.stringify(prevTopWordsRef.current)) {
+      console.log("Top 3 most frequent words in open tasks:");
+      topWords.forEach(([word, count], index) => {
+        console.log(`${index + 1}. "${word}" (${count} occurrences)`);
+      });
+      prevTopWordsRef.current = topWords;
+    }
   }, [topWords]);
 
   const contextValue = {

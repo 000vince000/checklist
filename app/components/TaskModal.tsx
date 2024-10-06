@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Task } from '../types/Task';
 import { calculatePriority, formatTime } from '../utils/taskUtils';
 import { useTaskContext } from '../context/TaskContext';
@@ -87,17 +87,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
       }
       // Search for child tasks
       console.log('Searching for child tasks of:', selectedTask.id);
-      const children = searchChildTasks(selectedTask.id);
+      const children = [...allTasks, ...completedTasks]
+        .filter(task => task.parentTaskId === selectedTask.id)
+        .map(task => ({ id: task.id, name: task.name }));
       setChildTasks(children);
     }
-  }, [selectedTask, allTasks, completedTasks]);
-
-  const searchChildTasks = (parentId: number) => {
-    console.log('All tasks:', [...allTasks, ...completedTasks]);
-    const children = [...allTasks, ...completedTasks].filter(task => task.parentTaskId === parentId);
-    console.log(`Child tasks for parent ${parentId}:`, children);
-    return children.map(task => ({ id: task.id, name: task.name }));
-  };
+  }, [selectedTask]); // Remove allTasks and completedTasks from the dependency array
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const term = event.target.value;
