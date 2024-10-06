@@ -35,7 +35,8 @@ const generateRandomTasks = (count: number): Task[] => {
     type: types[Math.floor(Math.random() * types.length)],
     note: `This is a random note for Task ${i + 1}`,
     rejectionCount: 0,
-    isCompleted: false
+    isCompleted: false,
+    createdAt: new Date().toISOString().split('T')[0] // Add this line
   }));
 };
 
