@@ -34,6 +34,9 @@ import {
   ActionButton
 } from '../styles/TaskStyles';
 
+// Add this new import for the URL validation
+import { isValidUrl } from '../utils/urlUtils';
+
 interface TaskModalProps {
   selectedTask: Task | null;
   isOpen: boolean;
@@ -122,17 +125,29 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     if (editedTask) {
+      const value = e.target.value;
       setEditedTask({
         ...editedTask,
-        [e.target.name]: e.target.value
+        [e.target.name]: value === '' ? undefined : value
       });
     }
   };
 
   const handleSave = () => {
     if (editedTask) {
-      handleUpdateTask(editedTask);
+      // Remove the url property if it's an empty string
+      const taskToSave = { ...editedTask };
+      if (taskToSave.url === '') {
+        delete taskToSave.url;
+      }
+      handleUpdateTask(taskToSave);
       closeModal();
+    }
+  };
+
+  const handleGoToUrl = () => {
+    if (editedTask && editedTask.url && isValidUrl(editedTask.url)) {
+      window.open(editedTask.url, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -244,6 +259,24 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 <option value="revenue">Revenue</option>
                 <option value="happiness">Happiness</option>
               </Select>
+            </InlineFormGroup>
+            <InlineFormGroup>
+              <InlineLabel htmlFor="url">URL</InlineLabel>
+              <Input
+                type="text"
+                id="url"
+                name="url"
+                value={editedTask.url || ''}
+                onChange={handleInputChange}
+                style={{ flexGrow: 1, marginRight: '10px' }}
+              />
+              <ActionButton 
+                type="button" 
+                onClick={handleGoToUrl}
+                disabled={!editedTask.url || !isValidUrl(editedTask.url)}
+              >
+                Go
+              </ActionButton>
             </InlineFormGroup>
             <FormGroup>
               <Label htmlFor="note">Note</Label>

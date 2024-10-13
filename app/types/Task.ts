@@ -12,4 +12,5 @@ export interface Task {
   parentTaskId?: number | null; // Add this new field
   isRunning?: boolean;  // Add this line
   createdAt?: string; // Add this line
+  url?: string;
 }
