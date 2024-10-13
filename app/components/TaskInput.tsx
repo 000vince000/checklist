@@ -19,7 +19,12 @@ import {
   SearchInput,
   Dropdown,
   DropdownItem,
-  TaskProperty
+  TaskProperty,
+  TaskInputContainer,
+  URLInputContainer,
+  URLInput,
+  URLIcon,
+  NewTaskButton
 } from '../styles/TaskStyles';
 
 interface TaskInputProps {
@@ -40,6 +45,7 @@ const TaskInput: React.FC<TaskInputProps> = ({ isOpen, closeModal }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Task[]>([]);
   const [selectedParentTask, setSelectedParentTask] = useState<Task | null>(null);
+  const [url, setUrl] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setNewTask({ ...newTask, [e.target.id]: e.target.value });
@@ -81,7 +87,8 @@ const TaskInput: React.FC<TaskInputProps> = ({ isOpen, closeModal }) => {
         note: newTask.note,
         rejectionCount: 0,
         isCompleted: false,
-        parentTaskId: newTask.parentTaskId
+        parentTaskId: newTask.parentTaskId,
+        url: url.trim() !== '' ? url.trim() : undefined
       } as Task);
       setNewTask({
         attribute: 'important',
@@ -91,7 +98,14 @@ const TaskInput: React.FC<TaskInputProps> = ({ isOpen, closeModal }) => {
       });
       setSelectedParentTask(null);
       setSearchTerm('');
+      setUrl('');
       closeModal();
+    }
+  };
+
+  const handleOpenUrl = () => {
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -161,11 +175,26 @@ const TaskInput: React.FC<TaskInputProps> = ({ isOpen, closeModal }) => {
               <option value="happiness">Happiness</option>
             </Select>
           </InlineFormGroup>
+          <InlineFormGroup>
+            <InlineLabel htmlFor="taskUrl">URL</InlineLabel>
+            <URLInputContainer>
+              <URLInput
+                type="text"
+                id="taskUrl"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="Enter URL (optional)"
+              />
+              <URLIcon viewBox="0 0 24 24" onClick={handleOpenUrl}>
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+              </URLIcon>
+            </URLInputContainer>
+          </InlineFormGroup>
           <FormGroup>
             <Label htmlFor="note">Note</Label>
             <Textarea id="note" value={newTask.note || ''} onChange={handleInputChange} />
           </FormGroup>
-          <SubmitButton type="submit">Add Task</SubmitButton>
+          <NewTaskButton type="submit">Add Task</NewTaskButton>
         </Form>
       </ModalContent>
     </Modal>

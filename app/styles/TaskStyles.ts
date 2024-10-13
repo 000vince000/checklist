@@ -36,7 +36,7 @@ export const Modal = styled.div<{ isOpen: boolean }>`
 
 export const ModalContent = styled.div`
   background-color: #2c2c2c;
-  padding: 30px;
+  padding: 10px 30px 30px 30px;
   border-radius: 8px;
   width: 90%;
   max-width: 500px;
@@ -306,4 +306,38 @@ export const ChildTaskItem = styled.li`
   margin-bottom: 3px;
   font-size: 0.9em;
   color: #666;
+`;
+
+export const URLInputContainer = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+`;
+
+export const URLInput = styled(Input)`
+  padding-right: 30px; // Make room for the icon
+  width: 100%;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    padding-right: 26px; // Slightly reduce padding on mobile
+  }
+`;
+
+export const URLIcon = styled.svg`
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  fill: #4CAF50;
+
+  @media (max-width: 768px) {
+    width: 14px;
+    height: 14px;
+    right: 6px;
+  }
 `;
