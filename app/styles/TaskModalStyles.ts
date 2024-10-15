@@ -51,7 +51,7 @@ export const CloseButtonStyled = styled.button`
 export const ButtonGroupStyled = styled.div`
   display: flex;
   gap: 10px;
-  margin-top: 20px;
+  margin-top: 2px;
 `;
 
 export const SubtaskText = styled.span`

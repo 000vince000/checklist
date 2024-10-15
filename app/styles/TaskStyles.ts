@@ -197,7 +197,7 @@ export const DropdownItem = styled.div`
 `;
 
 export const TaskDetails = styled.div`
-  margin-bottom: 5px;
+  margin-bottom: 2px;
 `;
 
 export const TaskProperty = styled.p`
