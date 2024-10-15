@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Task } from '../types/Task';
 import { googleDriveService } from '../services/googleDriveService';
 
@@ -11,6 +11,10 @@ interface TaskContextType {
   completeTask: (taskId: number, completionTime: number) => void;
   deleteTask: (taskId: number) => void;
   animatingTaskId: number | null;
+  topWords: [string, number][];
+  isLoading: boolean;
+  syncError: string;
+  forceRefresh: () => void;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -34,7 +38,8 @@ const generateRandomTasks = (count: number): Task[] => {
     type: types[Math.floor(Math.random() * types.length)],
     note: `This is a random note for Task ${i + 1}`,
     rejectionCount: 0,
-    isCompleted: false
+    isCompleted: false,
+    createdAt: new Date().toISOString().split('T')[0] // Add this line
   }));
 };
 
@@ -52,6 +57,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   });
   const [animatingTaskId, setAnimatingTaskId] = useState<number | null>(null);
   const [completingTasks, setCompletingTasks] = useState<Set<number>>(new Set());
+  const [isLoading, setIsLoading] = useState(false);
+  const [syncError, setSyncError] = useState('');
 
   const updateLocalStorage = useCallback((state: TaskState) => {
     console.log('updateLocalStorage called');
@@ -81,18 +88,18 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await saveToGoogleDrive(newState);
   }, [updateLocalStorage, saveToGoogleDrive]);
 
-  const loadFromGoogleDrive = useCallback(async () => {
-    console.log('loadFromGoogleDrive called');
+  const syncTasksWithGoogleDrive = useCallback(async () => {
+    console.log('syncTasksWithGoogleDrive called');
     try {
       const isSignedIn = localStorage.getItem('isSignedIn') === 'true';
       if (!isSignedIn) {
-        console.log('User not signed in, skipping Google Drive load');
+        console.log('User not signed in, skipping Google Drive sync');
         return;
       }
 
       const userEmail = localStorage.getItem('userEmail');
       if (!userEmail) {
-        console.log('User email not found, skipping Google Drive load');
+        console.log('User email not found, skipping Google Drive sync');
         return;
       }
 
@@ -107,7 +114,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         };
         setTaskState(newState);
         updateLocalStorage(newState);
-        console.log('Tasks loaded from Google Drive');
+        console.log('Tasks synced from Google Drive');
       } else {
         console.log('No data found in Google Drive, using local storage or generating random tasks');
         const localState: TaskState = {
@@ -119,7 +126,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         updateLocalStorage(localState);
       }
     } catch (error) {
-      console.error('Error loading from Google Drive:', error);
+      console.error('Error syncing with Google Drive:', error);
       // Fallback to local storage or generate random tasks
       const localState: TaskState = {
         openTasks: JSON.parse(localStorage.getItem(OPEN_TASKS_KEY) || 'null') || generateRandomTasks(20),
@@ -133,15 +140,20 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     console.log('useEffect hook triggered');
-    loadFromGoogleDrive();
-  }, [loadFromGoogleDrive]);
+    syncTasksWithGoogleDrive();
+  }, [syncTasksWithGoogleDrive]);
 
   const addTask = useCallback((newTask: Task) => {
     console.log('Adding new task:', newTask);
     setTaskState((prevState: TaskState) => {
+      const taskWithCreatedAt = {
+        ...newTask,
+        rejectionCount: 0,
+        createdAt: new Date().toISOString().split('T')[0] // use only date without time
+      };
       const newState = {
         ...prevState,
-        openTasks: [...prevState.openTasks, { ...newTask, rejectionCount: 0, isCompleted: false }]
+        openTasks: [...prevState.openTasks, taskWithCreatedAt]
       };
       updateStorageAndSync(newState);
       return newState;
@@ -153,9 +165,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateTask = useCallback((updatedTask: Task) => {
     console.log('Updating task:', updatedTask);
     setTaskState((prevState: TaskState) => {
+      const taskWithUpdatedAt = {
+        ...updatedTask,
+        updatedAt: new Date().toISOString().split('T')[0]
+      };
       const newState = {
         ...prevState,
-        openTasks: prevState.openTasks.map((task: Task) => task.id === updatedTask.id ? updatedTask : task)
+        openTasks: prevState.openTasks.map((task: Task) => task.id === updatedTask.id ? taskWithUpdatedAt : task)
       };
       updateStorageAndSync(newState);
       return newState;
@@ -163,32 +179,30 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [updateStorageAndSync]);
 
   const completeTask = useCallback((taskId: number, completionTime: number) => {
-    console.log('completeTask called for taskId:', taskId);
     if (completingTasks.has(taskId)) {
-      console.log('Task is already being completed:', taskId);
       return;
     }
 
-    console.log('Starting to complete task:', taskId);
     setAnimatingTaskId(taskId);
     setCompletingTasks((prev: Set<number>) => new Set(prev).add(taskId));
     
     setTimeout(() => {
-      console.log('setTimeout callback triggered for taskId:', taskId);
       setTaskState((prevState: TaskState) => {
-        console.log('setTaskState callback triggered for taskId:', taskId);
         const taskToComplete = prevState.openTasks.find((task: Task) => task.id === taskId);
         if (!taskToComplete) {
           console.warn(`Task with id ${taskId} not found in the tasks list`);
           return prevState;
         }
-        const completedTask = { ...taskToComplete, isCompleted: true, completionTime };
+        const taskWithClosedAt = {
+          ...taskToComplete,
+          closedAt: new Date().toISOString().split('T')[0]
+        };
+        const completedTask = { ...taskWithClosedAt, isCompleted: true, completionTime };
         const newState = {
           openTasks: prevState.openTasks.filter((task: Task) => task.id !== taskId),
           completedTasks: [...prevState.completedTasks, completedTask],
           deletedTasks: prevState.deletedTasks
         };
-        console.log('Calling updateStorageAndSync from setTaskState');
         updateStorageAndSync(newState);
         return newState;
       });
@@ -218,6 +232,70 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, [updateStorageAndSync]);
 
+  const excludedWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'this', 'that']);
+  const reservedWords = new Set(['id', 'name', 'attribute', 'externalDependency', 'effort', 'type', 'note', 'rejectionCount', 'isCompleted', 'completionTime','note','task','random']);
+
+  const topWords = useMemo(() => {
+    const openTasks = taskState.openTasks;
+    const words = openTasks.flatMap(task => 
+      (task.name.toLowerCase() + ' ' + (task.note || '').toLowerCase()).split(/\s+/)
+    );
+    const wordFrequency = words.reduce((acc, word) => {
+      if (word.length > 2 && !excludedWords.has(word) && !reservedWords.has(word)) {
+        acc[word] = (acc[word] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(wordFrequency)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+  }, [taskState.openTasks]);
+
+  const prevTopWordsRef = useRef<[string, number][]>([]);
+
+  useEffect(() => {
+    if (JSON.stringify(topWords) !== JSON.stringify(prevTopWordsRef.current)) {
+      console.log("Top 3 most frequent words in open tasks:");
+      topWords.forEach(([word, count], index) => {
+        console.log(`${index + 1}. "${word}" (${count} occurrences)`);
+      });
+      prevTopWordsRef.current = topWords;
+    }
+  }, [topWords]);
+
+  const forceRefresh = useCallback(async () => {
+    console.log('Force refresh triggered');
+    setIsLoading(true);
+    try {
+      await syncTasksWithGoogleDrive();
+      console.log('Force refresh completed successfully');
+    } catch (error) {
+      console.error('Force refresh failed:', error);
+      setSyncError('Failed to refresh data. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [syncTasksWithGoogleDrive]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('Page became visible, triggering force refresh');
+        forceRefresh();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Trigger force refresh on initial load
+    forceRefresh();
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [forceRefresh]);
+
   const contextValue = {
     tasks: taskState.openTasks,
     completedTasks: taskState.completedTasks,
@@ -226,8 +304,48 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     updateTask,
     completeTask,
     deleteTask,
-    animatingTaskId
+    animatingTaskId,
+    topWords,
+    isLoading,
+    syncError,
+    forceRefresh
   };
+
+  useEffect(() => {
+    let lastUpdateTime = Date.now();
+    let animationFrameId: number;
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const elapsed = now - lastUpdateTime;
+      lastUpdateTime = now;
+
+      setTaskState((prevState: TaskState) => {
+        const updatedOpenTasks = prevState.openTasks.map(task => {
+          if (task.isCompleted === false) {
+            return {
+              ...task,
+              completionTime: (task.completionTime || 0) + elapsed / 1000
+            };
+          }
+          return task;
+        });
+
+        return {
+          ...prevState,
+          openTasks: updatedOpenTasks
+        };
+      });
+
+      animationFrameId = requestAnimationFrame(updateTimer);
+    };
+
+    animationFrameId = requestAnimationFrame(updateTimer);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
 
   return (
     <TaskContext.Provider value={contextValue}>

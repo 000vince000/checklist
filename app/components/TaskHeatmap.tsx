@@ -123,6 +123,7 @@ interface TaskHeatmapProps {
   searchTerm: string;
   attributeFilter: string;
   typeFilter: string;
+  openTaskModal: (taskId: number) => void;
 }
 
 const AnimatedTaskBox = animated(TaskBox);
@@ -132,7 +133,8 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
   setSelectedMood, 
   searchTerm, 
   attributeFilter, 
-  typeFilter 
+  typeFilter,
+  openTaskModal
 }) => {
   const { tasks, completedTasks, updateTask, completeTask, deleteTask, animatingTaskId } = useTaskContext();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -300,10 +302,11 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
         handlePause={handlePause}
         handleAbandon={handleAbandon}
         handleDelete={handleDelete}
-        handleUpdateTask={handleUpdateTask} // Add this new prop
+        handleUpdateTask={handleUpdateTask}
         timer={timer}
         isPaused={isPaused}
         tasks={tasks}
+        openTaskModal={openTaskModal}
       />
     </>
   );

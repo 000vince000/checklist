@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Task } from '../types/Task';
 import { calculatePriority, formatTime } from '../utils/taskUtils';
 import { useTaskContext } from '../context/TaskContext';
@@ -6,8 +6,6 @@ import {
   Button,
   Modal,
   ModalContent,
-  CloseButton,
-  ModalHeader,
   Form,
   FormGroup,
   Label,
@@ -23,7 +21,6 @@ import {
   SearchInput,
   TaskDetails,
   TaskProperty,
-  ButtonGroup,
   DoneButton,
   PauseButton,
   AbandonButton,
@@ -31,8 +28,23 @@ import {
   RejectButton,
   DeleteButton,
   SaveButton,
-  ActionButton
+  ActionButton,
+  URLInputContainer,
+  URLInput,
+  URLIcon
 } from '../styles/TaskStyles';
+import {
+  ModalHeaderStyled,
+  LeftSection,
+  BackButton,
+  CloseButtonStyled,
+  ButtonGroupStyled,
+  SubtaskText,
+  SubtaskButton
+} from '../styles/TaskModalStyles';
+
+import { isValidUrl } from '../utils/urlUtils';
+import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 
 interface TaskModalProps {
   selectedTask: Task | null;
@@ -48,6 +60,7 @@ interface TaskModalProps {
   timer: number | null;
   isPaused: boolean;
   tasks: Task[];
+  openTaskModal: (taskId: number) => void;
 }
 
 const TaskModal: React.FC<TaskModalProps> = ({
@@ -64,6 +77,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   timer,
   isPaused,
   tasks,
+  openTaskModal,
 }) => {
   const { tasks: allTasks, completedTasks } = useTaskContext();
   const [searchTerm, setSearchTerm] = useState('');
@@ -73,9 +87,11 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [childTasks, setChildTasks] = useState<{id: number, name: string}[]>([]); // Change id type to number
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [currentTask, setCurrentTask] = useState<Task | null>(null);
 
   useEffect(() => {
     if (selectedTask) {
+      setCurrentTask(selectedTask);
       setEditedTask(selectedTask);
       if (selectedTask.parentTaskId) {
         const parentTask = [...allTasks, ...completedTasks].find(task => task.id === selectedTask.parentTaskId);
@@ -87,17 +103,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
       }
       // Search for child tasks
       console.log('Searching for child tasks of:', selectedTask.id);
-      const children = searchChildTasks(selectedTask.id);
+      const children = [...allTasks, ...completedTasks]
+        .filter(task => task.parentTaskId === selectedTask.id)
+        .map(task => ({ id: task.id, name: task.name }));
       setChildTasks(children);
     }
-  }, [selectedTask, allTasks, completedTasks]);
-
-  const searchChildTasks = (parentId: number) => {
-    console.log('All tasks:', [...allTasks, ...completedTasks]);
-    const children = [...allTasks, ...completedTasks].filter(task => task.parentTaskId === parentId);
-    console.log(`Child tasks for parent ${parentId}:`, children);
-    return children.map(task => ({ id: task.id, name: task.name }));
-  };
+  }, [selectedTask]); // Remove allTasks and completedTasks from the dependency array
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const term = event.target.value;
@@ -127,17 +138,29 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     if (editedTask) {
+      const value = e.target.value;
       setEditedTask({
         ...editedTask,
-        [e.target.name]: e.target.value
+        [e.target.name]: value === '' ? undefined : value
       });
     }
   };
 
   const handleSave = () => {
     if (editedTask) {
-      handleUpdateTask(editedTask);
+      // Remove the url property if it's an empty string
+      const taskToSave = { ...editedTask };
+      if (taskToSave.url === '') {
+        delete taskToSave.url;
+      }
+      handleUpdateTask(taskToSave);
       closeModal();
+    }
+  };
+
+  const handleGoToUrl = () => {
+    if (editedTask && editedTask.url && isValidUrl(editedTask.url)) {
+      window.open(editedTask.url, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -150,11 +173,54 @@ const TaskModal: React.FC<TaskModalProps> = ({
     setTimeout(() => setIsDropdownOpen(false), 200);
   };
 
+  const handleOpenUrl = () => {
+    if (editedTask && editedTask.url) {
+      window.open(editedTask.url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleSubtaskClick = (subtaskId: number) => {
+    const subtask = [...allTasks, ...completedTasks].find(task => task.id === subtaskId);
+    if (subtask) {
+      setCurrentTask(subtask);
+      setEditedTask(subtask);
+      // Refresh child tasks for the new current task
+      const children = [...allTasks, ...completedTasks]
+        .filter(task => task.parentTaskId === subtask.id)
+        .map(task => ({ id: task.id, name: task.name }));
+      setChildTasks(children);
+    }
+  };
+
+  const handleBackToParent = () => {
+    if (currentTask && currentTask.parentTaskId) {
+      const parentTask = [...allTasks, ...completedTasks].find(task => task.id === currentTask.parentTaskId);
+      if (parentTask) {
+        setCurrentTask(parentTask);
+        setEditedTask(parentTask);
+        // Refresh child tasks for the parent task
+        const children = [...allTasks, ...completedTasks]
+          .filter(task => task.parentTaskId === parentTask.id)
+          .map(task => ({ id: task.id, name: task.name }));
+        setChildTasks(children);
+      }
+    }
+  };
+
   return (
     <Modal isOpen={isOpen}>
       <ModalContent>
-        <CloseButton onClick={closeModal}>&times;</CloseButton>
-        {editedTask && (
+        <ModalHeaderStyled>
+          <LeftSection>
+            {currentTask && currentTask.parentTaskId && (
+              <BackButton onClick={handleBackToParent}>
+                <FaArrowLeft />
+              </BackButton>
+            )}
+          </LeftSection>
+          <CloseButtonStyled onClick={closeModal}>&times;</CloseButtonStyled>
+        </ModalHeaderStyled>
+        {currentTask && (
           <Form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
             <FormGroup>
               <Label htmlFor="name">Task Name</Label>
@@ -162,7 +228,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 type="text"
                 id="name"
                 name="name"
-                value={editedTask.name}
+                value={currentTask.name}
                 onChange={handleInputChange}
               />
             </FormGroup>
@@ -203,7 +269,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               <Select
                 id="attribute"
                 name="attribute"
-                value={editedTask.attribute}
+                value={currentTask.attribute}
                 onChange={handleInputChange}
               >
                 <option value="urgent">Urgent</option>
@@ -216,7 +282,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               <Select
                 id="externalDependency"
                 name="externalDependency"
-                value={editedTask.externalDependency}
+                value={currentTask.externalDependency}
                 onChange={handleInputChange}
               >
                 <option value="yes">Yes</option>
@@ -228,7 +294,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               <Select
                 id="effort"
                 name="effort"
-                value={editedTask.effort}
+                value={currentTask.effort}
                 onChange={handleInputChange}
               >
                 <option value="small">Small</option>
@@ -241,7 +307,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               <Select
                 id="type"
                 name="type"
-                value={editedTask.type}
+                value={currentTask.type}
                 onChange={handleInputChange}
               >
                 <option value="debt">Debt</option>
@@ -250,12 +316,28 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 <option value="happiness">Happiness</option>
               </Select>
             </InlineFormGroup>
+            <InlineFormGroup>
+              <InlineLabel htmlFor="url">URL</InlineLabel>
+              <URLInputContainer>
+                <URLInput
+                  type="text"
+                  id="url"
+                  name="url"
+                  value={currentTask?.url || ''}
+                  onChange={handleInputChange}
+                  placeholder="Enter URL (optional)"
+                />
+                <URLIcon viewBox="0 0 24 24" onClick={handleOpenUrl}>
+                  <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+                </URLIcon>
+              </URLInputContainer>
+            </InlineFormGroup>
             <FormGroup>
               <Label htmlFor="note">Note</Label>
               <Textarea
                 id="note"
                 name="note"
-                value={editedTask.note || ''}
+                value={currentTask.note || ''}
                 onChange={handleInputChange}
               />
             </FormGroup>
@@ -265,7 +347,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   Subtasks:
                   <ul>
                     {childTasks.map(child => (
-                      <li key={child.id}>{child.name} (ID: {child.id})</li>
+                      <li key={child.id}>
+                        <SubtaskText>{child.name} </SubtaskText>
+                        <SubtaskButton onClick={() => handleSubtaskClick(child.id)}>
+                          <FaArrowRight />
+                        </SubtaskButton>
+                      </li>
                     ))}
                   </ul>
                 </TaskProperty>
@@ -273,10 +360,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 <TaskProperty>No child tasks found</TaskProperty>
               )}
               <TaskProperty>
-                Priority Score: {calculatePriority(editedTask, tasks).toFixed(2)}
+                Priority Score: {calculatePriority(currentTask, tasks).toFixed(2)}
               </TaskProperty>
               <TaskProperty>
-                Rejection Count: {editedTask.rejectionCount}
+                Rejection Count: {currentTask.rejectionCount}
               </TaskProperty>
             </TaskDetails>
             {timer !== null && (
@@ -285,20 +372,20 @@ const TaskModal: React.FC<TaskModalProps> = ({
               </TaskProperty>
             )}
             {timer === null ? (
-              <ButtonGroup>
+              <ButtonGroupStyled>
                 <AcceptButton type="button" onClick={handleAccept}>Accept</AcceptButton>
                 <RejectButton type="button" onClick={handleReject}>Reject</RejectButton>
                 <DeleteButton type="button" onClick={handleDelete}>Delete</DeleteButton>
                 <SaveButton type="submit">Save</SaveButton>
-              </ButtonGroup>
+              </ButtonGroupStyled>
             ) : (
-              <ButtonGroup>
+              <ButtonGroupStyled>
                 <DoneButton onClick={handleDone}>Done</DoneButton>
                 <PauseButton onClick={handlePause}>
                   {isPaused ? 'Resume' : 'Pause'}
                 </PauseButton>
                 <AbandonButton onClick={handleAbandon}>Abandon</AbandonButton>
-              </ButtonGroup>
+              </ButtonGroupStyled>
             )}
           </Form>
         )}
