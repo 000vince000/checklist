@@ -278,6 +278,7 @@ function AppContent() {
   const [isMoodModalOpen, setIsMoodModalOpen] = useState(false);
   const [isTaskInputModalOpen, setIsTaskInputModalOpen] = useState(false);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
 
   const openMoodModal = () => setIsMoodModalOpen(true);
   const closeMoodModal = () => setIsMoodModalOpen(false);
@@ -291,6 +292,12 @@ function AppContent() {
 
   const handleTopWordClick = (word: string) => {
     setSearchTerm(prevTerm => prevTerm === word ? '' : word);
+  };
+
+  const openTaskModal = (taskId: number) => {
+    setSelectedTaskId(taskId);
+    // You might need to fetch the task data here if it's not already available
+    console.log('Opening task modal for task ID:', taskId); // Add this log
   };
 
   return (
@@ -349,6 +356,7 @@ function AppContent() {
           searchTerm={searchTerm}
           attributeFilter={attributeFilter}
           typeFilter={typeFilter}
+          openTaskModal={openTaskModal}
         />
       </Section>
       <Section>
