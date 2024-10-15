@@ -90,9 +90,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
 
   useEffect(() => {
-    if (selectedTask) {
-      setCurrentTask(selectedTask);
+    if (selectedTask && isOpen) {
       setEditedTask(selectedTask);
+      setCurrentTask(selectedTask);
       if (selectedTask.parentTaskId) {
         const parentTask = [...allTasks, ...completedTasks].find(task => task.id === selectedTask.parentTaskId);
         setSelectedParentTask(parentTask || null);
@@ -108,7 +108,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
         .map(task => ({ id: task.id, name: task.name }));
       setChildTasks(children);
     }
-  }, [selectedTask]); // Remove allTasks and completedTasks from the dependency array
+  }, [selectedTask, isOpen]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const term = event.target.value;
@@ -138,11 +138,11 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     if (editedTask) {
-      const value = e.target.value;
-      setEditedTask({
-        ...editedTask,
-        [e.target.name]: value === '' ? undefined : value
-      });
+      const { name, value, type } = e.target;
+      setEditedTask(prevState => ({
+        ...prevState!,
+        [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+      }));
     }
   };
 
@@ -220,7 +220,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
           </LeftSection>
           <CloseButtonStyled onClick={closeModal}>&times;</CloseButtonStyled>
         </ModalHeaderStyled>
-        {currentTask && (
+        {editedTask && (
           <Form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
             <FormGroup>
               <Label htmlFor="name">Task Name</Label>
@@ -228,7 +228,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 type="text"
                 id="name"
                 name="name"
-                value={currentTask.name}
+                value={editedTask.name}
                 onChange={handleInputChange}
               />
             </FormGroup>
@@ -269,7 +269,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               <Select
                 id="attribute"
                 name="attribute"
-                value={currentTask.attribute}
+                value={editedTask.attribute}
                 onChange={handleInputChange}
               >
                 <option value="urgent">Urgent</option>
@@ -282,7 +282,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               <Select
                 id="externalDependency"
                 name="externalDependency"
-                value={currentTask.externalDependency}
+                value={editedTask.externalDependency}
                 onChange={handleInputChange}
               >
                 <option value="yes">Yes</option>
@@ -294,7 +294,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               <Select
                 id="effort"
                 name="effort"
-                value={currentTask.effort}
+                value={editedTask.effort}
                 onChange={handleInputChange}
               >
                 <option value="small">Small</option>
@@ -307,7 +307,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               <Select
                 id="type"
                 name="type"
-                value={currentTask.type}
+                value={editedTask.type}
                 onChange={handleInputChange}
               >
                 <option value="debt">Debt</option>
@@ -323,7 +323,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   type="text"
                   id="url"
                   name="url"
-                  value={currentTask?.url || ''}
+                  value={editedTask?.url || ''}
                   onChange={handleInputChange}
                   placeholder="Enter URL (optional)"
                 />
@@ -337,7 +337,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               <Textarea
                 id="note"
                 name="note"
-                value={currentTask.note || ''}
+                value={editedTask.note || ''}
                 onChange={handleInputChange}
               />
             </FormGroup>
@@ -360,10 +360,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 <TaskProperty>No child tasks found</TaskProperty>
               )}
               <TaskProperty>
-                Priority Score: {calculatePriority(currentTask, tasks).toFixed(2)}
+                Priority Score: {calculatePriority(editedTask, tasks).toFixed(2)}
               </TaskProperty>
               <TaskProperty>
-                Rejection Count: {currentTask.rejectionCount}
+                Rejection Count: {editedTask.rejectionCount}
               </TaskProperty>
             </TaskDetails>
             {timer !== null && (
