@@ -12,6 +12,9 @@ interface TaskContextType {
   deleteTask: (taskId: number) => void;
   animatingTaskId: number | null;
   topWords: [string, number][];
+  isLoading: boolean;
+  syncError: string;
+  forceRefresh: () => void;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -54,6 +57,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   });
   const [animatingTaskId, setAnimatingTaskId] = useState<number | null>(null);
   const [completingTasks, setCompletingTasks] = useState<Set<number>>(new Set());
+  const [isLoading, setIsLoading] = useState(false);
+  const [syncError, setSyncError] = useState('');
 
   const updateLocalStorage = useCallback((state: TaskState) => {
     console.log('updateLocalStorage called');
@@ -259,6 +264,38 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [topWords]);
 
+  const forceRefresh = useCallback(async () => {
+    console.log('Force refresh triggered');
+    setIsLoading(true);
+    try {
+      await syncTasksWithGoogleDrive();
+      console.log('Force refresh completed successfully');
+    } catch (error) {
+      console.error('Force refresh failed:', error);
+      setSyncError('Failed to refresh data. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [syncTasksWithGoogleDrive]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('Page became visible, triggering force refresh');
+        forceRefresh();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Trigger force refresh on initial load
+    forceRefresh();
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [forceRefresh]);
+
   const contextValue = {
     tasks: taskState.openTasks,
     completedTasks: taskState.completedTasks,
@@ -268,7 +305,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     completeTask,
     deleteTask,
     animatingTaskId,
-    topWords
+    topWords,
+    isLoading,
+    syncError,
+    forceRefresh
   };
 
   useEffect(() => {

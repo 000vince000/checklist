@@ -3,22 +3,30 @@ import TaskInput from './TaskInput';
 import TaskHeatmap from './TaskHeatmap';
 import TaskSuggestion from './TaskSuggestion';
 import LoginView from './LoginView';
-// Remove the GoogleAuthButton import as it's no longer needed here
-import styled from 'styled-components';
+import styled, { createGlobalStyle } from 'styled-components';
 import { TaskProvider, useTaskContext } from '../context/TaskContext';
 import { NewTaskButton } from '../styles/TaskStyles';
 
+// Add this GlobalStyle component
+const GlobalStyle = createGlobalStyle`
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #1e1e1e;
+  }
+`;
+
 const AppContainer = styled.div`
-  max-width: 100%;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   padding: 1rem;
   font-family: 'Roboto', sans-serif;
   color: #e0e0e0;
   background-color: #1e1e1e;
   min-height: 100vh;
+  box-sizing: border-box;
 
   @media (min-width: 768px) {
-    max-width: 1200px;
     padding: 2rem;
   }
 `;
@@ -207,43 +215,26 @@ const TopWordButton = styled(LuckyButtonStyled)`
   padding: 5px 10px;
 `;
 
+// Add this LoadingIndicator component
+const LoadingIndicator = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  color: white;
+  font-size: 24px;
+`;
+
 function App() {
   const [isSignedIn, setIsSignedIn] = useState(() => {
     return localStorage.getItem('isSignedIn') === 'true';
   });
-  const [isMoodModalOpen, setIsMoodModalOpen] = useState(false);
-  const [isTaskInputModalOpen, setIsTaskInputModalOpen] = useState(false);
-  const [selectedMood, setSelectedMood] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [attributeFilter, setAttributeFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
-
-  const openMoodModal = () => setIsMoodModalOpen(true);
-  const closeMoodModal = () => setIsMoodModalOpen(false);
-  const openTaskInputModal = () => setIsTaskInputModalOpen(true);
-  const closeTaskInputModal = () => setIsTaskInputModalOpen(false);
-
-  const handleMoodSelection = (mood: string) => {
-    setSelectedMood(mood);
-    closeMoodModal();
-  };
-
-  useEffect(() => {
-  }, []);
-
-  useEffect(() => {
-    const handleError = (event: ErrorEvent) => {
-      if (event.message.includes('Cross-Origin-Opener-Policy')) {
-        event.preventDefault();
-      }
-    };
-
-    window.addEventListener('error', handleError);
-
-    return () => {
-      window.removeEventListener('error', handleError);
-    };
-  }, []);
 
   useEffect(() => {
     const handleAuthChange = (e: Event) => {
@@ -261,19 +252,26 @@ function App() {
   }, []);
 
   if (!isSignedIn) {
-    return <LoginView />;
+    return (
+      <>
+        <GlobalStyle />
+        <LoginView />
+      </>
+    );
   }
 
   return (
-    <TaskProvider>
-      <AppContent />
-    </TaskProvider>
+    <>
+      <GlobalStyle />
+      <TaskProvider>
+        <AppContent />
+      </TaskProvider>
+    </>
   );
 }
 
-// New component to use context within TaskProvider
 function AppContent() {
-  const { topWords } = useTaskContext();
+  const { topWords, isLoading } = useTaskContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [attributeFilter, setAttributeFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -297,6 +295,7 @@ function AppContent() {
 
   return (
     <AppContainer>
+      {isLoading && <LoadingIndicator>Loading...</LoadingIndicator>}
       <Header>
         <Title>Collaborative Checklist</Title>
         <ButtonAndFilterContainer>
