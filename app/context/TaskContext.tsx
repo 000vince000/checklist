@@ -83,18 +83,18 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await saveToGoogleDrive(newState);
   }, [updateLocalStorage, saveToGoogleDrive]);
 
-  const loadFromGoogleDrive = useCallback(async () => {
-    console.log('loadFromGoogleDrive called');
+  const syncTasksWithGoogleDrive = useCallback(async () => {
+    console.log('syncTasksWithGoogleDrive called');
     try {
       const isSignedIn = localStorage.getItem('isSignedIn') === 'true';
       if (!isSignedIn) {
-        console.log('User not signed in, skipping Google Drive load');
+        console.log('User not signed in, skipping Google Drive sync');
         return;
       }
 
       const userEmail = localStorage.getItem('userEmail');
       if (!userEmail) {
-        console.log('User email not found, skipping Google Drive load');
+        console.log('User email not found, skipping Google Drive sync');
         return;
       }
 
@@ -109,7 +109,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         };
         setTaskState(newState);
         updateLocalStorage(newState);
-        console.log('Tasks loaded from Google Drive');
+        console.log('Tasks synced from Google Drive');
       } else {
         console.log('No data found in Google Drive, using local storage or generating random tasks');
         const localState: TaskState = {
@@ -121,7 +121,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         updateLocalStorage(localState);
       }
     } catch (error) {
-      console.error('Error loading from Google Drive:', error);
+      console.error('Error syncing with Google Drive:', error);
       // Fallback to local storage or generate random tasks
       const localState: TaskState = {
         openTasks: JSON.parse(localStorage.getItem(OPEN_TASKS_KEY) || 'null') || generateRandomTasks(20),
@@ -135,8 +135,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     console.log('useEffect hook triggered');
-    loadFromGoogleDrive();
-  }, [loadFromGoogleDrive]);
+    syncTasksWithGoogleDrive();
+  }, [syncTasksWithGoogleDrive]);
 
   const addTask = useCallback((newTask: Task) => {
     console.log('Adding new task:', newTask);
