@@ -91,25 +91,34 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   useEffect(() => {
     if (selectedTask && isOpen) {
-      setEditedTask(selectedTask);
-      setCurrentTask(selectedTask);
-      if (selectedTask.parentTaskId) {
-        const parentTask = [...allTasks, ...completedTasks].find(task => task.id === selectedTask.parentTaskId);
-        console.log('Parent task found:', parentTask); // Add this debug log
-        setSelectedParentTask(parentTask || null);
-        setSearchTerm(parentTask ? parentTask.name : '');
-      } else {
-        setSelectedParentTask(null);
-        setSearchTerm('');
-      }
-      // Search for child tasks
-      console.log('Searching for child tasks of:', selectedTask.id);
-      const children = [...allTasks, ...completedTasks]
-        .filter(task => task.parentTaskId === selectedTask.id)
-        .map(task => ({ id: task.id, name: task.name }));
-      setChildTasks(children);
+      updateTaskInfo(selectedTask);
     }
   }, [selectedTask, isOpen]);
+
+  const updateTaskInfo = (task: Task) => {
+    setEditedTask(task);
+    setCurrentTask(task);
+    updateParentTaskInfo(task);
+    updateChildTasks(task);
+  };
+
+  const updateParentTaskInfo = (task: Task) => {
+    if (task.parentTaskId) {
+      const parentTask = [...allTasks, ...completedTasks].find(t => t.id === task.parentTaskId);
+      setSelectedParentTask(parentTask || null);
+      setSearchTerm(parentTask ? parentTask.name : '');
+    } else {
+      setSelectedParentTask(null);
+      setSearchTerm('');
+    }
+  };
+
+  const updateChildTasks = (task: Task) => {
+    const children = [...allTasks, ...completedTasks]
+      .filter(t => t.parentTaskId === task.id)
+      .map(t => ({ id: t.id, name: t.name }));
+    setChildTasks(children);
+  };
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const term = event.target.value;
@@ -183,13 +192,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const handleSubtaskClick = (subtaskId: number) => {
     const subtask = [...allTasks, ...completedTasks].find(task => task.id === subtaskId);
     if (subtask) {
-      setCurrentTask(subtask);
-      setEditedTask(subtask);
-      // Refresh child tasks for the new current task
-      const children = [...allTasks, ...completedTasks]
-        .filter(task => task.parentTaskId === subtask.id)
-        .map(task => ({ id: task.id, name: task.name }));
-      setChildTasks(children);
+      updateTaskInfo(subtask);
     }
   };
 
@@ -197,13 +200,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
     if (currentTask && currentTask.parentTaskId) {
       const parentTask = [...allTasks, ...completedTasks].find(task => task.id === currentTask.parentTaskId);
       if (parentTask) {
-        setCurrentTask(parentTask);
-        setEditedTask(parentTask);
-        // Refresh child tasks for the parent task
-        const children = [...allTasks, ...completedTasks]
-          .filter(task => task.parentTaskId === parentTask.id)
-          .map(task => ({ id: task.id, name: task.name }));
-        setChildTasks(children);
+        updateTaskInfo(parentTask);
       }
     }
   };
