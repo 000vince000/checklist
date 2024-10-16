@@ -46,6 +46,7 @@ import {
 
 import { isValidUrl } from '../utils/urlUtils';
 import { FaArrowLeft, FaArrowRight, FaPlus } from 'react-icons/fa';
+import TaskInput from './TaskInput';
 
 interface TaskModalProps {
   selectedTask: Task | null;
@@ -82,7 +83,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   openTaskModal,
   updateSelectedTask, // Add this new prop
 }) => {
-  const { tasks: allTasks, completedTasks } = useTaskContext();
+  const { tasks: allTasks, completedTasks, openTaskInputModal } = useTaskContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Task[]>([]);
   const [selectedParentTask, setSelectedParentTask] = useState<Task | null>(null);
@@ -206,10 +207,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   const handleAddSubtask = () => {
     console.log('TaskModal: Add subtask clicked');
-    // Add your logic here to handle adding a new subtask... 
-    // open a modal to input the subtask name... 
-    // add the subtask to the list of child tasks
-    // update the subtask list in the state
+    if (editedTask) {
+      openTaskInputModal(editedTask.id);
+      closeModal();
+    }
   };
 
   const handleBackToParent = () => {

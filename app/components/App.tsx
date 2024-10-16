@@ -69,19 +69,16 @@ function App() {
 }
 
 function AppContent() {
-  const { topWords, isLoading } = useTaskContext();
+  const { topWords, isLoading, isTaskInputModalOpen, openTaskInputModal, closeTaskInputModal } = useTaskContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [attributeFilter, setAttributeFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [isMoodModalOpen, setIsMoodModalOpen] = useState(false);
-  const [isTaskInputModalOpen, setIsTaskInputModalOpen] = useState(false);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
 
   const openMoodModal = () => setIsMoodModalOpen(true);
   const closeMoodModal = () => setIsMoodModalOpen(false);
-  const openTaskInputModal = () => setIsTaskInputModalOpen(true);
-  const closeTaskInputModal = () => setIsTaskInputModalOpen(false);
 
   const handleMoodSelection = (mood: string) => {
     setSelectedMood(mood);
@@ -105,7 +102,7 @@ function AppContent() {
         <Title>Collaborative Checklist</Title>
         <ButtonAndFilterContainer>
           <ButtonContainer>
-            <NewTaskButton onClick={openTaskInputModal}>+ New</NewTaskButton>
+            <NewTaskButton onClick={() => openTaskInputModal(null)}>+ New</NewTaskButton>
             <LuckyButton openMoodModal={openMoodModal} />
           </ButtonContainer>
           <FilterContainer>
@@ -154,7 +151,6 @@ function AppContent() {
           searchTerm={searchTerm}
           attributeFilter={attributeFilter}
           typeFilter={typeFilter}
-          openTaskModal={openTaskModal}
         />
       </Section>
       <Section>
