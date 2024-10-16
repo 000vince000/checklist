@@ -75,3 +75,7 @@ export const SubtaskButton = styled.button`
     color: #3498db;
   }
 `;
+
+export const AddSubtaskButton = styled(SubtaskButton)`
+  margin-left: 10px;
+`;

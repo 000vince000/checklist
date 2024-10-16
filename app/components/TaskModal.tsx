@@ -40,11 +40,12 @@ import {
   CloseButtonStyled,
   ButtonGroupStyled,
   SubtaskText,
-  SubtaskButton
+  SubtaskButton,
+  AddSubtaskButton
 } from '../styles/TaskModalStyles';
 
 import { isValidUrl } from '../utils/urlUtils';
-import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { FaArrowLeft, FaArrowRight, FaPlus } from 'react-icons/fa';
 
 interface TaskModalProps {
   selectedTask: Task | null;
@@ -201,6 +202,14 @@ const TaskModal: React.FC<TaskModalProps> = ({
       updateTaskInfo(subtask);
       updateSelectedTask(subtask); // Add this line to update the selected task in TaskHeatmap
     }
+  };
+
+  const handleAddSubtask = () => {
+    console.log('TaskModal: Add subtask clicked');
+    // Add your logic here to handle adding a new subtask... 
+    // open a modal to input the subtask name... 
+    // add the subtask to the list of child tasks
+    // update the subtask list in the state
   };
 
   const handleBackToParent = () => {
@@ -380,23 +389,22 @@ const TaskModal: React.FC<TaskModalProps> = ({
               />
             </FormGroup>
             <TaskDetails>
-              {childTasks.length > 0 ? (
-                <TaskProperty>
-                  Subtasks:
-                  <ul>
-                    {childTasks.map(child => (
-                      <li key={child.id}>
-                        <SubtaskText>{child.name} </SubtaskText>
-                        <SubtaskButton onClick={() => handleSubtaskClick(child.id)}>
-                          <FaArrowRight />
-                        </SubtaskButton>
-                      </li>
-                    ))}
-                  </ul>
-                </TaskProperty>
-              ) : (
-                <TaskProperty>No child tasks found</TaskProperty>
-              )}
+              <TaskProperty>
+                Subtasks:
+                <AddSubtaskButton onClick={handleAddSubtask}>
+                  <FaPlus />
+                </AddSubtaskButton>
+                <ul>
+                  {childTasks.map(child => (
+                    <li key={child.id}>
+                      <SubtaskText>{child.name} </SubtaskText>
+                      <SubtaskButton onClick={() => handleSubtaskClick(child.id)}>
+                        <FaArrowRight />
+                      </SubtaskButton>
+                    </li>
+                  ))}
+                </ul>
+              </TaskProperty>
               <TaskProperty>
                 Priority Score: {calculatePriority(editedTask, tasks).toFixed(2)}
               </TaskProperty>
