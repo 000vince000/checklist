@@ -93,13 +93,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   useEffect(() => {
     if (selectedTask && isOpen) {
-      console.log('TaskModal: Updating task info', selectedTask);
+      console.log('TaskModal: Updating task info from useEffect', selectedTask);
       updateTaskInfo(selectedTask);
     }
   }, [selectedTask, isOpen]);
 
   const updateTaskInfo = (task: Task) => {
-    console.log('TaskModal: Updating task info', task);
     setEditedTask(task);
     setCurrentTask(task);
     updateParentTaskInfo(task);
