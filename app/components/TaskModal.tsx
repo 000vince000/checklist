@@ -61,6 +61,7 @@ interface TaskModalProps {
   isPaused: boolean;
   tasks: Task[];
   openTaskModal: (taskId: number) => void;
+  updateSelectedTask: (task: Task) => void; // Add this new prop
 }
 
 const TaskModal: React.FC<TaskModalProps> = ({
@@ -78,6 +79,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   isPaused,
   tasks,
   openTaskModal,
+  updateSelectedTask, // Add this new prop
 }) => {
   const { tasks: allTasks, completedTasks } = useTaskContext();
   const [searchTerm, setSearchTerm] = useState('');
@@ -91,11 +93,13 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   useEffect(() => {
     if (selectedTask && isOpen) {
+      console.log('TaskModal: Updating task info', selectedTask);
       updateTaskInfo(selectedTask);
     }
   }, [selectedTask, isOpen]);
 
   const updateTaskInfo = (task: Task) => {
+    console.log('TaskModal: Updating task info', task);
     setEditedTask(task);
     setCurrentTask(task);
     updateParentTaskInfo(task);
@@ -158,6 +162,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   const handleSave = () => {
     if (editedTask) {
+      console.log('TaskModal: Saving task', editedTask);
       // Remove the url property if it's an empty string
       const taskToSave = { ...editedTask };
       if (taskToSave.url === '') {
@@ -190,19 +195,55 @@ const TaskModal: React.FC<TaskModalProps> = ({
   };
 
   const handleSubtaskClick = (subtaskId: number) => {
+    console.log('TaskModal: Subtask clicked', subtaskId);
     const subtask = [...allTasks, ...completedTasks].find(task => task.id === subtaskId);
     if (subtask) {
+      console.log('TaskModal: Updating to subtask', subtask);
       updateTaskInfo(subtask);
+      updateSelectedTask(subtask); // Add this line to update the selected task in TaskHeatmap
     }
   };
 
   const handleBackToParent = () => {
+    console.log('TaskModal: Back to parent clicked');
     if (currentTask && currentTask.parentTaskId) {
       const parentTask = [...allTasks, ...completedTasks].find(task => task.id === currentTask.parentTaskId);
       if (parentTask) {
+        console.log('TaskModal: Updating to parent task', parentTask);
         updateTaskInfo(parentTask);
       }
     }
+  };
+
+  // Modify the existing button handlers to include logging
+  const handleAcceptClick = () => {
+    console.log('TaskModal: Accept clicked for task', currentTask);
+    handleAccept();
+  };
+
+  const handleRejectClick = () => {
+    console.log('TaskModal: Reject clicked for task', currentTask);
+    handleReject();
+  };
+
+  const handleDoneClick = () => {
+    console.log('TaskModal: Done clicked for task', currentTask);
+    handleDone();
+  };
+
+  const handlePauseClick = () => {
+    console.log('TaskModal: Pause clicked for task', currentTask);
+    handlePause();
+  };
+
+  const handleAbandonClick = () => {
+    console.log('TaskModal: Abandon clicked for task', currentTask);
+    handleAbandon();
+  };
+
+  const handleDeleteClick = () => {
+    console.log('TaskModal: Delete clicked for task', currentTask);
+    handleDelete();
   };
 
   return (
@@ -371,18 +412,18 @@ const TaskModal: React.FC<TaskModalProps> = ({
             )}
             {timer === null ? (
               <ButtonGroupStyled>
-                <AcceptButton type="button" onClick={handleAccept}>Accept</AcceptButton>
-                <RejectButton type="button" onClick={handleReject}>Reject</RejectButton>
-                <DeleteButton type="button" onClick={handleDelete}>Delete</DeleteButton>
+                <AcceptButton type="button" onClick={handleAcceptClick}>Accept</AcceptButton>
+                <RejectButton type="button" onClick={handleRejectClick}>Reject</RejectButton>
+                <DeleteButton type="button" onClick={handleDeleteClick}>Delete</DeleteButton>
                 <SaveButton type="submit">Save</SaveButton>
               </ButtonGroupStyled>
             ) : (
               <ButtonGroupStyled>
-                <DoneButton onClick={handleDone}>Done</DoneButton>
-                <PauseButton onClick={handlePause}>
+                <DoneButton onClick={handleDoneClick}>Done</DoneButton>
+                <PauseButton onClick={handlePauseClick}>
                   {isPaused ? 'Resume' : 'Pause'}
                 </PauseButton>
-                <AbandonButton onClick={handleAbandon}>Abandon</AbandonButton>
+                <AbandonButton onClick={handleAbandonClick}>Abandon</AbandonButton>
               </ButtonGroupStyled>
             )}
           </Form>

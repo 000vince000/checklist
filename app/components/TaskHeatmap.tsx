@@ -161,8 +161,18 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
     return filteredTasks.sort((a, b) => calculatePriority(b, tasks) - calculatePriority(a, tasks));
   }, [filteredTasks, tasks]);
 
-  const openModal = (task: Task) => setSelectedTask(task);
+  const openModal = (taskId: number) => {
+    console.log('TaskHeatmap: Opening modal for task id', taskId);
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      setSelectedTask(task);
+    } else {
+      console.log('Task not found for id:', taskId);
+    }
+  };
+
   const closeModal = () => {
+    console.log('TaskHeatmap: Closing modal');
     setSelectedTask(null);
     setTimer(null);
     setTimerRunning(false);
@@ -170,12 +180,16 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
   };
 
   const handleAccept = () => {
-    setTimer(0);
-    setTimerRunning(true);
-    setIsPaused(false);
+    console.log('TaskHeatmap: Accepting task', selectedTask);
+    if (selectedTask) {
+      setTimer(0);
+      setTimerRunning(true);
+      setIsPaused(false);
+    }
   };
 
   const handleReject = () => {
+    console.log('TaskHeatmap: Rejecting task', selectedTask);
     if (selectedTask) {
       const updatedTask = {
         ...selectedTask,
@@ -189,6 +203,7 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
   };
 
   const handleDone = () => {
+    console.log('TaskHeatmap: Completing task', selectedTask);
     if (selectedTask && timer !== null) {
       completeTask(selectedTask.id, timer);
     }
@@ -197,27 +212,17 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
   };
 
   const handlePause = () => {
+    console.log('TaskHeatmap: Pausing/Resuming task', selectedTask);
     setIsPaused(!isPaused);
   };
 
   const handleAbandon = () => {
+    console.log('TaskHeatmap: Abandoning task', selectedTask);
     handleReject();
   };
 
-  const handleMoodSelection = (mood: string) => {
-    console.log('Handling mood selection:', mood);
-    console.log('All tasks:', tasks);
-    console.log('Sorted tasks:', sortedTasks);
-    const selectedTask = selectTaskByMood(mood, sortedTasks, tasks);
-    console.log('Task selected by mood:', selectedTask);
-    if (selectedTask) {
-      openModal(selectedTask);
-    } else {
-      console.log('No task found for the selected mood');
-    }
-  };
-
   const handleDelete = () => {
+    console.log('TaskHeatmap: Deleting task', selectedTask);
     if (selectedTask) {
       deleteTask(selectedTask.id);
       closeModal();
@@ -225,6 +230,7 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
   };
 
   const handleUpdateTask = (updatedTask: Task) => {
+    console.log('TaskHeatmap: Updating task', updatedTask);
     updateTask(updatedTask);
   };
 
@@ -238,12 +244,18 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
     return () => clearInterval(interval);
   }, [timerRunning, isPaused]);
 
-  useEffect(() => {
-    if (selectedMood) {
-      handleMoodSelection(selectedMood);
-      setSelectedMood(null);
+  const handleMoodSelection = (mood: string) => {
+    console.log('Handling mood selection:', mood);
+    console.log('All tasks:', tasks);
+    console.log('Sorted tasks:', sortedTasks);
+    const selectedTask = selectTaskByMood(mood, sortedTasks, tasks);
+    console.log('Task selected by mood:', selectedTask);
+    if (selectedTask) {
+      openModal(selectedTask.id);
+    } else {
+      console.log('No task found for the selected mood');
     }
-  }, [selectedMood]);
+  };
 
   const taskSpring = useTaskAnimation(animatingTaskId);
 
@@ -251,6 +263,12 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
     const prefix = getTaskPrefix(task.type);
     const maxLength = task.effort === 'large' ? 20 : task.effort === 'medium' ? 80 : 120;
     return prefix + task.name.slice(0, maxLength);
+  };
+
+  // Add this new function to update the selected task
+  const updateSelectedTask = (task: Task) => {
+    console.log('TaskHeatmap: Updating selected task', task);
+    setSelectedTask(task);
   };
 
   return (
@@ -262,7 +280,7 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
               key={task.id}
               priority={calculatePriority(task, tasks)}
               effort={task.effort}
-              onClick={() => openModal(task)}
+              onClick={() => openModal(task.id)}
               style={task.id === animatingTaskId ? taskSpring : undefined}
             >
               {truncateName(task)}
@@ -306,7 +324,8 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
         timer={timer}
         isPaused={isPaused}
         tasks={tasks}
-        openTaskModal={openTaskModal}
+        openTaskModal={openModal}
+        updateSelectedTask={updateSelectedTask}
       />
     </>
   );
