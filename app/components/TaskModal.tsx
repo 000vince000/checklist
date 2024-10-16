@@ -95,6 +95,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
       setCurrentTask(selectedTask);
       if (selectedTask.parentTaskId) {
         const parentTask = [...allTasks, ...completedTasks].find(task => task.id === selectedTask.parentTaskId);
+        console.log('Parent task found:', parentTask); // Add this debug log
         setSelectedParentTask(parentTask || null);
         setSearchTerm(parentTask ? parentTask.name : '');
       } else {
@@ -239,8 +240,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   ref={searchInputRef}
                   type="text"
                   id="parentTask"
-                  placeholder={selectedParentTask ? selectedParentTask.name : "Search for parent task..."}
-                  value={searchTerm}
+                  placeholder="Search for parent task..."
+                  value={searchTerm}  // Use searchTerm directly instead of a placeholder
                   onChange={handleSearch}
                   onFocus={handleSearchFocus}
                   onBlur={handleSearchBlur}
