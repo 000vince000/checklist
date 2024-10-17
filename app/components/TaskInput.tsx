@@ -33,14 +33,15 @@ interface TaskInputProps {
 }
 
 const TaskInput: React.FC<TaskInputProps> = ({ isOpen, closeModal }) => {
-  const { addTask, tasks } = useTaskContext();
+  const { addTask, tasks, parentTaskName, parentTaskId } = useTaskContext();
   const [newTask, setNewTask] = useState<Partial<Task>>({
     attribute: 'important',
     externalDependency: 'no',
     effort: 'medium',
     type: 'debt',
     rejectionCount: 0,
-    isCompleted: false
+    isCompleted: false,
+    parentTaskId: parentTaskId
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Task[]>([]);
@@ -87,14 +88,15 @@ const TaskInput: React.FC<TaskInputProps> = ({ isOpen, closeModal }) => {
         note: newTask.note,
         rejectionCount: 0,
         isCompleted: false,
-        parentTaskId: newTask.parentTaskId,
+        parentTaskId: parentTaskId, // Use the parentTaskId from context
         url: url.trim() !== '' ? url.trim() : undefined
       } as Task);
       setNewTask({
         attribute: 'important',
         externalDependency: 'no',
         effort: 'medium',
-        type: 'debt'
+        type: 'debt',
+        parentTaskId: null // Reset parentTaskId after adding the task
       });
       setSelectedParentTask(null);
       setSearchTerm('');
@@ -118,30 +120,6 @@ const TaskInput: React.FC<TaskInputProps> = ({ isOpen, closeModal }) => {
           <FormGroup>
             <Label htmlFor="name">Task Name</Label>
             <Input type="text" id="name" value={newTask.name || ''} onChange={handleInputChange} required />
-          </FormGroup>
-          <FormGroup>
-            <Label htmlFor="parentTask">Parent Task</Label>
-            <SearchContainer>
-              <SearchInput
-                type="text"
-                id="parentTask"
-                placeholder="Search for parent task..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-              {searchResults.length > 0 && (
-                <Dropdown>
-                  <DropdownItem onClick={() => handleSelectParentTask(null)}>
-                    None
-                  </DropdownItem>
-                  {searchResults.map(task => (
-                    <DropdownItem key={task.id} onClick={() => handleSelectParentTask(task)}>
-                      {task.name}
-                    </DropdownItem>
-                  ))}
-                </Dropdown>
-              )}
-            </SearchContainer>
           </FormGroup>
           <InlineFormGroup>
             <InlineLabel htmlFor="attribute">Attribute</InlineLabel>

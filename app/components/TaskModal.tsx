@@ -208,7 +208,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const handleAddSubtask = () => {
     console.log('TaskModal: Add subtask clicked');
     if (editedTask) {
-      openTaskInputModal(editedTask.id);
+      openTaskInputModal(editedTask.id, editedTask.name);
       closeModal();
     }
   };
@@ -286,7 +286,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 onChange={handleInputChange}
               />
             </FormGroup>
-            <FormGroup>
+            {selectedParentTask?
+            (<FormGroup>
               <Label htmlFor="parentTask">Parent Task</Label>
               <SearchContainer>
                 <SearchInput
@@ -317,7 +318,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   </Dropdown>
                 )}
               </SearchContainer>
-            </FormGroup>
+            </FormGroup>):null}
             <InlineFormGroup>
               <InlineLabel htmlFor="attribute">Attribute</InlineLabel>
               <Select

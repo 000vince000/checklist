@@ -16,8 +16,10 @@ interface TaskContextType {
   syncError: string;
   forceRefresh: () => void;
   isTaskInputModalOpen: boolean;
-  openTaskInputModal: (parentTaskId: number | null) => void;
+  openTaskInputModal: (parentTaskId: number | null, parentTaskName?: string) => void;
   closeTaskInputModal: () => void;
+  parentTaskName: string | undefined;
+  parentTaskId: number | null;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -64,6 +66,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [syncError, setSyncError] = useState('');
   const [isTaskInputModalOpen, setIsTaskInputModalOpen] = useState(false);
   const [parentTaskId, setParentTaskId] = useState<number | null>(null);
+  const [parentTaskName, setParentTaskName] = useState<string | undefined>(undefined);
 
   const updateLocalStorage = useCallback((state: TaskState) => {
     console.log('updateLocalStorage called');
@@ -301,14 +304,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, [forceRefresh]);
 
-  const openTaskInputModal = useCallback((parentId: number | null) => {
+  const openTaskInputModal = useCallback((parentId: number | null, parentName?: string) => {
     setParentTaskId(parentId);
+    setParentTaskName(parentName);
     setIsTaskInputModalOpen(true);
   }, []);
 
   const closeTaskInputModal = useCallback(() => {
     setIsTaskInputModalOpen(false);
     setParentTaskId(null);
+    setParentTaskName(undefined);
   }, []);
 
   const contextValue = {
@@ -327,6 +332,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isTaskInputModalOpen,
     openTaskInputModal,
     closeTaskInputModal,
+    parentTaskName,
+    parentTaskId,
   };
 
   useEffect(() => {
