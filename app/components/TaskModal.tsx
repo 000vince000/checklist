@@ -170,8 +170,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
         delete taskToSave.url;
       }
       handleUpdateTask(taskToSave);
-      closeModal();
     }
+    closeModal();
   };
 
   const handleGoToUrl = () => {
@@ -255,6 +255,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
     handleDelete();
   };
 
+  // Add this new function
+  const handleCloseWithoutSaving = () => {
+    console.log('TaskModal: Closing without saving');
+    closeModal();
+  };
+
   return (
     <Modal isOpen={isOpen}>
       <ModalContent>
@@ -266,7 +272,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               </BackButton>
             )}
           </LeftSection>
-          <CloseButtonStyled onClick={closeModal}>&times;</CloseButtonStyled>
+          <CloseButtonStyled onClick={handleCloseWithoutSaving}>&times;</CloseButtonStyled>
         </ModalHeaderStyled>
         {editedTask && (
           <Form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
@@ -392,7 +398,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
             <TaskDetails>
               <TaskProperty>
                 Subtasks:
-                <AddSubtaskButton onClick={handleAddSubtask}>
+                <AddSubtaskButton onClick={(e) => { e.preventDefault(); handleAddSubtask(); }}>
                   <FaPlus />
                 </AddSubtaskButton>
                 <ul>
