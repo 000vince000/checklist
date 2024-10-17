@@ -89,7 +89,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [selectedParentTask, setSelectedParentTask] = useState<Task | null>(null);
   const [editedTask, setEditedTask] = useState<Task | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [childTasks, setChildTasks] = useState<{id: number, name: string}[]>([]); // Change id type to number
+  const [childTasks, setChildTasks] = useState<{id: number, name: string, isCompleted: boolean}[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
 
@@ -121,7 +121,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const updateChildTasks = (task: Task) => {
     const children = [...allTasks, ...completedTasks]
       .filter(t => t.parentTaskId === task.id)
-      .map(t => ({ id: t.id, name: t.name }));
+      .map(t => ({ id: t.id, name: t.name, isCompleted: t.isCompleted }));
     setChildTasks(children);
   };
 
@@ -406,9 +406,13 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   {childTasks.map(child => (
                     <li key={child.id}>
                       <SubtaskText>{child.name} </SubtaskText>
-                      <SubtaskButton onClick={() => handleSubtaskClick(child.id)}>
-                        <FaArrowRight />
-                      </SubtaskButton>
+                      {child.isCompleted ? (
+                        <span>(Completed)</span>
+                      ) : (
+                        <SubtaskButton onClick={() => handleSubtaskClick(child.id)}>
+                          <FaArrowRight />
+                        </SubtaskButton>
+                      )}
                     </li>
                   ))}
                 </ul>
