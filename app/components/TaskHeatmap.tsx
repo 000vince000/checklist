@@ -242,18 +242,15 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
     return () => clearInterval(interval);
   }, [timerRunning, isPaused]);
 
-  const handleMoodSelection = (mood: string) => {
-    console.log('Handling mood selection:', mood);
-    console.log('All tasks:', tasks);
-    console.log('Sorted tasks:', sortedTasks);
-    const selectedTask = selectTaskByMood(mood, sortedTasks, tasks);
-    console.log('Task selected by mood:', selectedTask);
-    if (selectedTask) {
-      openModal(selectedTask.id);
-    } else {
-      console.log('No task found for the selected mood');
+  useEffect(() => {
+    if (selectedMood) {
+      const selectedTask = selectTaskByMood(selectedMood, sortedTasks, tasks);
+      if (selectedTask) {
+        openModal(selectedTask.id);
+      }
+      setSelectedMood(null); // Reset the mood after selection
     }
-  };
+  }, [selectedMood, sortedTasks, tasks]);
 
   const taskSpring = useTaskAnimation(animatingTaskId);
 
