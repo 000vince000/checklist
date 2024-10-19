@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Task } from '../types/Task';
 import { googleDriveService } from '../services/googleDriveService';
-
+import { excludedWords, reservedWords, generateRandomTasks } from '../utils/taskUtils';
 interface TaskContextType {
   tasks: Task[];
   completedTasks: Task[];
@@ -27,26 +27,6 @@ const TaskContext = createContext<TaskContextType | undefined>(undefined);
 const OPEN_TASKS_KEY = 'openTasks';
 const CLOSED_TASKS_KEY = 'closedTasks';
 const DELETED_TASKS_KEY = 'deletedTasks';
-
-const generateRandomTasks = (count: number): Task[] => {
-  const attributes = ['urgent', 'important', 'unimportant'] as const;
-  const dependencies = ['yes', 'no'] as const;
-  const efforts = ['small', 'medium', 'large'] as const;
-  const types = ['debt', 'cost', 'revenue', 'happiness'] as const;
-
-  return Array.from({ length: count }, (_, i) => ({
-    id: i + 1,
-    name: `Task ${i + 1}`,
-    attribute: attributes[Math.floor(Math.random() * attributes.length)],
-    externalDependency: dependencies[Math.floor(Math.random() * dependencies.length)],
-    effort: efforts[Math.floor(Math.random() * efforts.length)],
-    type: types[Math.floor(Math.random() * types.length)],
-    note: `This is a random note for Task ${i + 1}`,
-    rejectionCount: 0,
-    isCompleted: false,
-    createdAt: new Date().toISOString().split('T')[0] // Add this line
-  }));
-};
 
 interface TaskState {
   openTasks: Task[];
@@ -240,8 +220,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, [updateStorageAndSync]);
 
-  const excludedWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'this', 'that']);
-  const reservedWords = new Set(['id', 'name', 'attribute', 'externalDependency', 'effort', 'type', 'note', 'rejectionCount', 'isCompleted', 'completionTime','note','task','random']);
 
   const topWords = useMemo(() => {
     const openTasks = taskState.openTasks;
