@@ -3,6 +3,7 @@ import TaskInput from './TaskInput';
 import TaskHeatmap from './TaskHeatmap';
 import TaskSuggestion from './TaskSuggestion';
 import LoginView from './LoginView';
+import CommitHistoryHeatmap from './CommitHistoryHeatmap';
 import { TaskProvider, useTaskContext } from '../context/TaskContext';
 import { NewTaskButton } from '../styles/TaskStyles';
 import {
@@ -22,7 +23,8 @@ import {
   SearchBar,
   SearchAndTopWordsContainer,
   TopWordButton,
-  LoadingIndicator
+  LoadingIndicator,
+  ExpandableRow
 } from '../styles/AppStyles';
 
 const LuckyButton: React.FC<{ openMoodModal: () => void }> = ({ openMoodModal }) => {
@@ -76,6 +78,7 @@ function AppContent() {
   const [isMoodModalOpen, setIsMoodModalOpen] = useState(false);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+  const [isCommitHistoryExpanded, setIsCommitHistoryExpanded] = useState(false);
 
   const openMoodModal = () => setIsMoodModalOpen(true);
   const closeMoodModal = () => setIsMoodModalOpen(false);
@@ -93,6 +96,10 @@ function AppContent() {
     setSelectedTaskId(taskId);
     // You might need to fetch the task data here if it's not already available
     console.log('Opening task modal for task ID:', taskId); // Add this log
+  };
+
+  const toggleCommitHistory = () => {
+    setIsCommitHistoryExpanded(!isCommitHistoryExpanded);
   };
 
   return (
@@ -156,6 +163,12 @@ function AppContent() {
       <Section>
         <TaskSuggestion />
       </Section>
+      <ExpandableRow>
+        <button onClick={toggleCommitHistory}>
+          {isCommitHistoryExpanded ? 'Hide' : 'Show'} Commit History
+        </button>
+        {isCommitHistoryExpanded && <CommitHistoryHeatmap />}
+      </ExpandableRow>
       <TaskInput
         isOpen={isTaskInputModalOpen}
         closeModal={closeTaskInputModal}

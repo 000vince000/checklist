@@ -77,7 +77,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [updateLocalStorage, saveToGoogleDrive]);
 
   const syncTasksWithGoogleDrive = useCallback(async () => {
-    console.log('syncTasksWithGoogleDrive called');
     try {
       const isSignedIn = localStorage.getItem('isSignedIn') === 'true';
       if (!isSignedIn) {
@@ -127,7 +126,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [updateLocalStorage]);
 
   useEffect(() => {
-    console.log('useEffect hook triggered');
     syncTasksWithGoogleDrive();
   }, [syncTasksWithGoogleDrive]);
 

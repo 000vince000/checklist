@@ -210,3 +210,24 @@ export const LoadingIndicator = styled.div`
   color: white;
   font-size: 24px;
 `;
+
+export const ExpandableRow = styled.div`
+  margin-top: 2rem;
+  padding-top: 1rem;
+
+  button {
+    background-color: #f6f8fa;
+    border: 1px solid #d1d5da;
+    border-radius: 6px;
+    color: #24292e;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 6px 12px;
+    margin-bottom: 1rem;
+
+    &:hover {
+      background-color: #e1e4e8;
+    }
+  }
+`;
