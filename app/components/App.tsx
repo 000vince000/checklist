@@ -24,8 +24,11 @@ import {
   SearchAndTopWordsContainer,
   TopWordButton,
   LoadingIndicator,
-  ExpandableRow
+  ExpandableRow,
+  CompletedTasksSection,
+  CompletedTaskItem
 } from '../styles/AppStyles';
+import { formatTime } from '../utils/taskUtils';
 
 const LuckyButton: React.FC<{ openMoodModal: () => void }> = ({ openMoodModal }) => {
   return <LuckyButtonStyled onClick={openMoodModal}>Feeling Lucky</LuckyButtonStyled>;
@@ -71,7 +74,7 @@ function App() {
 }
 
 function AppContent() {
-  const { topWords, isLoading, isTaskInputModalOpen, openTaskInputModal, closeTaskInputModal } = useTaskContext();
+  const { topWords, isLoading, isTaskInputModalOpen, openTaskInputModal, closeTaskInputModal, completedTasks } = useTaskContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [attributeFilter, setAttributeFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -79,7 +82,7 @@ function AppContent() {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [isCommitHistoryExpanded, setIsCommitHistoryExpanded] = useState(false);
-
+  const [isCompletedTasksExpanded, setIsCompletedTasksExpanded] = useState(false);
   const openMoodModal = () => setIsMoodModalOpen(true);
   const closeMoodModal = () => setIsMoodModalOpen(false);
 
@@ -100,6 +103,10 @@ function AppContent() {
 
   const toggleCommitHistory = () => {
     setIsCommitHistoryExpanded(!isCommitHistoryExpanded);
+  };
+
+  const toggleCompletedTasks = () => {
+    setIsCompletedTasksExpanded(!isCompletedTasksExpanded);
   };
 
   return (
@@ -160,12 +167,23 @@ function AppContent() {
           typeFilter={typeFilter}
         />
       </Section>
-      <Section>
-        <TaskSuggestion />
-      </Section>
+      <ExpandableRow>
+        <button onClick={toggleCompletedTasks}>
+          {isCompletedTasksExpanded ? 'Hide' : 'Show'} Completed Tasks
+        </button>
+        {isCompletedTasksExpanded && (
+          <CompletedTasksSection>
+            {completedTasks.map(task => (
+              <CompletedTaskItem key={task.id}>
+              {task.name} - Completed in: {formatTime(task.completionTime || 0)}
+            </CompletedTaskItem>
+          ))}
+          </CompletedTasksSection>
+        )}
+      </ExpandableRow>
       <ExpandableRow>
         <button onClick={toggleCommitHistory}>
-          {isCommitHistoryExpanded ? 'Hide' : 'Show'} Commit History
+          {isCommitHistoryExpanded ? 'Hide' : 'Show'} Action History
         </button>
         {isCommitHistoryExpanded && <CommitHistoryHeatmap />}
       </ExpandableRow>

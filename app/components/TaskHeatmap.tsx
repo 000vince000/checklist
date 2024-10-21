@@ -297,14 +297,6 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
           </LegendItem>
         </Legend>
       </HeatmapContainer>
-      <CompletedTasksSection>
-        <h3>Completed Tasks</h3>
-        {completedTasks.map(task => (
-          <CompletedTaskItem key={task.id}>
-            {task.name} - Completed in: {formatTime(task.completionTime || 0)}
-          </CompletedTaskItem>
-        ))}
-      </CompletedTasksSection>
       <TaskModal
         selectedTask={selectedTask}
         isOpen={selectedTask !== null}

@@ -114,11 +114,11 @@ export const Section = styled.section`
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0.5rem;
 
   @media (max-width: 768px) {
     padding: 1rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
   }
 `;
 
@@ -212,7 +212,7 @@ export const LoadingIndicator = styled.div`
 `;
 
 export const ExpandableRow = styled.div`
-  margin-top: 2rem;
+  margin-top: 2px;
   padding-top: 1rem;
 
   button {
@@ -224,10 +224,24 @@ export const ExpandableRow = styled.div`
     font-size: 14px;
     font-weight: 600;
     padding: 6px 12px;
-    margin-bottom: 1rem;
+    margin-bottom: 0rem;
 
     &:hover {
       background-color: #e1e4e8;
     }
   }
+`;
+
+export const CompletedTasksSection = styled.div`
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #3c3c3c;
+  border-radius: 8px;
+`;
+
+export const CompletedTaskItem = styled.div`
+  padding: 5px;
+  margin: 5px 0;
+  background-color: #4a4a4a;
+  border-radius: 4px;
 `;
