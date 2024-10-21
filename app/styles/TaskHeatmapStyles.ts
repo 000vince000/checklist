@@ -4,7 +4,7 @@ import { Task } from '../types/Task';
 import { getPriorityColor } from '../utils/taskUtils';
 
 // New function to calculate grid dimensions
-const getGridDimensions = (effort: Task['effort'], priority: number) => {
+export const getGridDimensions = (effort: Task['effort'], priority: number) => {
   let runningDimension = 0;
   switch (effort) {
     case 'large':
@@ -19,9 +19,9 @@ const getGridDimensions = (effort: Task['effort'], priority: number) => {
   }
   if (priority <= 2.5) {
     runningDimension *= 0.3;
-  } else if (priority <= 3.5) {
+  } else if (priority <= 4) {
     runningDimension *= 0.6;
-  } else if (priority <= 4.5) {
+  } else if (priority <= 5) {
     runningDimension *= 0.8;
   } else {
     runningDimension *= 1;

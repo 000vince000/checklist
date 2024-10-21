@@ -18,6 +18,7 @@ import {
   Legend,
   LegendItem,
   LegendColor,
+  getGridDimensions
 } from '../styles/TaskHeatmapStyles';
 
 // Add this interface definition
@@ -158,7 +159,9 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
 
   const truncateName = (task: Task) => {
     const prefix = getTaskPrefix(task.type);
-    const maxLength = task.effort === 'large' ? 20 : task.effort === 'medium' ? 80 : 120;
+    const gridSize = getGridDimensions(task.effort, calculatePriority(task, tasks)).columns;
+    //const maxLength = task.effort === 'large' ? 20 : task.effort === 'medium' ? 80 : 120;
+    const maxLength = gridSize === 4 ? 80 : gridSize === 3 ? 60 : gridSize === 2 ? 20 : 15;
     return prefix + task.name.slice(0, maxLength);
   };
 
