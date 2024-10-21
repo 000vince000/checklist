@@ -26,6 +26,10 @@ export const calculateBasePriority = (task: Task) => {
   // Parent Task
   if (task.parentTaskId) priority += 1;
 
+  // ancilary fields
+  if (task.note) priority += 1;
+  if (task.url) priority += 1;
+
   return priority;
 };
 
