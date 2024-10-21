@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import styled from 'styled-components';
-import { animated } from 'react-spring';
 import { useTaskContext } from '../context/TaskContext';
 import { Task } from '../types/Task';
 import {
@@ -9,114 +7,20 @@ import {
   truncateName,
   formatTime,
   selectTaskByMood,
-  getTaskPrefix // Add this import
+  getTaskPrefix
 } from '../utils/taskUtils';
 import TaskModal from './TaskModal';
 import { useTaskAnimation } from '../hooks/useTaskAnimation';
+import {
+  HeatmapContainer,
+  GridContainer,
+  AnimatedTaskBox,
+  Legend,
+  LegendItem,
+  LegendColor,
+} from '../styles/TaskHeatmapStyles';
 
-const HeatmapContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  background-color: #2c2c2c;
-  padding: 0px;
-  margin: -20px;
-  border-radius: 8px;
-
-  @media (min-width: 768px) {
-    padding: 10px;
-  }
-`;
-
-const GridContainer = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
-  grid-auto-rows: minmax(40px, auto);
-  grid-auto-flow: dense;
-  gap: 5px;
-  padding: 0;
-  margin: 0;
-  justify-content: center;
-  overflow: hidden;
-
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-    gap: 10px;
-    padding: 10px;
-  }
-`;
-
-const TaskBox = styled.div<{ priority: number; effort: Task['effort'] }>`
-  border-radius: 4px;
-  background-color: ${props => getPriorityColor(props.priority)};
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  color: ${props => props.priority > 3.5 ? 'white' : 'black'};
-  transition: transform 0.2s;
-  padding: 2px; // Reduced from 3px
-  margin: 0; // Ensure no margin
-  text-align: center;
-  overflow: hidden;
-  word-wrap: break-word;
-  word-break: break-word;
-  hyphens: auto;
-  grid-column: span ${props => props.effort === 'large' ? 1 : props.effort === 'medium' ? 2 : 3};
-  grid-row: span ${props => props.effort === 'large' ? 1 : props.effort === 'medium' ? 2 : 3};
-
-  @media (min-width: 768px) {
-    font-size: 12px;
-    padding: 10px;
-  }
-
-  &:hover {
-    transform: scale(1.05);
-    z-index: 1;
-  }
-`;
-
-const Legend = styled.div`
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-  flex-wrap: wrap;
-`;
-
-const LegendItem = styled.div`
-  display: flex;
-  align-items: center;
-  margin: 5px;
-`;
-
-const LegendColor = styled.div<{ color: string }>`
-  width: 20px;
-  height: 20px;
-  margin-right: 5px;
-  background-color: ${props => props.color};
-`;
-
-const LegendSize = styled.div<{ size: string }>`
-  width: ${props => props.size};
-  height: ${props => props.size};
-  margin-right: 5px;
-  border: 1px solid white;
-`;
-
-const CompletedTasksSection = styled.div`
-  margin-top: 20px;
-  padding: 10px;
-  background-color: #3c3c3c;
-  border-radius: 8px;
-`;
-
-const CompletedTaskItem = styled.div`
-  padding: 5px;
-  margin: 5px 0;
-  background-color: #4a4a4a;
-  border-radius: 4px;
-`;
-
+// Add this interface definition
 interface TaskHeatmapProps {
   selectedMood: string | null;
   setSelectedMood: React.Dispatch<React.SetStateAction<string | null>>;
@@ -124,8 +28,6 @@ interface TaskHeatmapProps {
   attributeFilter: string;
   typeFilter: string;
 }
-
-const AnimatedTaskBox = animated(TaskBox);
 
 const TaskHeatmap: React.FC<TaskHeatmapProps> = ({ 
   selectedMood, 
