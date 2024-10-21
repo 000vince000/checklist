@@ -14,6 +14,8 @@ A modern, minimalist task management application built with React and TypeScript
 - Top words analysis for quick task insights
 - Completed tasks tracking
 - Automatic data refresh when the page becomes visible
+- Action history heatmap for visualizing task activity over time
+- URL support for tasks, allowing quick access to related resources
 
 ## Task Management
 
@@ -22,6 +24,8 @@ A modern, minimalist task management application built with React and TypeScript
 - Tasks can have parent-child relationships, allowing for hierarchical organization
 - Users can add, edit, delete, and complete tasks
 - Task priority is calculated based on various factors, including rejection count
+- Tasks can be marked as completed, paused, or abandoned
+- Completed tasks are tracked separately and can be viewed in a dedicated section
 
 ## User Interface
 
@@ -30,12 +34,15 @@ A modern, minimalist task management application built with React and TypeScript
 - Search bar for finding tasks quickly
 - Attribute and type filters for task list refinement
 - "I'm Feeling Lucky" button for mood-based task suggestions
+- Top words analysis for quick insights into frequently used terms in tasks
+- Expandable sections for viewing completed tasks and action history
 
 ## Data Synchronization
 
 - Tasks are automatically synced with Google Drive
 - Changes are persisted across sessions and devices
 - Force refresh functionality to ensure up-to-date data
+- Separate storage for active tasks, completed tasks, and deleted tasks
 
 ## Tech Stack
 
@@ -58,8 +65,8 @@ A modern, minimalist task management application built with React and TypeScript
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/collaborative-checklist.git
-   cd collaborative-checklist
+   git clone https://github.com/000vince000/checklist.git
+   cd checklist
    ```
 
 2. Install dependencies:
@@ -90,6 +97,21 @@ A modern, minimalist task management application built with React and TypeScript
 - `npm run server`: Start the backend server
 - `npm run dev:server`: Start both frontend and backend in development mode
 - `npm run deploy`: Deploy the application to GitHub Pages
+
+## Project Structure
+
+- `app/`: Contains the main application code
+  - `components/`: React components (e.g., App, TaskHeatmap, TaskModal)
+  - `context/`: React context for managing global state (TaskContext)
+  - `hooks/`: Custom React hooks (e.g., useTaskAnimation)
+  - `services/`: Services for external integrations (e.g., googleDriveService)
+  - `styles/`: Styled components and global styles
+  - `types/`: TypeScript type definitions
+  - `utils/`: Utility functions for task management and calculations
+- `public/`: Public assets and HTML template
+- `scripts/`: Deployment and build scripts
+- `server.js`: Express server for production
+- `webpack.config.js`: Webpack configuration
 
 ## Contributing
 
