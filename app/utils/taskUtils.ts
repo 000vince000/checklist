@@ -17,7 +17,7 @@ export const calculateBasePriority = (task: Task) => {
   else if (task.type === 'happiness') priority += 3;
   
   // External Dependency
-  if (task.externalDependency === 'no') priority += 1;
+  if (task.externalDependency === 'no' || !task.externalDependency) priority += 1;
   
   // Attribute
   if (task.attribute === 'urgent') priority += 1;
@@ -45,15 +45,21 @@ export const calculatePriority = (task: Task, tasks: Task[]) => {
   // Subtract rejection penalty
   const rejectionPenalty = (task.rejectionCount * 0.1 * priorityRange);
   const calibratedPriority = basePriority - rejectionPenalty;
+  task.priorityScore = calibratedPriority;
   
-  // normalize priority based on normal distribution based on rank from 0 to 7
-  const rank = tasks.findIndex(t => t.id === task.id);
+  // normalize priority based on normal distribution based on ranking of priority
+  const rank = tasks.findIndex(t => t.priorityScore === calibratedPriority);
   const normalizedPriority = (rank / (tasks.length - 1)) * priorityRange + minPriority;
+  task.priorityScore = normalizedPriority;
 
-  //log statistics of priority distribution from 0 to 7, eg 0: x, 1: y, etc
-  //console.log(`Priority distribution from 0 to 7: ${Array.from({ length: 8 }, (_, i) => `${i}: ${tasks.filter(t => calculateBasePriority(t) === i).length}`).join(', ')}`);
-
-  return Math.max(calibratedPriority, 0); // Ensure priority doesn't go below 0
+  // Log statistics of rounded "normalizedPriority" instead of basePriority
+  // console.log(`NormalizedPriority distribution from 0 to 7: ${
+  //   Array.from({ length: 8 }, (_, i) => 
+  //     `${i}: ${tasks.filter(t => Math.round(t.priorityScore || 0) === i).length}`
+  //   ).join(', ')
+  // }`);
+  
+  return Math.max(normalizedPriority, 0); // Ensure priority doesn't go below 0
 };
 
 export const getTaskPrefix = (type: Task['type']) => {
@@ -135,6 +141,7 @@ export const generateRandomTasks = (count: number): Task[] => {
     note: `This is a random note for Task ${i + 1}`,
     rejectionCount: 0,
     isCompleted: false,
-    createdAt: new Date().toISOString().split('T')[0] // Add this line
+    createdAt: new Date().toISOString().split('T')[0],
+    priorityScore: 0 // Initialize priorityScore
   }));
 };

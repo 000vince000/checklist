@@ -418,7 +418,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 </ul>
               </TaskProperty>
               <TaskProperty>
-                Priority Score: {calculatePriority(editedTask, tasks).toFixed(2)}
+                Priority Score: {editedTask.priorityScore?.toFixed(2)}
               </TaskProperty>
               <TaskProperty>
                 Rejection Count: {editedTask.rejectionCount}

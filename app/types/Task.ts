@@ -15,4 +15,5 @@ export interface Task {
   updatedAt?: string; // Add this line
   completedAt?: string; // Add this line
   url?: string;
+  priorityScore: number;
 }
