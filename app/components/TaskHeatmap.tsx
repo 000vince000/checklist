@@ -59,7 +59,7 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
   }, [tasks, searchTerm, attributeFilter, typeFilter]);
 
   const sortedTasks = useMemo(() => {
-    return filteredTasks.sort((a, b) => calculatePriority(b, tasks) - calculatePriority(a, tasks));
+    return filteredTasks.sort((a, b) => (b.priorityScore || 0) - (a.priorityScore || 0));
   }, [filteredTasks, tasks]);
 
   const openModal = (taskId: number) => {
@@ -178,7 +178,7 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
           {sortedTasks.map(task => (
             <AnimatedTaskBox
               key={task.id}
-              priority={calculatePriority(task, tasks)}
+              priority={task.priorityScore}
               effort={task.effort}
               onClick={() => openModal(task.id)}
               style={task.id === animatingTaskId ? taskSpring : undefined}

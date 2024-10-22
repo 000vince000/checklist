@@ -98,11 +98,16 @@ export const selectTaskByMood = (mood: string, sortedTasks: Task[], tasks: Task[
       // select the most priority task
       return sortedTasks.filter((task: Task) => task.type === 'happiness')
         .reduce((max: Task, task: Task) => 
-          calculatePriority(task, tasks) > calculatePriority(max, tasks) ? task : max, sortedTasks[0]);
+           (task.priorityScore || 0) > (max.priorityScore || 0) ? task : max, sortedTasks[0]);
     case '🤓':
-      // select the most priority large effort task
-      return sortedTasks.reduce((max: Task, task: Task) => 
-        (task.effort === 'large' && calculatePriority(task, tasks) > calculatePriority(max, tasks)) ? task : max, sortedTasks[0]);
+      // select the large effort task with the highest priority score
+      const largeEffortTasks = sortedTasks.filter(task => task.effort === 'large');
+      if (largeEffortTasks.length === 0) {
+        console.log('No large effort tasks found');
+        return undefined;
+      }
+      return largeEffortTasks.reduce((max, task) => 
+        (task.priorityScore || 0) > (max.priorityScore || 0) ? task : max, largeEffortTasks[0]);
     case '🥱':
       // select the smallest effort task with no external dependency and no parent task
       const tasksNoDepSmallEffort = sortedTasks.filter((task: Task) => {

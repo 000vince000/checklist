@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Task } from '../types/Task';
-import { calculatePriority, formatTime } from '../utils/taskUtils';
+import { formatTime } from '../utils/taskUtils';
 import { useTaskContext } from '../context/TaskContext';
 import {
   Button,
