@@ -35,9 +35,9 @@ interface TaskInputProps {
 const TaskInput: React.FC<TaskInputProps> = ({ isOpen, closeModal }) => {
   const { addTask, tasks, parentTaskName, parentTaskId } = useTaskContext();
   const [newTask, setNewTask] = useState<Partial<Task>>({
-    attribute: 'important',
+    attribute: 'unimportant',
     externalDependency: 'no',
-    effort: 'medium',
+    effort: 'small',
     type: 'debt',
     rejectionCount: 0,
     isCompleted: false,
