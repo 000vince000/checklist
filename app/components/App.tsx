@@ -4,6 +4,7 @@ import TaskHeatmap from './TaskHeatmap';
 import TaskSuggestion from './TaskSuggestion';
 import LoginView from './LoginView';
 import CommitHistoryHeatmap from './CommitHistoryHeatmap';
+import CustomTypeModal from './CustomTypeModal';
 import { TaskProvider, useTaskContext } from '../context/TaskContext';
 import { NewTaskButton } from '../styles/TaskStyles';
 import {
@@ -83,6 +84,7 @@ function AppContent() {
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [isCommitHistoryExpanded, setIsCommitHistoryExpanded] = useState(false);
   const [isCompletedTasksExpanded, setIsCompletedTasksExpanded] = useState(false);
+  const [isCustomTypeModalOpen, setIsCustomTypeModalOpen] = useState(false);
   const openMoodModal = () => setIsMoodModalOpen(true);
   const closeMoodModal = () => setIsMoodModalOpen(false);
 
@@ -109,6 +111,15 @@ function AppContent() {
     setIsCompletedTasksExpanded(!isCompletedTasksExpanded);
   };
 
+  const handleTypeFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    if (value === 'customize') {
+      setIsCustomTypeModalOpen(true);
+    } else {
+      setTypeFilter(value);
+    }
+  };
+
   return (
     <AppContainer>
       {isLoading && <LoadingIndicator>Loading...</LoadingIndicator>}
@@ -131,13 +142,14 @@ function AppContent() {
             </FilterDropdown>
             <FilterDropdown 
               value={typeFilter} 
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTypeFilter(e.target.value)}
+              onChange={handleTypeFilterChange}
             >
               <option value="all">Types</option>
               <option value="debt">👻 Debt</option>
               <option value="cost">💸 Cost</option>
               <option value="revenue">💰 Revenue</option>
               <option value="happiness">❤️ Happiness</option>
+              <option value="customize">Customize types...</option>
             </FilterDropdown>
           </FilterContainer>
         </ButtonAndFilterContainer>
@@ -203,6 +215,10 @@ function AppContent() {
           </div>
         </MoodModalContent>
       </MoodModal>
+      <CustomTypeModal
+        isOpen={isCustomTypeModalOpen}
+        onClose={() => setIsCustomTypeModalOpen(false)}
+      />
     </AppContainer>
   );
 }

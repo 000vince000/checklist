@@ -4,7 +4,7 @@ export interface Task {
   attribute: 'urgent' | 'important' | 'unimportant';
   externalDependency: 'yes' | 'no';
   effort: 'small' | 'medium' | 'large';
-  type: 'debt' | 'cost' | 'revenue' | 'happiness';
+  type: 'debt' | 'cost' | 'revenue' | 'happiness' | string; // Allow custom string types
   note?: string;
   rejectionCount: number;
   isCompleted: boolean;
@@ -15,4 +15,10 @@ export interface Task {
   updatedAt?: string; // Add this line
   completedAt?: string; // Add this line
   url?: string;
+}
+
+// Add a new interface for custom types
+export interface CustomTaskType {
+  name: string;
+  emoji: string;
 }

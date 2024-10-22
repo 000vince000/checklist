@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Task } from '../types/Task';
+import { Task, CustomTaskType } from '../types/Task';
 import { googleDriveService } from '../services/googleDriveService';
 import { excludedWords, reservedWords, generateRandomTasks } from '../utils/taskUtils';
 interface TaskContextType {
@@ -20,6 +20,8 @@ interface TaskContextType {
   closeTaskInputModal: () => void;
   parentTaskName: string | undefined;
   parentTaskId: number | null;
+  customTypes: CustomTaskType[];
+  setCustomTypes: React.Dispatch<React.SetStateAction<CustomTaskType[]>>;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -47,6 +49,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isTaskInputModalOpen, setIsTaskInputModalOpen] = useState(false);
   const [parentTaskId, setParentTaskId] = useState<number | null>(null);
   const [parentTaskName, setParentTaskName] = useState<string | undefined>(undefined);
+  const [customTypes, setCustomTypes] = useState<CustomTaskType[]>([]);
 
   const updateLocalStorage = useCallback((state: TaskState) => {
     console.log('updateLocalStorage called');
@@ -292,6 +295,17 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setParentTaskName(undefined);
   }, []);
 
+  useEffect(() => {
+    const storedCustomTypes = localStorage.getItem('taskTypes');
+    if (storedCustomTypes) {
+      setCustomTypes(JSON.parse(storedCustomTypes));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('taskTypes', JSON.stringify(customTypes));
+  }, [customTypes]);
+
   const contextValue = {
     tasks: taskState.openTasks,
     completedTasks: taskState.completedTasks,
@@ -310,6 +324,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     closeTaskInputModal,
     parentTaskName,
     parentTaskId,
+    customTypes,
+    setCustomTypes,
   };
 
   useEffect(() => {
