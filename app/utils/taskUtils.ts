@@ -20,8 +20,8 @@ export const calculateBasePriority = (task: Task) => {
   if (task.externalDependency === 'no') priority += 1;
   
   // Attribute
-  if (task.attribute === 'urgent') priority += 1;
-  else if (task.attribute === 'important') priority += 2;
+  if (task.attribute === 'important') priority += 1;
+  else if (task.attribute === 'unimportant') priority -= 1;
 
   // Parent Task
   if (task.parentTaskId) priority += 1;
@@ -46,13 +46,6 @@ export const calculatePriority = (task: Task, tasks: Task[]) => {
   const rejectionPenalty = (task.rejectionCount * 0.1 * priorityRange);
   const calibratedPriority = basePriority - rejectionPenalty;
   
-  // normalize priority based on normal distribution based on rank from 0 to 7
-  const rank = tasks.findIndex(t => t.id === task.id);
-  const normalizedPriority = (rank / (tasks.length - 1)) * priorityRange + minPriority;
-
-  //log statistics of priority distribution from 0 to 7, eg 0: x, 1: y, etc
-  //console.log(`Priority distribution from 0 to 7: ${Array.from({ length: 8 }, (_, i) => `${i}: ${tasks.filter(t => calculateBasePriority(t) === i).length}`).join(', ')}`);
-
   return Math.max(calibratedPriority, 0); // Ensure priority doesn't go below 0
 };
 
