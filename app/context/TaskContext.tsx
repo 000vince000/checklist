@@ -2,6 +2,8 @@ import React, { createContext, useState, useContext, ReactNode, useEffect, useCa
 import { Task, CustomTaskType } from '../types/Task';
 import { googleDriveService } from '../services/googleDriveService';
 import { excludedWords, reservedWords, generateRandomTasks } from '../utils/taskUtils';
+import debounce from 'lodash/debounce';
+
 interface TaskContextType {
   tasks: Task[];
   completedTasks: Task[];
@@ -53,33 +55,53 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [customTypes, setCustomTypes] = useState<CustomTaskType[]>([]);
   const [runningTasks, setRunningTasks] = useState<Set<number>>(new Set());
 
-  const updateLocalStorage = useCallback((state: TaskState) => {
-    console.log('updateLocalStorage called');
-    localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(state.openTasks));
-    localStorage.setItem(CLOSED_TASKS_KEY, JSON.stringify(state.completedTasks));
-    localStorage.setItem(DELETED_TASKS_KEY, JSON.stringify(state.deletedTasks));
-    console.log('Local storage updated');
+  const updateLocalStorage = useCallback((taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[] }) => {
+    if (taskStates.openTasks) localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(taskStates.openTasks));
+    if (taskStates.completedTasks) localStorage.setItem(CLOSED_TASKS_KEY, JSON.stringify(taskStates.completedTasks));
+    if (taskStates.deletedTasks) localStorage.setItem(DELETED_TASKS_KEY, JSON.stringify(taskStates.deletedTasks));
   }, []);
 
-  const saveToGoogleDrive = useCallback(async (state: TaskState) => {
-    console.log('saveToGoogleDrive called');
+  const saveToGoogleDrive = useCallback(async (taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[] }) => {
     try {
-      await googleDriveService.saveToGoogleDrive({
-        tasks: state.openTasks,
-        completedTasks: state.completedTasks,
-        deletedTasks: state.deletedTasks
-      });
-      console.log('Tasks saved to Google Drive successfully');
+      if (taskStates.openTasks) {
+        await googleDriveService.saveToGoogleDrive({tasks: taskStates.openTasks});
+        console.log('openTasks saved to Google Drive');
+      } 
+      if (taskStates.completedTasks) {
+        await googleDriveService.saveToGoogleDrive({completedTasks: taskStates.completedTasks});
+        console.log('completedTasks saved to Google Drive');
+      }
+      if (taskStates.deletedTasks) {
+        await googleDriveService.saveToGoogleDrive({deletedTasks: taskStates.deletedTasks});
+        console.log('deletedTasks saved to Google Drive');
+      }
     } catch (error) {
       console.error('Error saving to Google Drive:', error);
     }
   }, []);
 
-  const updateStorageAndSync = useCallback(async (newState: TaskState) => {
-    console.log('updateStorageAndSync called');
-    updateLocalStorage(newState);
-    await saveToGoogleDrive(newState);
-  }, [updateLocalStorage, saveToGoogleDrive]);
+  // Create a debounced version of updateStorageAndSync
+  const debouncedUpdateStorageAndSync = useMemo(
+    () =>
+      debounce(
+        async (taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[] }) => {
+          updateLocalStorage(taskStates);
+          await saveToGoogleDrive(taskStates);
+        },
+        1000, // Debounce for 1 second
+        { leading: false, trailing: true }
+      ),
+    [updateLocalStorage, saveToGoogleDrive]
+  );
+
+  // Replace the existing updateStorageAndSync with this new version
+  const updateStorageAndSync = useCallback(async (taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[] }) => {
+    Object.keys(taskStates).forEach(key => {
+      console.log(`updateStorageAndSync: Key ${key} exists in taskStates`);
+    });
+    
+    debouncedUpdateStorageAndSync(taskStates);
+  }, [debouncedUpdateStorageAndSync]);
 
   const syncTasksWithGoogleDrive = useCallback(async () => {
     try {
@@ -146,7 +168,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         ...prevState,
         openTasks: [...prevState.openTasks, taskWithCreatedAt]
       };
-      updateStorageAndSync(newState);
+      updateStorageAndSync({ openTasks: newState.openTasks });
       return newState;
     });
     setAnimatingTaskId(newTask.id);
@@ -164,7 +186,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         ...prevState,
         openTasks: prevState.openTasks.map((task: Task) => task.id === updatedTask.id ? taskWithUpdatedAt : task)
       };
-      updateStorageAndSync(newState);
+      updateStorageAndSync({ openTasks: newState.openTasks });
       return newState;
     });
   }, [updateStorageAndSync]);
@@ -194,7 +216,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           completedTasks: [...prevState.completedTasks, completedTask],
           deletedTasks: prevState.deletedTasks
         };
-        updateStorageAndSync(newState);
+        updateStorageAndSync({ openTasks: newState.openTasks, completedTasks: newState.completedTasks });
         return newState;
       });
 
@@ -218,7 +240,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         completedTasks: prevState.completedTasks,
         deletedTasks: [...prevState.deletedTasks, taskToDelete]
       };
-      updateStorageAndSync(newState);
+      updateStorageAndSync({ openTasks: newState.openTasks, deletedTasks: newState.deletedTasks });
       return newState;
     });
   }, [updateStorageAndSync]);
