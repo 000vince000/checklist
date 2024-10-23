@@ -4,6 +4,7 @@ import { CustomTaskType } from '../types/Task';
 import { Modal, ModalContent, Button, CloseButton } from '../styles/TaskStyles';
 import { CustomTypeForm, CustomTypeList, EmojiPickerContainer, EmojiInput, TypeListItem, ButtonGroup } from '../styles/CustomTypeModalStyles';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
+import { googleDriveService } from '../services/googleDriveService';
 
 interface CustomTypeModalProps {
   isOpen: boolean;
@@ -48,6 +49,16 @@ const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTy
     };
   }, [showEmojiPicker]);
 
+  const saveTypesToGoogleDrive = async (types: any[]) => {
+    try {
+      await googleDriveService.saveToGoogleDrive({
+        taskTypes: types
+      });
+    } catch (error) {
+      console.error('Error saving task types to Google Drive:', error);
+    }
+  };
+
   const handleSave = () => {
     if (newType.name && newType.emoji && !isMaxTypesReached) {
       const updatedTypes = [...customTypes, newType];
@@ -56,6 +67,7 @@ const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTy
       onTypesUpdate(updatedTypes);
       setNewType({ name: '', emoji: '' });
       setShowEmojiPicker(false);
+      saveTypesToGoogleDrive(updatedTypes);
     }
   };
 
@@ -64,6 +76,7 @@ const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTy
     setCustomTypes(updatedTypes);
     localStorage.setItem('taskTypes', JSON.stringify(updatedTypes));
     onTypesUpdate(updatedTypes);
+    saveTypesToGoogleDrive(updatedTypes);
   };
 
   const handleMoveUp = (index: number) => {
@@ -73,6 +86,7 @@ const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTy
       setCustomTypes(updatedTypes);
       localStorage.setItem('taskTypes', JSON.stringify(updatedTypes));
       onTypesUpdate(updatedTypes);
+      saveTypesToGoogleDrive(updatedTypes);
     }
   };
 

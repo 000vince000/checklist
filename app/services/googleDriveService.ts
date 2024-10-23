@@ -21,6 +21,9 @@ const COMPLETED_TASKS_FILE_NAME = 'completed_tasks.json';
 const DELETED_TASKS_FILE_NAME = 'deleted_tasks.json';
 let initializationPromise: Promise<void> | null = null;
 
+// Add these imports at the top of the file
+import debounce from 'lodash/debounce';
+
 class GoogleDriveService {
   private static instance: GoogleDriveService;
   private tokenClient: TokenClient | null = null;
@@ -36,12 +39,17 @@ class GoogleDriveService {
   private readonly CLIENT_ID: string;
   private readonly SCOPES: string = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
 
+  private debouncedSaveToGoogleDrive: (data: { tasks?: any[], completedTasks?: any[], deletedTasks?: any[], taskTypes?: any[] }) => void;
+
   private constructor() {
     this.CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
     if (!this.CLIENT_ID) {
       console.error('Google Client ID is not set. Please check your environment variables.');
     }
     this.loadAuthState();
+
+    // Initialize the debounced function
+    this.debouncedSaveToGoogleDrive = debounce(this.actualSaveToGoogleDrive.bind(this), 1000);
   }
 
   public static getInstance(): GoogleDriveService {
@@ -145,7 +153,7 @@ class GoogleDriveService {
       ? `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and '${parentId}' in parents and trashed=false`
       : `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
 
-    const response = await this.fetchWithAuth(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name)`, token);
+    const response = await this.fetchWithAuth(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name)}`, token);
     const data = await response.json();
 
     if (data.files && data.files.length > 0) {
@@ -202,7 +210,7 @@ class GoogleDriveService {
     }
   }
 
-  public async saveToGoogleDrive(data: { tasks: any[], completedTasks: any[], deletedTasks: any[] }): Promise<void> {
+  private async actualSaveToGoogleDrive(data: { tasks?: any[], completedTasks?: any[], deletedTasks?: any[], taskTypes?: any[] }): Promise<void> {
     console.log('saveToGoogleDrive called, current username:', this.username); // Add this log
     await this.ensureUsername();
 
@@ -216,17 +224,25 @@ class GoogleDriveService {
 
     try {
       const token = await this.getAccessToken();
-      
-      console.log('Saving tasks');
-      await this.saveFile(TASKS_FILE_NAME, data.tasks, token);
-      
-      console.log('Saving completed tasks');
-      await this.saveFile(COMPLETED_TASKS_FILE_NAME, data.completedTasks, token);
+      // IMPORTANT: Check each key in data, if it exists, save it. if a key is not passed in, it will not be saved.
+      // this check prevents overwriting the file with an empty array, which has happened in the past.
+      if (data.tasks) {
+        console.log('Saving tasks');
+        await this.saveFile(TASKS_FILE_NAME, data.tasks, token);
+      }
+      if (data.completedTasks) {
+        console.log('Saving completed tasks');
+        await this.saveFile(COMPLETED_TASKS_FILE_NAME, data.completedTasks, token);
+      }
+      if (data.deletedTasks) {
+        console.log('Saving deleted tasks');
+        await this.saveFile(DELETED_TASKS_FILE_NAME, data.deletedTasks, token);
+      }
 
-      console.log('Saving deleted tasks');
-      await this.saveFile(DELETED_TASKS_FILE_NAME, data.deletedTasks, token);
-
-      console.log('All tasks saved successfully to Google Drive');
+      if (data.taskTypes) {
+        console.log('Saving task types');
+        await this.saveFile('taskTypes.json', data.taskTypes, token);
+      }
     } catch (error) {
       console.error('Error saving to Google Drive:', error);
       throw error;
@@ -360,6 +376,13 @@ class GoogleDriveService {
   public setUsername(username: string) {
     this.username = username;
     console.log('Username set in GoogleDriveService:', username); // Add this log
+  }
+
+  public saveToGoogleDrive(data: { tasks?: any[], completedTasks?: any[], deletedTasks?: any[], taskTypes?: any[] }): void {
+    if (!this.debouncedSaveToGoogleDrive) {
+      this.debouncedSaveToGoogleDrive = debounce(this.actualSaveToGoogleDrive.bind(this), 1000);
+    }
+    this.debouncedSaveToGoogleDrive(data);
   }
 }
 
