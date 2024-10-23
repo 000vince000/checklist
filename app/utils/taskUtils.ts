@@ -11,10 +11,10 @@ export const getPriorityColor = (priority: number) => {
 export const calculateBasePriority = (task: Task) => {
   let priority = 0;
   
-  // Type
-  if (task.type === 'cost') priority += 1;
-  else if (task.type === 'revenue') priority += 2;
-  else if (task.type === 'happiness') priority += 3;
+  // calculate priority based on type, per taskTypes in local storage, where priority is the length of the array minus the index of the type
+  const customTypes = JSON.parse(localStorage.getItem('taskTypes') || '[]');
+  const typeIndex = customTypes.findIndex(t => t.name.toLowerCase() === task.type);
+  if (typeIndex !== -1) priority += (customTypes.length - typeIndex);
   
   // External Dependency
   if (task.externalDependency === 'no') priority += 1;
