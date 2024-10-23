@@ -146,7 +146,7 @@ class GoogleDriveService {
       }
     });
   }
-
+  // this function is critical. if any API call is wrong duplicate folder will be created.
   private async createFolderIfNotExists(folderName: string, parentId?: string): Promise<string> {
     const token = await this.getAccessToken();
     const query = parentId
