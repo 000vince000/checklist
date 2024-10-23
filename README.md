@@ -16,16 +16,18 @@ A modern, minimalist task management application built with React and TypeScript
 - Automatic data refresh when the page becomes visible
 - Action history heatmap for visualizing task activity over time
 - URL support for tasks, allowing quick access to related resources
+- Custom task types with emoji support
 
 ## Task Management
 
 - Tasks are displayed in a heatmap, color-coded by priority
-- Each task has attributes like name, type (debt, cost, revenue, happiness), effort, urgency, and more
+- Each task has attributes like name, type, effort, urgency, and more
 - Tasks can have parent-child relationships, allowing for hierarchical organization
 - Users can add, edit, delete, and complete tasks
 - Task priority is calculated based on various factors, including rejection count
 - Tasks can be marked as completed, paused, or abandoned
 - Completed tasks are tracked separately and can be viewed in a dedicated section
+- Custom task types can be created, edited, and deleted with emoji support
 
 ## User Interface
 
@@ -36,6 +38,7 @@ A modern, minimalist task management application built with React and TypeScript
 - "I'm Feeling Lucky" button for mood-based task suggestions
 - Top words analysis for quick insights into frequently used terms in tasks
 - Expandable sections for viewing completed tasks and action history
+- Custom type management modal for creating and organizing task types
 
 ## Data Synchronization
 
@@ -43,6 +46,7 @@ A modern, minimalist task management application built with React and TypeScript
 - Changes are persisted across sessions and devices
 - Force refresh functionality to ensure up-to-date data
 - Separate storage for active tasks, completed tasks, and deleted tasks
+- Custom task types are stored in localStorage and synced across browser tabs
 
 ## Tech Stack
 
@@ -52,6 +56,7 @@ A modern, minimalist task management application built with React and TypeScript
 - React Spring 9.7.4 for animations
 - Google Drive API for cloud storage
 - Express.js 4.17.1 for server-side operations
+- Emoji Picker React for custom task type emojis
 
 ## Getting Started
 
@@ -101,7 +106,7 @@ A modern, minimalist task management application built with React and TypeScript
 ## Project Structure
 
 - `app/`: Contains the main application code
-  - `components/`: React components (e.g., App, TaskHeatmap, TaskModal)
+  - `components/`: React components (e.g., App, TaskHeatmap, TaskModal, CustomTypeModal)
   - `context/`: React context for managing global state (TaskContext)
   - `hooks/`: Custom React hooks (e.g., useTaskAnimation)
   - `services/`: Services for external integrations (e.g., googleDriveService)
