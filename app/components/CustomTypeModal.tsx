@@ -108,6 +108,7 @@ const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTy
             </EmojiPickerContainer>
           )}
         </CustomTypeForm>
+        <div style={{ fontSize: '12px', color: '#888', marginTop: '10px' }}>Arrange them from most <i>joyful</i> at the top to most <i>painful</i> at the bottom</div>
         <CustomTypeList>
           {customTypes.map((type, index) => (
             <TypeListItem key={index}>
