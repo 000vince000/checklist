@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Task } from '../types/Task';
+import { Task, CustomTaskType } from '../types/Task';
 import { calculatePriority, formatTime } from '../utils/taskUtils';
 import { useTaskContext } from '../context/TaskContext';
 import {
@@ -92,6 +92,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [childTasks, setChildTasks] = useState<{id: number, name: string, isCompleted: boolean}[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
+  const [taskTypes, setTaskTypes] = useState<CustomTaskType[]>([]);
 
   useEffect(() => {
     if (selectedTask && isOpen) {
@@ -99,6 +100,29 @@ const TaskModal: React.FC<TaskModalProps> = ({
       updateTaskInfo(selectedTask);
     }
   }, [selectedTask, isOpen]);
+
+  useEffect(() => {
+    const loadTaskTypes = () => {
+      const storedTypes = localStorage.getItem('taskTypes');
+      if (storedTypes) {
+        setTaskTypes(JSON.parse(storedTypes));
+      }
+    };
+
+    loadTaskTypes();
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'taskTypes') {
+        loadTaskTypes();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   const updateTaskInfo = (task: Task) => {
     setEditedTask(task);
@@ -365,10 +389,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 value={editedTask.type}
                 onChange={handleInputChange}
               >
-                <option value="debt">Debt</option>
-                <option value="cost">Cost</option>
-                <option value="revenue">Revenue</option>
-                <option value="happiness">Happiness</option>
+                {taskTypes.map(type => (
+                  <option key={type.name} value={type.name.toLowerCase()}>{type.emoji} {type.name}</option>
+                ))}
               </Select>
             </InlineFormGroup>
             <InlineFormGroup>
