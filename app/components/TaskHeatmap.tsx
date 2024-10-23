@@ -162,7 +162,7 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
     const gridSize = getGridDimensions(task.effort, calculatePriority(task, tasks)).columns;
     //const maxLength = task.effort === 'large' ? 20 : task.effort === 'medium' ? 80 : 120;
     const maxLength = gridSize === 4 ? 80 : gridSize === 3 ? 60 : gridSize === 2 ? 20 : 15;
-    return prefix + task.name.slice(0, maxLength);
+    return prefix + " " + task.name.slice(0, maxLength);
   };
 
   // Add this new function to update the selected task

@@ -50,20 +50,18 @@ export const calculatePriority = (task: Task, tasks: Task[]) => {
 };
 
 export const getTaskPrefix = (type: Task['type']) => {
-  switch (type) {
-    case 'happiness': return '❤️ ';
-    case 'revenue': return '💰 ';
-    case 'cost': return '💸 ';
-    case 'debt': return '👻 ';
-    default: return '';
-  }
+  // look up the custom type in the local storage, where the prefix is the emoji
+  const customTypes = JSON.parse(localStorage.getItem('taskTypes') || '[]');
+  const customType = customTypes.find(t => t.name.toLowerCase() === type);
+  if (customType) return customType.emoji;
+  else return '❓';
 };
 
 export const truncateName = (task: Task) => {
   const prefix = getTaskPrefix(task.type);
   const maxLength = task.effort === 'large' ? 20 : task.effort === 'medium' ? 12 : 8;
   const truncatedName = task.name.length > maxLength ? task.name.slice(0, maxLength - 1) + '…' : task.name;
-  return prefix + truncatedName;
+  return prefix + " " + truncatedName;
 };
 
 export const formatTime = (seconds: number) => {
