@@ -14,14 +14,15 @@ export const calculateBasePriority = (task: Task) => {
   // calculate priority based on type, per taskTypes in local storage, where priority is the length of the array minus the index of the type
   const customTypes = JSON.parse(localStorage.getItem('taskTypes') || '[]');
   const typeIndex = customTypes.findIndex(t => t.name.toLowerCase() === task.type);
-  if (typeIndex !== -1) priority += (customTypes.length - typeIndex);
+  if (typeIndex !== -1) priority += ((customTypes.length - 1) - typeIndex);
   
   // External Dependency
   if (task.externalDependency === 'no') priority += 1;
   
   // Attribute
-  if (task.attribute === 'important') priority += 1;
-  else if (task.attribute === 'unimportant') priority -= 1;
+  // increment by 1/2 of size of type array; justification: importance should scale with number of types
+  if (task.attribute === 'important') priority += (customTypes.length / 2);
+  else if (task.attribute === 'unimportant') priority -= (customTypes.length / 2);
 
   // Parent Task
   if (task.parentTaskId) priority += 1;
