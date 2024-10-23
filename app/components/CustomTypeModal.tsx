@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTaskContext } from '../context/TaskContext';
 import { CustomTaskType } from '../types/Task';
 import { Modal, ModalContent, Button } from '../styles/TaskStyles';
@@ -7,21 +7,37 @@ import { CustomTypeForm, CustomTypeList } from '../styles/CustomTypeModalStyles'
 interface CustomTypeModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onTypesUpdate: (types: CustomTaskType[]) => void;
 }
 
-const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose }) => {
+const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTypesUpdate }) => {
   const { customTypes, setCustomTypes } = useTaskContext();
   const [newType, setNewType] = useState<CustomTaskType>({ name: '', emoji: '' });
 
+  useEffect(() => {
+    const storedTypes = localStorage.getItem('taskTypes');
+    if (storedTypes) {
+      const parsedTypes = JSON.parse(storedTypes);
+      setCustomTypes(parsedTypes);
+      onTypesUpdate(parsedTypes);
+    }
+  }, [setCustomTypes, onTypesUpdate]);
+
   const handleSave = () => {
     if (newType.name && newType.emoji) {
-      setCustomTypes([...customTypes, newType]);
+      const updatedTypes = [...customTypes, newType];
+      setCustomTypes(updatedTypes);
+      localStorage.setItem('taskTypes', JSON.stringify(updatedTypes));
+      onTypesUpdate(updatedTypes);
       setNewType({ name: '', emoji: '' });
     }
   };
 
   const handleDelete = (name: string) => {
-    setCustomTypes(customTypes.filter(type => type.name !== name));
+    const updatedTypes = customTypes.filter(type => type.name !== name);
+    setCustomTypes(updatedTypes);
+    localStorage.setItem('taskTypes', JSON.stringify(updatedTypes));
+    onTypesUpdate(updatedTypes);
   };
 
   return (
@@ -58,4 +74,3 @@ const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose }) =>
 };
 
 export default CustomTypeModal;
-

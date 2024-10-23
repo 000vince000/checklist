@@ -30,6 +30,7 @@ import {
   CompletedTaskItem
 } from '../styles/AppStyles';
 import { formatTime } from '../utils/taskUtils';
+import { CustomTaskType } from '../types/Task';
 
 const LuckyButton: React.FC<{ openMoodModal: () => void }> = ({ openMoodModal }) => {
   return <LuckyButtonStyled onClick={openMoodModal}>Feeling Lucky</LuckyButtonStyled>;
@@ -85,6 +86,7 @@ function AppContent() {
   const [isCommitHistoryExpanded, setIsCommitHistoryExpanded] = useState(false);
   const [isCompletedTasksExpanded, setIsCompletedTasksExpanded] = useState(false);
   const [isCustomTypeModalOpen, setIsCustomTypeModalOpen] = useState(false);
+  const [taskTypes, setTaskTypes] = useState<CustomTaskType[]>([]);
   const openMoodModal = () => setIsMoodModalOpen(true);
   const closeMoodModal = () => setIsMoodModalOpen(false);
 
@@ -110,6 +112,29 @@ function AppContent() {
   const toggleCompletedTasks = () => {
     setIsCompletedTasksExpanded(!isCompletedTasksExpanded);
   };
+
+  useEffect(() => {
+    const loadTaskTypes = () => {
+      const storedTypes = localStorage.getItem('taskTypes');
+      if (storedTypes) {
+        setTaskTypes(JSON.parse(storedTypes));
+      }
+    };
+
+    loadTaskTypes();
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'taskTypes') {
+        loadTaskTypes();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   const handleTypeFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
@@ -145,10 +170,9 @@ function AppContent() {
               onChange={handleTypeFilterChange}
             >
               <option value="all">Types</option>
-              <option value="debt">👻 Debt</option>
-              <option value="cost">💸 Cost</option>
-              <option value="revenue">💰 Revenue</option>
-              <option value="happiness">❤️ Happiness</option>
+              {taskTypes.map(type => (
+                <option value={type.name.toLowerCase()}>{type.emoji} {type.name}</option>
+              ))}
               <option value="customize">Customize types...</option>
             </FilterDropdown>
           </FilterContainer>
@@ -218,6 +242,7 @@ function AppContent() {
       <CustomTypeModal
         isOpen={isCustomTypeModalOpen}
         onClose={() => setIsCustomTypeModalOpen(false)}
+        onTypesUpdate={setTaskTypes}
       />
     </AppContainer>
   );
