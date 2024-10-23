@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTaskContext } from '../context/TaskContext';
 import { CustomTaskType } from '../types/Task';
-import { Modal, ModalContent, Button } from '../styles/TaskStyles';
-import { CustomTypeForm, CustomTypeList, EmojiPickerContainer, EmojiInput } from '../styles/CustomTypeModalStyles';
+import { Modal, ModalContent, Button, CloseButton } from '../styles/TaskStyles';
+import { CustomTypeForm, CustomTypeList, EmojiPickerContainer, EmojiInput, TypeListItem, ButtonGroup } from '../styles/CustomTypeModalStyles';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
 interface CustomTypeModalProps {
@@ -15,6 +15,7 @@ const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTy
   const { customTypes, setCustomTypes } = useTaskContext();
   const [newType, setNewType] = useState<CustomTaskType>({ name: '', emoji: '' });
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
   const emojiInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -25,6 +26,23 @@ const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTy
       onTypesUpdate(parsedTypes);
     }
   }, [setCustomTypes, onTypesUpdate]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showEmojiPicker &&
+          emojiPickerRef.current &&
+          !emojiPickerRef.current.contains(event.target as Node) &&
+          emojiInputRef.current &&
+          !emojiInputRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showEmojiPicker]);
 
   const handleSave = () => {
     if (newType.name && newType.emoji) {
@@ -37,11 +55,21 @@ const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTy
     }
   };
 
-  const handleDelete = (name: string) => {
-    const updatedTypes = customTypes.filter(type => type.name !== name);
+  const handleDelete = (index: number) => {
+    const updatedTypes = customTypes.filter((_, i) => i !== index);
     setCustomTypes(updatedTypes);
     localStorage.setItem('taskTypes', JSON.stringify(updatedTypes));
     onTypesUpdate(updatedTypes);
+  };
+
+  const handleMoveUp = (index: number) => {
+    if (index > 0) {
+      const updatedTypes = [...customTypes];
+      [updatedTypes[index - 1], updatedTypes[index]] = [updatedTypes[index], updatedTypes[index - 1]];
+      setCustomTypes(updatedTypes);
+      localStorage.setItem('taskTypes', JSON.stringify(updatedTypes));
+      onTypesUpdate(updatedTypes);
+    }
   };
 
   const handleEmojiClick = (emojiData: EmojiClickData) => {
@@ -56,6 +84,7 @@ const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTy
   return (
     <Modal isOpen={isOpen}>
       <ModalContent>
+        <CloseButton onClick={onClose}>&times;</CloseButton>
         <h2>Customize Task Types</h2>
         <CustomTypeForm>
           <input
@@ -72,22 +101,26 @@ const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTy
             onClick={toggleEmojiPicker}
             readOnly
           />
-          <Button onClick={handleSave}>Add Type</Button>
+          <Button onClick={handleSave} style={{ alignSelf: 'flex-end' }}>Add</Button>
           {showEmojiPicker && (
-            <EmojiPickerContainer>
+            <EmojiPickerContainer ref={emojiPickerRef}>
               <EmojiPicker onEmojiClick={handleEmojiClick} />
             </EmojiPickerContainer>
           )}
         </CustomTypeForm>
         <CustomTypeList>
-          {customTypes.map(type => (
-            <li key={type.name}>
+          {customTypes.map((type, index) => (
+            <TypeListItem key={index}>
               {type.emoji} {type.name}
-              <Button onClick={() => handleDelete(type.name)}>Delete</Button>
-            </li>
+              <ButtonGroup>
+                {index > 0 && (
+                  <Button onClick={() => handleMoveUp(index)}>Move Up</Button>
+                )}
+                <Button onClick={() => handleDelete(index)}>X</Button>
+              </ButtonGroup>
+            </TypeListItem>
           ))}
         </CustomTypeList>
-        <Button onClick={onClose}>Close</Button>
       </ModalContent>
     </Modal>
   );

@@ -30,3 +30,15 @@ export const EmojiPickerContainer = styled.div`
 export const EmojiInput = styled.input`
   cursor: pointer;
 `;
+
+export const TypeListItem = styled.li`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+`;
+
+export const ButtonGroup = styled.div`
+  display: flex;
+  gap: 5px;
+`;
