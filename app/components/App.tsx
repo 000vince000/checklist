@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import TaskInput from './TaskInput';
 import TaskHeatmap from './TaskHeatmap';
-import TaskSuggestion from './TaskSuggestion';
 import LoginView from './LoginView';
 import CommitHistoryHeatmap from './CommitHistoryHeatmap';
 import CustomTypeModal from './CustomTypeModal';
@@ -171,7 +170,7 @@ function AppContent() {
             >
               <option value="all">Types</option>
               {taskTypes.map(type => (
-                <option value={type.name.toLowerCase()}>{type.emoji} {type.name}</option>
+                <option key={type.name} value={type.name.toLowerCase()}>{type.emoji} {type.name}</option>
               ))}
               <option value="customize">Customize types...</option>
             </FilterDropdown>

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTaskContext } from '../context/TaskContext';
 import { CustomTaskType } from '../types/Task';
 import { Modal, ModalContent, Button } from '../styles/TaskStyles';
-import { CustomTypeForm, CustomTypeList } from '../styles/CustomTypeModalStyles';
+import { CustomTypeForm, CustomTypeList, EmojiPickerContainer, EmojiInput } from '../styles/CustomTypeModalStyles';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
 interface CustomTypeModalProps {
   isOpen: boolean;
@@ -13,6 +14,8 @@ interface CustomTypeModalProps {
 const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTypesUpdate }) => {
   const { customTypes, setCustomTypes } = useTaskContext();
   const [newType, setNewType] = useState<CustomTaskType>({ name: '', emoji: '' });
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const storedTypes = localStorage.getItem('taskTypes');
@@ -30,6 +33,7 @@ const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTy
       localStorage.setItem('taskTypes', JSON.stringify(updatedTypes));
       onTypesUpdate(updatedTypes);
       setNewType({ name: '', emoji: '' });
+      setShowEmojiPicker(false);
     }
   };
 
@@ -38,6 +42,15 @@ const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTy
     setCustomTypes(updatedTypes);
     localStorage.setItem('taskTypes', JSON.stringify(updatedTypes));
     onTypesUpdate(updatedTypes);
+  };
+
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    setNewType({ ...newType, emoji: emojiData.emoji });
+    setShowEmojiPicker(false);
+  };
+
+  const toggleEmojiPicker = () => {
+    setShowEmojiPicker(!showEmojiPicker);
   };
 
   return (
@@ -51,13 +64,20 @@ const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTy
             value={newType.name}
             onChange={(e) => setNewType({ ...newType, name: e.target.value })}
           />
-          <input
+          <EmojiInput
+            ref={emojiInputRef}
             type="text"
             placeholder="Emoji"
             value={newType.emoji}
-            onChange={(e) => setNewType({ ...newType, emoji: e.target.value })}
+            onClick={toggleEmojiPicker}
+            readOnly
           />
           <Button onClick={handleSave}>Add Type</Button>
+          {showEmojiPicker && (
+            <EmojiPickerContainer>
+              <EmojiPicker onEmojiClick={handleEmojiClick} />
+            </EmojiPickerContainer>
+          )}
         </CustomTypeForm>
         <CustomTypeList>
           {customTypes.map(type => (
