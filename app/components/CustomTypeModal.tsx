@@ -11,12 +11,16 @@ interface CustomTypeModalProps {
   onTypesUpdate: (types: CustomTaskType[]) => void;
 }
 
+const MAX_TYPES = 5;
+
 const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTypesUpdate }) => {
   const { customTypes, setCustomTypes } = useTaskContext();
   const [newType, setNewType] = useState<CustomTaskType>({ name: '', emoji: '' });
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const emojiInputRef = useRef<HTMLInputElement>(null);
+
+  const isMaxTypesReached = customTypes.length >= MAX_TYPES;
 
   useEffect(() => {
     const storedTypes = localStorage.getItem('taskTypes');
@@ -45,7 +49,7 @@ const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTy
   }, [showEmojiPicker]);
 
   const handleSave = () => {
-    if (newType.name && newType.emoji) {
+    if (newType.name && newType.emoji && !isMaxTypesReached) {
       const updatedTypes = [...customTypes, newType];
       setCustomTypes(updatedTypes);
       localStorage.setItem('taskTypes', JSON.stringify(updatedTypes));
@@ -78,7 +82,9 @@ const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTy
   };
 
   const toggleEmojiPicker = () => {
-    setShowEmojiPicker(!showEmojiPicker);
+    if (!isMaxTypesReached) {
+      setShowEmojiPicker(!showEmojiPicker);
+    }
   };
 
   return (
@@ -92,6 +98,8 @@ const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTy
             placeholder="Type name"
             value={newType.name}
             onChange={(e) => setNewType({ ...newType, name: e.target.value })}
+            disabled={isMaxTypesReached}
+            style={{ opacity: isMaxTypesReached ? 0.5 : 1 }}
           />
           <EmojiInput
             ref={emojiInputRef}
@@ -100,14 +108,19 @@ const CustomTypeModal: React.FC<CustomTypeModalProps> = ({ isOpen, onClose, onTy
             value={newType.emoji}
             onClick={toggleEmojiPicker}
             readOnly
+            disabled={isMaxTypesReached}
+            style={{ opacity: isMaxTypesReached ? 0.5 : 1 }}
           />
-          <Button onClick={handleSave} style={{ alignSelf: 'flex-end' }}>Add</Button>
-          {showEmojiPicker && (
+          <Button onClick={handleSave} disabled={isMaxTypesReached} style={{ alignSelf: 'flex-end', opacity: isMaxTypesReached ? 0.5 : 1 }}>Add</Button>
+          {showEmojiPicker && !isMaxTypesReached && (
             <EmojiPickerContainer ref={emojiPickerRef}>
               <EmojiPicker onEmojiClick={handleEmojiClick} />
             </EmojiPickerContainer>
           )}
         </CustomTypeForm>
+        {isMaxTypesReached && (
+          <div style={{ color: 'red', marginTop: '10px', fontSize: '12px' }}>Maximum number of custom types (5) reached.</div>
+        )}
         <div style={{ fontSize: '12px', color: '#888', marginTop: '10px' }}>Arrange them from most <i>joyful</i> at the top to most <i>painful</i> at the bottom</div>
         <CustomTypeList>
           {customTypes.map((type, index) => (
