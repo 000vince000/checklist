@@ -47,6 +47,7 @@ import {
 import { isValidUrl } from '../utils/urlUtils';
 import { FaArrowLeft, FaArrowRight, FaPlus } from 'react-icons/fa';
 import TaskInput from './TaskInput';
+import TaskTimer from './TaskTimer';
 
 interface TaskModalProps {
   selectedTask: Task | null;
@@ -452,6 +453,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 Timer: {formatTime(timer)}
               </TaskProperty>
             )}
+            <TaskTimer taskId={editedTask.id} />
             {timer === null ? (
               <ButtonGroupStyled>
                 <AcceptButton type="button" onClick={handleAcceptClick}>Accept</AcceptButton>

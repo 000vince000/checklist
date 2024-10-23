@@ -153,7 +153,7 @@ class GoogleDriveService {
       ? `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and '${parentId}' in parents and trashed=false`
       : `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
 
-    const response = await this.fetchWithAuth(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name)}`, token);
+    const response = await this.fetchWithAuth(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name)`, token);
     const data = await response.json();
 
     if (data.files && data.files.length > 0) {

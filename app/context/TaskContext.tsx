@@ -22,6 +22,7 @@ interface TaskContextType {
   parentTaskId: number | null;
   customTypes: CustomTaskType[];
   setCustomTypes: React.Dispatch<React.SetStateAction<CustomTaskType[]>>;
+  updateTaskTimer: (taskId: number, time: number, isRunning?: boolean, isStopped?: boolean) => void;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -50,6 +51,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [parentTaskId, setParentTaskId] = useState<number | null>(null);
   const [parentTaskName, setParentTaskName] = useState<string | undefined>(undefined);
   const [customTypes, setCustomTypes] = useState<CustomTaskType[]>([]);
+  const [runningTasks, setRunningTasks] = useState<Set<number>>(new Set());
 
   const updateLocalStorage = useCallback((state: TaskState) => {
     console.log('updateLocalStorage called');
@@ -306,6 +308,38 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('taskTypes', JSON.stringify(customTypes));
   }, [customTypes]);
 
+  const updateTaskTimer = useCallback((taskId: number, time: number, isRunning?: boolean, isStopped?: boolean) => {
+    setTaskState(prevState => {
+      const updatedTasks = prevState.openTasks.map(task => {
+        if (task.id === taskId) {
+          return { ...task, completionTime: time };
+        }
+        return task;
+      });
+
+      const newState = { ...prevState, openTasks: updatedTasks };
+
+      if (isRunning !== undefined) {
+        setRunningTasks(prev => {
+          const newSet = new Set(prev);
+          if (isRunning) {
+            newSet.add(taskId);
+          } else {
+            newSet.delete(taskId);
+          }
+          return newSet;
+        });
+      }
+
+      if (isStopped) {
+        // Only update storage and sync when the timer is stopped
+        updateStorageAndSync(newState);
+      }
+
+      return newState;
+    });
+  }, [updateStorageAndSync]);
+
   const contextValue = {
     tasks: taskState.openTasks,
     completedTasks: taskState.completedTasks,
@@ -326,43 +360,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     parentTaskId,
     customTypes,
     setCustomTypes,
+    updateTaskTimer,
   };
-
-  useEffect(() => {
-    let lastUpdateTime = Date.now();
-    let animationFrameId: number;
-
-    const updateTimer = () => {
-      const now = Date.now();
-      const elapsed = now - lastUpdateTime;
-      lastUpdateTime = now;
-
-      setTaskState((prevState: TaskState) => {
-        const updatedOpenTasks = prevState.openTasks.map(task => {
-          if (task.isCompleted === false) {
-            return {
-              ...task,
-              completionTime: (task.completionTime || 0) + elapsed / 1000
-            };
-          }
-          return task;
-        });
-
-        return {
-          ...prevState,
-          openTasks: updatedOpenTasks
-        };
-      });
-
-      animationFrameId = requestAnimationFrame(updateTimer);
-    };
-
-    animationFrameId = requestAnimationFrame(updateTimer);
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, []);
 
   return (
     <TaskContext.Provider value={contextValue}>
