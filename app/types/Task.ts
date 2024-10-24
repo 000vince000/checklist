@@ -4,7 +4,7 @@ export interface Task {
   attribute: 'urgent' | 'important' | 'unimportant';
   externalDependency: 'yes' | 'no';
   effort: 'small' | 'medium' | 'large';
-  type: 'debt' | 'cost' | 'revenue' | 'happiness' | string; // Allow custom string types
+  type: string; // Allow custom string types
   note?: string;
   rejectionCount: number;
   isCompleted: boolean;

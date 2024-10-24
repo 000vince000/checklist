@@ -34,11 +34,11 @@ interface TaskInputProps {
 
 const TaskInput: React.FC<TaskInputProps> = ({ isOpen, closeModal }) => {
   const { addTask, tasks, parentTaskName, parentTaskId, customTypes } = useTaskContext();
+  const [localCustomTypes, setLocalCustomTypes] = useState<CustomTaskType[]>([]);
   const [newTask, setNewTask] = useState<Partial<Task>>({
     attribute: 'unimportant',
     externalDependency: 'no',
     effort: 'small',
-    type: 'debt',
     rejectionCount: 0,
     isCompleted: false,
     parentTaskId: parentTaskId
@@ -53,7 +53,14 @@ const TaskInput: React.FC<TaskInputProps> = ({ isOpen, closeModal }) => {
     const loadTaskTypes = () => {
       const storedTypes = localStorage.getItem('taskTypes');
       if (storedTypes) {
-        setTaskTypes(JSON.parse(storedTypes));
+        const parsedTypes = JSON.parse(storedTypes) as CustomTaskType[];
+        setLocalCustomTypes(parsedTypes);
+        if (parsedTypes.length > 0) {
+          setNewTask(prevTask => ({
+            ...prevTask,
+            type: parsedTypes[parsedTypes.length - 1].name.toLowerCase()
+          }));
+        }
       }
     };
 
@@ -71,6 +78,15 @@ const TaskInput: React.FC<TaskInputProps> = ({ isOpen, closeModal }) => {
       window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
+
+  useEffect(() => {
+    if (customTypes.length > 0) {
+      setNewTask(prevTask => ({
+        ...prevTask,
+        type: customTypes[customTypes.length - 1].name.toLowerCase()
+      }));
+    }
+  }, [customTypes]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setNewTask({ ...newTask, [e.target.id]: e.target.value });
@@ -116,10 +132,10 @@ const TaskInput: React.FC<TaskInputProps> = ({ isOpen, closeModal }) => {
         url: url.trim() !== '' ? url.trim() : undefined
       } as Task);
       setNewTask({
-        attribute: 'important',
+        attribute: 'unimportant',
         externalDependency: 'no',
-        effort: 'medium',
-        type: 'debt',
+        effort: 'small',
+        type: customTypes.length > 0 ? customTypes[customTypes.length - 1].name.toLowerCase() : undefined,
         parentTaskId: null // Reset parentTaskId after adding the task
       });
       setSelectedParentTask(null);
@@ -171,7 +187,7 @@ const TaskInput: React.FC<TaskInputProps> = ({ isOpen, closeModal }) => {
           <InlineFormGroup>
             <InlineLabel htmlFor="type">Type</InlineLabel>
             <Select id="type" value={newTask.type || ''} onChange={handleInputChange}>
-              {customTypes.map(type => (
+              {localCustomTypes.map(type => (
                 <option key={type.name} value={type.name.toLowerCase()}>{type.emoji} {type.name}</option>
               ))}
             </Select>
