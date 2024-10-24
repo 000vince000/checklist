@@ -33,7 +33,7 @@ interface TaskInputProps {
 }
 
 const TaskInput: React.FC<TaskInputProps> = ({ isOpen, closeModal }) => {
-  const { addTask, tasks, parentTaskName, parentTaskId } = useTaskContext();
+  const { addTask, tasks, parentTaskName, parentTaskId, customTypes } = useTaskContext();
   const [newTask, setNewTask] = useState<Partial<Task>>({
     attribute: 'unimportant',
     externalDependency: 'no',
@@ -171,7 +171,7 @@ const TaskInput: React.FC<TaskInputProps> = ({ isOpen, closeModal }) => {
           <InlineFormGroup>
             <InlineLabel htmlFor="type">Type</InlineLabel>
             <Select id="type" value={newTask.type || ''} onChange={handleInputChange}>
-              {taskTypes.map(type => (
+              {customTypes.map(type => (
                 <option key={type.name} value={type.name.toLowerCase()}>{type.emoji} {type.name}</option>
               ))}
             </Select>
