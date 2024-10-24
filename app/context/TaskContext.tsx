@@ -2,7 +2,6 @@ import React, { createContext, useState, useContext, ReactNode, useEffect, useCa
 import { Task, CustomTaskType } from '../types/Task';
 import { googleDriveService } from '../services/googleDriveService';
 import { excludedWords, reservedWords, generateRandomTasks } from '../utils/taskUtils';
-import debounce from 'lodash/debounce';
 
 interface TaskContextType {
   tasks: Task[];
@@ -56,52 +55,35 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [runningTasks, setRunningTasks] = useState<Set<number>>(new Set());
 
   const updateLocalStorage = useCallback((taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[] }) => {
-    if (taskStates.openTasks) localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(taskStates.openTasks));
-    if (taskStates.completedTasks) localStorage.setItem(CLOSED_TASKS_KEY, JSON.stringify(taskStates.completedTasks));
-    if (taskStates.deletedTasks) localStorage.setItem(DELETED_TASKS_KEY, JSON.stringify(taskStates.deletedTasks));
+    if (taskStates.completedTasks && taskStates.openTasks) localStorage.setItem(CLOSED_TASKS_KEY, JSON.stringify(taskStates.completedTasks));
+    else if (taskStates.deletedTasks && taskStates.openTasks) localStorage.setItem(DELETED_TASKS_KEY, JSON.stringify(taskStates.deletedTasks));
+    else if (taskStates.openTasks) localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(taskStates.openTasks));
   }, []);
 
   const saveToGoogleDrive = useCallback(async (taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[] }) => {
+    const timestamp = new Date().toISOString();
     try {
-      if (taskStates.openTasks) {
+      if (taskStates.completedTasks && taskStates.openTasks) {
+        console.log(`[${timestamp}] Saving ${taskStates.completedTasks.length} completed tasks to Google Drive`);
+        await googleDriveService.saveToGoogleDrive({completedTasks: taskStates.completedTasks, tasks: taskStates.openTasks});
+      } else if (taskStates.deletedTasks && taskStates.openTasks) {
+        console.log(`[${timestamp}] Saving ${taskStates.deletedTasks.length} deleted tasks to Google Drive`);
+        await googleDriveService.saveToGoogleDrive({deletedTasks: taskStates.deletedTasks, tasks: taskStates.openTasks});
+      } else if (taskStates.openTasks) {
+        console.log(`[${timestamp}] Saving ${taskStates.openTasks.length} open tasks to Google Drive`);
         await googleDriveService.saveToGoogleDrive({tasks: taskStates.openTasks});
-        console.log('openTasks saved to Google Drive');
-      } 
-      if (taskStates.completedTasks) {
-        await googleDriveService.saveToGoogleDrive({completedTasks: taskStates.completedTasks});
-        console.log('completedTasks saved to Google Drive');
-      }
-      if (taskStates.deletedTasks) {
-        await googleDriveService.saveToGoogleDrive({deletedTasks: taskStates.deletedTasks});
-        console.log('deletedTasks saved to Google Drive');
       }
     } catch (error) {
-      console.error('Error saving to Google Drive:', error);
+      console.error(`[${timestamp}] Error saving to Google Drive:`, error);
     }
   }, []);
 
-  // Create a debounced version of updateStorageAndSync
-  const debouncedUpdateStorageAndSync = useMemo(
-    () =>
-      debounce(
-        async (taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[] }) => {
-          updateLocalStorage(taskStates);
-          await saveToGoogleDrive(taskStates);
-        },
-        1000, // Debounce for 1 second
-        { leading: false, trailing: true }
-      ),
-    [updateLocalStorage, saveToGoogleDrive]
-  );
-
-  // Replace the existing updateStorageAndSync with this new version
+  // Replace the debounced version with a direct implementation
   const updateStorageAndSync = useCallback(async (taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[] }) => {
-    Object.keys(taskStates).forEach(key => {
-      console.log(`updateStorageAndSync: Key ${key} exists in taskStates`);
-    });
-    
-    debouncedUpdateStorageAndSync(taskStates);
-  }, [debouncedUpdateStorageAndSync]);
+    const timestamp = new Date().toISOString();
+    updateLocalStorage(taskStates);
+    await saveToGoogleDrive(taskStates);
+  }, [updateLocalStorage, saveToGoogleDrive]);
 
   const syncTasksWithGoogleDrive = useCallback(async () => {
     try {
@@ -157,7 +139,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [syncTasksWithGoogleDrive]);
 
   const addTask = useCallback((newTask: Task) => {
-    console.log('Adding new task:', newTask);
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] Adding new task:`, newTask);
     setTaskState((prevState: TaskState) => {
       const taskWithCreatedAt = {
         ...newTask,
@@ -234,7 +217,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('Deleting task:', taskId);
     setTaskState((prevState: TaskState) => {
       const taskToDelete = prevState.openTasks.find((task: Task) => task.id === taskId);
-      if (!taskToDelete) return prevState;
+      if (!taskToDelete) {
+        console.log(`Task with id ${taskId} not found, skipping delete operation`);
+        return prevState;
+      }
+      // Check if the task is already in deletedTasks
+      const isAlreadyDeleted = prevState.deletedTasks.some(task => task.id === taskId);
+      if (isAlreadyDeleted) {
+        console.log(`Task with id ${taskId} is already in deletedTasks, skipping delete operation`);
+        return prevState;
+      }
       const newState = {
         openTasks: prevState.openTasks.filter((task: Task) => task.id !== taskId),
         completedTasks: prevState.completedTasks,

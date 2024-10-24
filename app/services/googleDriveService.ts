@@ -211,16 +211,14 @@ class GoogleDriveService {
   }
 
   private async actualSaveToGoogleDrive(data: { tasks?: any[], completedTasks?: any[], deletedTasks?: any[], taskTypes?: any[] }): Promise<void> {
-    console.log('saveToGoogleDrive called, current username:', this.username); // Add this log
-    await this.ensureUsername();
-
-    console.log('saveToGoogleDrive called with data:', JSON.stringify(data));
-    try {
-      await this.initializeFolders();
-    } catch (error) {
-      console.error('Error initializing folders:', error);
-      throw error;
+    for (const key in data) {
+      if (data[key]) {
+        console.log(`Number of ${key}:`, data[key].length);
+      }
     }
+
+    await this.ensureUsername();
+    await this.initializeFolders();
 
     try {
       const token = await this.getAccessToken();
@@ -230,15 +228,16 @@ class GoogleDriveService {
         console.log('Saving tasks');
         await this.saveFile(TASKS_FILE_NAME, data.tasks, token);
       }
-      if (data.completedTasks) {
+      // for completion, both completedTasks and tasks must be passed in.
+      if (data.completedTasks && data.tasks) {
         console.log('Saving completed tasks');
         await this.saveFile(COMPLETED_TASKS_FILE_NAME, data.completedTasks, token);
       }
-      if (data.deletedTasks) {
+      // for deletion, both deletedTasks and tasks must be passed in.
+      if (data.deletedTasks && data.tasks) {
         console.log('Saving deleted tasks');
         await this.saveFile(DELETED_TASKS_FILE_NAME, data.deletedTasks, token);
       }
-
       if (data.taskTypes) {
         console.log('Saving task types');
         await this.saveFile('taskTypes.json', data.taskTypes, token);
@@ -379,10 +378,8 @@ class GoogleDriveService {
   }
 
   public saveToGoogleDrive(data: { tasks?: any[], completedTasks?: any[], deletedTasks?: any[], taskTypes?: any[] }): void {
-    if (!this.debouncedSaveToGoogleDrive) {
-      this.debouncedSaveToGoogleDrive = debounce(this.actualSaveToGoogleDrive.bind(this), 1000);
-    }
-    this.debouncedSaveToGoogleDrive(data);
+    // Remove debounce for now to ensure immediate saving
+    this.actualSaveToGoogleDrive(data);
   }
 }
 
