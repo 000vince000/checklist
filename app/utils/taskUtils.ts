@@ -130,3 +130,14 @@ export const generateRandomTasks = (count: number): Task[] => {
     createdAt: new Date().toISOString().split('T')[0] // Add this line
   }));
 };
+
+export const isTaskOld = (task: Task): boolean => {
+  if (!task.createdAt) return false;
+  
+  const createdDate = new Date(task.createdAt);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - createdDate.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  return diffDays > 45;
+};

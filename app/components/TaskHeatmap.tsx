@@ -7,7 +7,8 @@ import {
   truncateName,
   formatTime,
   selectTaskByMood,
-  getTaskPrefix
+  getTaskPrefix,
+  isTaskOld
 } from '../utils/taskUtils';
 import TaskModal from './TaskModal';
 import { useTaskAnimation } from '../hooks/useTaskAnimation';
@@ -181,13 +182,21 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
               priority={calculatePriority(task, tasks)}
               effort={task.effort}
               onClick={() => openModal(task.id)}
-              style={task.id === animatingTaskId ? taskSpring : undefined}
+              style={{
+                ...task.id === animatingTaskId ? taskSpring : undefined,
+                // update color if old use slightly darker grey color 
+                backgroundColor: isTaskOld(task) ? '#808080' : getPriorityColor(calculatePriority(task, tasks))
+              }}
             >
               {truncateName(task)}
             </AnimatedTaskBox>
           ))}
         </GridContainer>
         <Legend>
+          <LegendItem>
+            <LegendColor color="#808080" />
+            <span>Stale</span>
+          </LegendItem>
           <LegendItem>
             <LegendColor color={getPriorityColor(0)} />
             <span>Low Priority</span>
