@@ -56,10 +56,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [customTypes, setCustomTypes] = useState<CustomTaskType[]>([]);
   const [runningTasks, setRunningTasks] = useState<Set<number>>(new Set());
 
-  const updateLocalStorage = useCallback((taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[] }) => {
+  const updateLocalStorage = useCallback((taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[], taskTypes?: CustomTaskType[] }) => {
     if (taskStates.completedTasks && taskStates.openTasks) localStorage.setItem(CLOSED_TASKS_KEY, JSON.stringify(taskStates.completedTasks));
     else if (taskStates.deletedTasks && taskStates.openTasks) localStorage.setItem(DELETED_TASKS_KEY, JSON.stringify(taskStates.deletedTasks));
     else if (taskStates.openTasks) localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(taskStates.openTasks));
+    if (taskStates.taskTypes) localStorage.setItem('taskTypes', JSON.stringify(taskStates.taskTypes));
   }, []);
 
   const saveToGoogleDrive = useCallback(async (taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[] }) => {
@@ -81,7 +82,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   // Replace the debounced version with a direct implementation
-  const updateStorageAndSync = useCallback(async (taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[] }) => {
+  const updateStorageAndSync = useCallback(async (taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[], taskTypes?: CustomTaskType[] }) => {
     const timestamp = new Date().toISOString();
     updateLocalStorage(taskStates);
     await saveToGoogleDrive(taskStates);
