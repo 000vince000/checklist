@@ -252,14 +252,14 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     return Object.entries(wordFrequency)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 3);
+      .slice(0, 4);
   }, [taskState.openTasks]);
 
   const prevTopWordsRef = useRef<[string, number][]>([]);
 
   useEffect(() => {
     if (JSON.stringify(topWords) !== JSON.stringify(prevTopWordsRef.current)) {
-      console.log("Top 3 most frequent words in open tasks:");
+      console.log("Top 4 most frequent words in open tasks:");
       topWords.forEach(([word, count], index) => {
         console.log(`${index + 1}. "${word}" (${count} occurrences)`);
       });
