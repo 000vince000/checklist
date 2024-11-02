@@ -46,7 +46,29 @@ A modern, minimalist task management application built with React and TypeScript
 - Changes are persisted across sessions and devices
 - Force refresh functionality to ensure up-to-date data
 - Separate storage for active tasks, completed tasks, and deleted tasks
-- Custom task types are stored in localStorage and synced across browser tabs
+- Custom task types have special handling:
+  - Stored in localStorage for immediate access
+  - Synced to Google Drive independently from tasks
+  - Not tied to task validation requirements
+  - Can be updated without requiring task data
+  - Loaded during initial sync and stored locally
+
+## Task Types Management
+
+- Custom task types can be created with emoji icons
+- Each task type includes:
+  - Name: Unique identifier for the type
+  - Emoji: Visual representation
+- Task type changes are:
+  - Immediately saved to localStorage
+  - Independently synced to Google Drive
+  - Not dependent on task validation
+  - Preserved across sessions
+  - Loaded during initial sync
+- Task type data is stored separately from task data for:
+  - Faster local access
+  - Independent updates
+  - Reduced sync complexity
 
 ## Tech Stack
 
