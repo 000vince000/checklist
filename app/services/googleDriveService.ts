@@ -284,7 +284,7 @@ class GoogleDriveService {
     console.log(`File ${fileName} ${existingFile ? 'updated' : 'created'} successfully`);
   }
 
-  public async loadFromGoogleDrive(): Promise<{ tasks: any[], completedTasks: any[], deletedTasks: any[] } | null> {
+  public async loadFromGoogleDrive(): Promise<{ tasks: any[], completedTasks: any[], deletedTasks: any[], taskTypes: any[] } | null> {
     console.log('loadFromGoogleDrive called, current username:', this.username); // Add this log
     await this.ensureUsername();
 
@@ -301,12 +301,13 @@ class GoogleDriveService {
       const tasks = await this.loadFile(TASKS_FILE_NAME, token);
       const completedTasks = await this.loadFile(COMPLETED_TASKS_FILE_NAME, token);
       const deletedTasks = await this.loadFile(DELETED_TASKS_FILE_NAME, token);
-
+      const taskTypes = await this.loadFile('taskTypes.json', token);
       if (tasks !== null || completedTasks !== null || deletedTasks !== null) {
         return {
           tasks: tasks || [],
           completedTasks: completedTasks || [],
-          deletedTasks: deletedTasks || []
+          deletedTasks: deletedTasks || [],
+          taskTypes: taskTypes || []
         };
       }
 

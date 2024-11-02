@@ -36,13 +36,15 @@ interface TaskState {
   openTasks: Task[];
   completedTasks: Task[];
   deletedTasks: Task[];
+  taskTypes?: CustomTaskType[];
 }
 
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [taskState, setTaskState] = useState<TaskState>({
     openTasks: [],
     completedTasks: [],
-    deletedTasks: []
+    deletedTasks: [],
+    taskTypes: []
   });
   const [animatingTaskId, setAnimatingTaskId] = useState<number | null>(null);
   const [completingTasks, setCompletingTasks] = useState<Set<number>>(new Set());
@@ -106,7 +108,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const newState: TaskState = {
           openTasks: driveData.tasks,
           completedTasks: driveData.completedTasks,
-          deletedTasks: driveData.deletedTasks || []
+          deletedTasks: driveData.deletedTasks || [],
+          taskTypes: driveData.taskTypes || []
         };
         setTaskState(newState);
         updateLocalStorage(newState);
@@ -116,7 +119,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const localState: TaskState = {
           openTasks: JSON.parse(localStorage.getItem(OPEN_TASKS_KEY) || 'null') || generateRandomTasks(20),
           completedTasks: JSON.parse(localStorage.getItem(CLOSED_TASKS_KEY) || '[]'),
-          deletedTasks: JSON.parse(localStorage.getItem(DELETED_TASKS_KEY) || '[]')
+          deletedTasks: JSON.parse(localStorage.getItem(DELETED_TASKS_KEY) || '[]'),
+          taskTypes: JSON.parse(localStorage.getItem('taskTypes') || '[]')
         };
         setTaskState(localState);
         updateLocalStorage(localState);
@@ -127,7 +131,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const localState: TaskState = {
         openTasks: JSON.parse(localStorage.getItem(OPEN_TASKS_KEY) || 'null') || generateRandomTasks(20),
         completedTasks: JSON.parse(localStorage.getItem(CLOSED_TASKS_KEY) || '[]'),
-        deletedTasks: JSON.parse(localStorage.getItem(DELETED_TASKS_KEY) || '[]')
+        deletedTasks: JSON.parse(localStorage.getItem(DELETED_TASKS_KEY) || '[]'),
+        taskTypes: JSON.parse(localStorage.getItem('taskTypes') || '[]')
       };
       setTaskState(localState);
       updateLocalStorage(localState);
