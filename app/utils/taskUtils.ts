@@ -35,6 +35,9 @@ export const calculateBasePriority = (task: Task) => {
 };
 
 export const calculatePriority = (task: Task, tasks: Task[]) => {
+  //check if a task is old, if so, set priority to 0
+  if (isTaskOld(task)) return 0;
+
   const basePriority = calculateBasePriority(task);
   
   // Calculate the range of priorities
