@@ -164,21 +164,14 @@ export const MoodButton = styled.button`
 
 export const SearchBar = styled.input`
   width: 100%;
-  padding: 10px;
-  margin-bottom: 1rem;
-  border: 1px solid #4a4a4a;
+  padding: 8px 32px 8px 12px;
+  border: 1px solid #ccc;
   border-radius: 4px;
-  background-color: #2c2c2c;
-  color: #ffffff;
   font-size: 14px;
 
-  @media (max-width: 768px) {
-    margin-bottom: 0rem;
-  }
-
-  @media (min-width: 768px) {
-    width: 300px;
-    margin-bottom: 0px;
+  &:focus {
+    outline: none;
+    border-color: #007bff;
   }
 `;
 
@@ -244,4 +237,34 @@ export const CompletedTaskItem = styled.div`
   margin: 5px 0;
   background-color: #4a4a4a;
   border-radius: 4px;
+`;
+
+export const SearchBarContainer = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 300px;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+`;
+
+export const ClearButton = styled.button`
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #666;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+
+  &:hover {
+    color: #333;
+  }
 `;

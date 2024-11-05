@@ -26,7 +26,9 @@ import {
   LoadingIndicator,
   ExpandableRow,
   CompletedTasksSection,
-  CompletedTaskItem
+  CompletedTaskItem,
+  SearchBarContainer,
+  ClearButton,
 } from '../styles/AppStyles';
 import { formatTime } from '../utils/taskUtils';
 import { CustomTaskType } from '../types/Task';
@@ -178,11 +180,16 @@ function AppContent() {
         </ButtonAndFilterContainer>
       </Header>
       <SearchAndTopWordsContainer>
-        <SearchBar 
-          placeholder="Search tasks..."
-          value={searchTerm}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-        />
+        <SearchBarContainer>
+          <SearchBar 
+            placeholder="Search tasks..."
+            value={searchTerm}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+          />
+          {searchTerm && (
+            <ClearButton onClick={() => setSearchTerm('')}>×</ClearButton>
+          )}
+        </SearchBarContainer>
         {topWords.map(([word, count]) => (
           <TopWordButton 
             key={word} 
