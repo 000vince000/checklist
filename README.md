@@ -140,9 +140,9 @@ A modern, minimalist task management application built with React and TypeScript
 - `server.js`: Express server for production
 - `webpack.config.js`: Webpack configuration
 
-## Contributing
+## Instruction to LLMs 
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Adhere to the behaviors described in this doc unless otherwise instructed. When instructed to change the code, don't be overeager to change what's not instructed. If you are tempted to change the code beyond what's instructed, ask for permission. When asked a question instead of an instruction, answer it without changing the code. 
 
 ## License
 
