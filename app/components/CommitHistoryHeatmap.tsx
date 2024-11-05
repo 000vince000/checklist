@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { commitHistoryHeatmapStyles } from '../styles/CommitHistoryHeatmapStyles';
 import { Task } from '../types/Task';
 import { useTaskContext } from '../context/TaskContext';
+import styled from 'styled-components';
 
 interface DayData {
   date: string;
@@ -17,6 +18,12 @@ interface MonthLabel {
 const DESKTOP_CELL_SIZE = 22;
 const MOBILE_CELL_SIZE = Math.round(DESKTOP_CELL_SIZE * 0.65);
 const DAYS_IN_WEEK = 7;
+
+const MonthLabel = styled.div`
+  // ... other existing styles ...
+  width: 80%; /* Make month labels 20% narrower */
+  // ... other existing styles ...
+`;
 
 const CommitHistoryHeatmap: React.FC = () => {
   const { tasks } = useTaskContext();
@@ -38,15 +45,13 @@ const CommitHistoryHeatmap: React.FC = () => {
     const generateHeatmapData = () => {
       const data: { [key: string]: number } = {};
       const today = new Date();
-      const fiveMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 4, 1); // Start from the 1st of 5 months ago
-      const startDate = fiveMonthsAgo;
+      const sixMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+      const startDate = sixMonthsAgo;
 
-      // Initialize data for the last 5 months plus current month
       for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
         data[d.toISOString().split('T')[0]] = 0;
       }
 
-      // Count task completions and updates
       tasks.forEach((task: Task) => {
         const completionDate = task.completedAt ? new Date(task.completedAt) : null;
         const updateDate = task.updatedAt ? new Date(task.updatedAt) : null;
@@ -62,7 +67,6 @@ const CommitHistoryHeatmap: React.FC = () => {
         }
       });
 
-      // Convert to array of objects
       return Object.entries(data).map(([date, count]) => ({ date, count }));
     };
 
@@ -82,13 +86,13 @@ const CommitHistoryHeatmap: React.FC = () => {
   const getMonthLabels = (): MonthLabel[] => {
     if (heatmapData.length === 0) return [];
 
-    const startDate = new Date(heatmapData[0].date);
-    const endDate = new Date(heatmapData[heatmapData.length - 1].date);
+    const today = new Date();
+    const sixMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 5, 1);
     const labels: MonthLabel[] = [];
-    let currentDate = new Date(startDate);
-    let totalOffset = 0;
+    let currentDate = new Date(sixMonthsAgo);
+    let totalOffset = 15;
 
-    while (currentDate <= endDate) {
+    while (currentDate <= today) {
       const month = currentDate.getMonth();
       const year = currentDate.getFullYear();
       const firstDay = new Date(year, month, 1);
@@ -97,11 +101,10 @@ const CommitHistoryHeatmap: React.FC = () => {
       const daysInMonth = lastDay.getDate();
       const weeksInMonth = Math.ceil((firstDay.getDay() + daysInMonth) / DAYS_IN_WEEK);
 
-      const width = weeksInMonth * CELL_SIZE;
+      const width = (weeksInMonth * CELL_SIZE) * 0.88; // 88% of the width is the magic number to align the heatmap with the month labels. DO NOT CHANGE THIS.
 
-      // Adjust the offset calculation
-      if (currentDate.getTime() === startDate.getTime()) {
-        totalOffset = -(startDate.getDay() * CELL_SIZE) / DAYS_IN_WEEK;
+      if (currentDate.getTime() === sixMonthsAgo.getTime()) {
+        totalOffset += -(firstDay.getDay() * CELL_SIZE) / DAYS_IN_WEEK;
       }
 
       labels.push({
@@ -126,14 +129,14 @@ const CommitHistoryHeatmap: React.FC = () => {
         <div style={commitHistoryHeatmapStyles.heatmapContent}>
           <div style={commitHistoryHeatmapStyles.monthLabels}>
             {getMonthLabels().map(({ month, width, offset }, index) => (
-              <div key={index} style={{
+              <MonthLabel key={index} style={{
                 ...commitHistoryHeatmapStyles.monthLabel,
                 left: `${offset}px`,
                 width: `${width}px`,
                 fontSize: isMobile ? '10px' : '12px',
               }}>
                 {month}
-              </div>
+              </MonthLabel>
             ))}
           </div>
           <div style={{
