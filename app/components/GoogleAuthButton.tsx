@@ -112,6 +112,7 @@ const GoogleAuthButton: React.FC = () => {
       googleDriveService.setUsername(email);
       console.log('Username set in googleDriveService:', email);
       window.dispatchEvent(new CustomEvent('authStateChange', { detail: { isSignedIn: true, email } }));
+      window.location.reload(); // Refresh the page upon successful sign-in
     } else {
       console.error('Failed to sign in with Google');
       handleSignOut();
@@ -124,7 +125,7 @@ const GoogleAuthButton: React.FC = () => {
     localStorage.removeItem('isSignedIn');
     localStorage.removeItem('userEmail');
     googleDriveService.setUsername('');
-    console.log('Username cleared in googleDriveService'); // Add this log
+    console.log('Username cleared in googleDriveService');
     window.dispatchEvent(new CustomEvent('authStateChange', { detail: { isSignedIn: false, email: null } }));
   };
 

@@ -4,6 +4,8 @@ import TaskHeatmap from './TaskHeatmap';
 import LoginView from './LoginView';
 import CommitHistoryHeatmap from './CommitHistoryHeatmap';
 import CustomTypeModal from './CustomTypeModal';
+import GoogleAuthButton from './GoogleAuthButton';
+import { FaGoogle } from 'react-icons/fa';
 import { TaskProvider, useTaskContext } from '../context/TaskContext';
 import { NewTaskButton } from '../styles/TaskStyles';
 import {
@@ -36,6 +38,15 @@ import { CustomTaskType } from '../types/Task';
 
 const LuckyButton: React.FC<{ openMoodModal: () => void }> = ({ openMoodModal }) => {
   return <LuckyButtonStyled onClick={openMoodModal}>Feeling Lucky</LuckyButtonStyled>;
+};
+
+const GoogleAuthIcon: React.FC<{ isSignedIn: boolean; handleSignOut: () => void }> = ({ isSignedIn, handleSignOut }) => {
+  return (
+    <div onClick={handleSignOut} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+      <FaGoogle color={isSignedIn ? 'green' : 'red'} />
+      <span>{isSignedIn ? 'Sign Out' : 'Sign In'}</span>
+    </div>
+  );
 };
 
 function App() {
@@ -71,13 +82,13 @@ function App() {
     <>
       <GlobalStyle />
       <TaskProvider>
-        <AppContent />
+        <AppContent isSignedIn={isSignedIn} setIsSignedIn={setIsSignedIn} />
       </TaskProvider>
     </>
   );
 }
 
-function AppContent() {
+function AppContent({ isSignedIn, setIsSignedIn }: { isSignedIn: boolean, setIsSignedIn: React.Dispatch<React.SetStateAction<boolean>> }) {
   const { topWords, isLoading, isTaskInputModalOpen, openTaskInputModal, closeTaskInputModal, completedTasks } = useTaskContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [attributeFilter, setAttributeFilter] = useState('all');
@@ -154,6 +165,13 @@ function AppContent() {
     closeMoodModal()
   };
 
+  const handleSignOut = () => {
+    setIsSignedIn(false);
+    localStorage.removeItem('isSignedIn');
+    localStorage.removeItem('userEmail');
+    window.dispatchEvent(new CustomEvent('authStateChange', { detail: { isSignedIn: false, email: null } }));
+  };
+
   return (
     <AppContainer>
       {isLoading && <LoadingIndicator>Loading...</LoadingIndicator>}
@@ -207,16 +225,19 @@ function AppContent() {
             {word} ({count})
           </TopWordButton>
         ))}
+        <GoogleAuthIcon isSignedIn={isSignedIn} handleSignOut={handleSignOut} />
       </SearchAndTopWordsContainer>
-      <Section>
-        <TaskHeatmap 
-          selectedMood={selectedMood} 
-          setSelectedMood={setSelectedMood}
-          searchTerm={searchTerm}
-          attributeFilter={attributeFilter}
-          typeFilter={typeFilter}
-        />
-      </Section>
+      {isSignedIn && (
+        <Section>
+          <TaskHeatmap 
+            selectedMood={selectedMood} 
+            setSelectedMood={setSelectedMood}
+            searchTerm={searchTerm}
+            attributeFilter={attributeFilter}
+            typeFilter={typeFilter}
+          />
+        </Section>
+      )}
       <ExpandableRow>
         <button onClick={toggleCompletedTasks}>
           {isCompletedTasksExpanded ? 'Hide' : 'Show'} Completed Tasks
