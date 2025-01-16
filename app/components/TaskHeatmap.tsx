@@ -38,7 +38,7 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
   attributeFilter, 
   typeFilter
 }) => {
-  const { tasks, completedTasks, updateTask, completeTask, deleteTask, animatingTaskId } = useTaskContext();
+  const { tasks, completedTasks, updateTask, completeTask, deleteTask, animatingTaskId, customTypes } = useTaskContext();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [timer, setTimer] = useState<number | null>(null);
   const [timerRunning, setTimerRunning] = useState(false);
@@ -146,7 +146,7 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
       }
       setSelectedMood(null); // Reset the mood after selection
     }
-  }, [selectedMood, sortedTasks, tasks]);
+  }, [selectedMood, sortedTasks, tasks, customTypes]);
 
   const taskSpring = useTaskAnimation(animatingTaskId);
 
