@@ -42,7 +42,6 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [timer, setTimer] = useState<number | null>(null);
   const [timerRunning, setTimerRunning] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
   const [, forceUpdate] = useState({});
 
   const filteredTasks = useMemo(() => {
@@ -78,7 +77,6 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
     setSelectedTask(null);
     setTimer(null);
     setTimerRunning(false);
-    setIsPaused(false);
   };
 
   const handleAccept = () => {
@@ -86,7 +84,6 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
     if (selectedTask) {
       setTimer(0);
       setTimerRunning(true);
-      setIsPaused(false);
     }
   };
 
@@ -113,11 +110,6 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
     closeModal();
   };
 
-  const handlePause = () => {
-    console.log('TaskHeatmap: Pausing/Resuming task', selectedTask);
-    setIsPaused(!isPaused);
-  };
-
   const handleAbandon = () => {
     console.log('TaskHeatmap: Abandoning task', selectedTask);
     handleReject();
@@ -138,13 +130,13 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (timerRunning && !isPaused) {
+    if (timerRunning) {
       interval = setInterval(() => {
         setTimer(prevTimer => prevTimer !== null ? prevTimer + 1 : null);
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [timerRunning, isPaused]);
+  }, [timerRunning]);
 
   useEffect(() => {
     if (selectedMood) {
@@ -218,12 +210,10 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
         handleAccept={handleAccept}
         handleReject={handleReject}
         handleDone={handleDone}
-        handlePause={handlePause}
         handleAbandon={handleAbandon}
         handleDelete={handleDelete}
         handleUpdateTask={handleUpdateTask}
         timer={timer}
-        isPaused={isPaused}
         tasks={tasks}
         openTaskModal={openModal}
         updateSelectedTask={updateSelectedTask}

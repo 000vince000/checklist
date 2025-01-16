@@ -22,7 +22,6 @@ import {
   TaskDetails,
   TaskProperty,
   DoneButton,
-  PauseButton,
   AbandonButton,
   AcceptButton,
   RejectButton,
@@ -47,7 +46,6 @@ import {
 import { isValidUrl } from '../utils/urlUtils';
 import { FaArrowLeft, FaArrowRight, FaPlus } from 'react-icons/fa';
 import TaskInput from './TaskInput';
-import TaskTimer from './TaskTimer';
 
 interface TaskModalProps {
   selectedTask: Task | null;
@@ -56,12 +54,10 @@ interface TaskModalProps {
   handleAccept: () => void;
   handleReject: () => void;
   handleDone: () => void;
-  handlePause: () => void;
   handleAbandon: () => void;
   handleDelete: () => void;
   handleUpdateTask: (updatedTask: Task) => void;
   timer: number | null;
-  isPaused: boolean;
   tasks: Task[];
   openTaskModal: (taskId: number) => void;
   updateSelectedTask: (task: Task) => void; // Add this new prop
@@ -74,12 +70,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
   handleAccept,
   handleReject,
   handleDone,
-  handlePause,
   handleAbandon,
   handleDelete,
   handleUpdateTask,
   timer,
-  isPaused,
   tasks,
   openTaskModal,
   updateSelectedTask, // Add this new prop
@@ -265,11 +259,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
     handleDone();
   };
 
-  const handlePauseClick = () => {
-    console.log('TaskModal: Pause clicked for task', currentTask);
-    handlePause();
-  };
-
   const handleAbandonClick = () => {
     console.log('TaskModal: Abandon clicked for task', currentTask);
     handleAbandon();
@@ -453,7 +442,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 Timer: {formatTime(timer)}
               </TaskProperty>
             )}
-            <TaskTimer taskId={editedTask.id} />
             {timer === null ? (
               <ButtonGroupStyled>
                 <AcceptButton type="button" onClick={handleAcceptClick}>Accept</AcceptButton>
@@ -464,9 +452,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
             ) : (
               <ButtonGroupStyled>
                 <DoneButton onClick={handleDoneClick}>Done</DoneButton>
-                <PauseButton onClick={handlePauseClick}>
-                  {isPaused ? 'Resume' : 'Pause'}
-                </PauseButton>
                 <AbandonButton onClick={handleAbandonClick}>Abandon</AbandonButton>
               </ButtonGroupStyled>
             )}
