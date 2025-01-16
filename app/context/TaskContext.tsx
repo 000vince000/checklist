@@ -288,10 +288,20 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [syncTasksWithGoogleDrive]);
 
   useEffect(() => {
+    let hiddenStartTime: number | null = null;
+    let visibilityTimeout: NodeJS.Timeout | null = null;
+
     const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        console.log('Page became visible, triggering force refresh');
-        forceRefresh();
+      if (document.hidden) {
+        // Record the time when the document becomes hidden
+        hiddenStartTime = Date.now();
+      } else {
+        // Check if the document was hidden for more than 2 minutes
+        if (hiddenStartTime && Date.now() - hiddenStartTime >= 120000) {
+          console.log('Page was hidden for more than 2 minutes, triggering force refresh');
+          forceRefresh();
+        }
+        hiddenStartTime = null;
       }
     };
 
@@ -302,6 +312,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (visibilityTimeout) {
+        clearTimeout(visibilityTimeout);
+      }
     };
   }, [forceRefresh]);
 
