@@ -291,7 +291,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
         {editedTask && (
           <Form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
             <FormGroup>
-              <Label htmlFor="name">Task Name</Label>
+              <Label htmlFor="name">
+                <span>
+                  Task Name
+                  <span style={{ color: 'grey', marginLeft: '10px', fontSize:10 }}>Created at: {editedTask.createdAt}</span>
+                </span>
+              </Label>
               <Input
                 type="text"
                 id="name"
