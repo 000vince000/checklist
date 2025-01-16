@@ -29,6 +29,7 @@ import {
   CompletedTaskItem,
   SearchBarContainer,
   ClearButton,
+  CloseButton,
 } from '../styles/AppStyles';
 import { formatTime } from '../utils/taskUtils';
 import { CustomTaskType } from '../types/Task';
@@ -146,6 +147,13 @@ function AppContent() {
     }
   };
 
+  const [isFeelingLuckyModalOpen, setIsFeelingLuckyModalOpen] = useState(true);
+
+  const handleCloseFeelingLuckyModal = () => {
+    setIsFeelingLuckyModalOpen(false);
+    closeMoodModal()
+  };
+
   return (
     <AppContainer>
       {isLoading && <LoadingIndicator>Loading...</LoadingIndicator>}
@@ -235,6 +243,7 @@ function AppContent() {
       />
       <MoodModal isOpen={isMoodModalOpen}>
         <MoodModalContent>
+        <CloseButton onClick={handleCloseFeelingLuckyModal}>&times;</CloseButton>
           <h2>How are you feeling?</h2>
           <div>
             <MoodButton onClick={() => handleMoodSelection('💪')}>💪 Determined</MoodButton>
