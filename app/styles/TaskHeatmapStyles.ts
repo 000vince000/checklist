@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { animated } from 'react-spring';
 import { Task } from '../types/Task';
 import { getPriorityColor } from '../utils/taskUtils';
@@ -138,3 +138,26 @@ export const CompletedTaskItem = styled.div`
 `;
 
 export const AnimatedTaskBox = animated(TaskBox);
+
+// WIP Task components
+export const WIPRowContainer = styled.div`
+  display: flex;
+  padding: 10px 0;
+  margin-bottom: 10px;
+  overflow-x: auto;
+  background-color: #3c3c3c;
+  border-radius: 8px;
+`;
+
+export const WIPHeader = styled.div`
+  font-weight: bold;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+`;
+
+export const WIPTaskBox = styled(AnimatedTaskBox)`
+  flex: 0 0 auto;
+  margin: 0 10px;
+  min-width: 150px;
+`;

@@ -7,6 +7,7 @@ interface TaskContextType {
   tasks: Task[];
   completedTasks: Task[];
   deletedTasks: Task[];
+  wipTasks: Task[];
   addTask: (task: Task) => void;
   updateTask: (updatedTask: Task) => void;
   completeTask: (taskId: number, completionTime: number) => void;
@@ -31,11 +32,13 @@ const TaskContext = createContext<TaskContextType | undefined>(undefined);
 const OPEN_TASKS_KEY = 'openTasks';
 const CLOSED_TASKS_KEY = 'closedTasks';
 const DELETED_TASKS_KEY = 'deletedTasks';
+const WIP_TASKS_KEY = 'wipTasks';
 
 interface TaskState {
   openTasks: Task[];
   completedTasks: Task[];
   deletedTasks: Task[];
+  wipTasks: Task[];
   taskTypes?: CustomTaskType[];
 }
 
@@ -44,6 +47,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     openTasks: [],
     completedTasks: [],
     deletedTasks: [],
+    wipTasks: [],
     taskTypes: []
   });
   const [animatingTaskId, setAnimatingTaskId] = useState<number | null>(null);
@@ -56,14 +60,15 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [customTypes, setCustomTypes] = useState<CustomTaskType[]>([]);
   const [runningTasks, setRunningTasks] = useState<Set<number>>(new Set());
 
-  const updateLocalStorage = useCallback((taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[], taskTypes?: CustomTaskType[] }) => {
-    if (taskStates.completedTasks && taskStates.openTasks) localStorage.setItem(CLOSED_TASKS_KEY, JSON.stringify(taskStates.completedTasks));
-    else if (taskStates.deletedTasks && taskStates.openTasks) localStorage.setItem(DELETED_TASKS_KEY, JSON.stringify(taskStates.deletedTasks));
-    else if (taskStates.openTasks) localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(taskStates.openTasks));
+  const updateLocalStorage = useCallback((taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[], wipTasks?: Task[], taskTypes?: CustomTaskType[] }) => {
+    if (taskStates.completedTasks) localStorage.setItem(CLOSED_TASKS_KEY, JSON.stringify(taskStates.completedTasks));
+    if (taskStates.deletedTasks) localStorage.setItem(DELETED_TASKS_KEY, JSON.stringify(taskStates.deletedTasks));
+    if (taskStates.openTasks) localStorage.setItem(OPEN_TASKS_KEY, JSON.stringify(taskStates.openTasks));
+    if (taskStates.wipTasks) localStorage.setItem(WIP_TASKS_KEY, JSON.stringify(taskStates.wipTasks));
     if (taskStates.taskTypes) localStorage.setItem('taskTypes', JSON.stringify(taskStates.taskTypes));
   }, []);
 
-  const saveToGoogleDrive = useCallback(async (taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[] }) => {
+  const saveToGoogleDrive = useCallback(async (taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[], wipTasks?: Task[] }) => {
     const timestamp = new Date().toISOString();
     try {
       if (taskStates.completedTasks && taskStates.openTasks) {
@@ -75,6 +80,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else if (taskStates.openTasks) {
         console.log(`[${timestamp}] Saving ${taskStates.openTasks.length} open tasks to Google Drive`);
         await googleDriveService.saveToGoogleDrive({tasks: taskStates.openTasks});
+      } else if (taskStates.wipTasks) {
+        console.log(`[${timestamp}] Saving ${taskStates.wipTasks.length} in progress tasks to Google Drive`);
+        await googleDriveService.saveToGoogleDrive({wipTasks: taskStates.wipTasks});
       }
     } catch (error) {
       console.error(`[${timestamp}] Error saving to Google Drive:`, error);
@@ -82,7 +90,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   // Replace the debounced version with a direct implementation
-  const updateStorageAndSync = useCallback(async (taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[], taskTypes?: CustomTaskType[] }) => {
+  const updateStorageAndSync = useCallback(async (taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[], wipTasks?: Task[], taskTypes?: CustomTaskType[] }) => {
     const timestamp = new Date().toISOString();
     updateLocalStorage(taskStates);
     await saveToGoogleDrive(taskStates);
@@ -110,6 +118,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           openTasks: driveData.tasks,
           completedTasks: driveData.completedTasks,
           deletedTasks: driveData.deletedTasks || [],
+          wipTasks: driveData.wipTasks || [],
           taskTypes: driveData.taskTypes || []
         };
         setTaskState(newState);
@@ -121,6 +130,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           openTasks: JSON.parse(localStorage.getItem(OPEN_TASKS_KEY) || 'null') || generateRandomTasks(20),
           completedTasks: JSON.parse(localStorage.getItem(CLOSED_TASKS_KEY) || '[]'),
           deletedTasks: JSON.parse(localStorage.getItem(DELETED_TASKS_KEY) || '[]'),
+          wipTasks: JSON.parse(localStorage.getItem(WIP_TASKS_KEY) || '[]'),
           taskTypes: JSON.parse(localStorage.getItem('taskTypes') || '[]')
         };
         setTaskState(localState);
@@ -133,6 +143,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         openTasks: JSON.parse(localStorage.getItem(OPEN_TASKS_KEY) || 'null') || generateRandomTasks(20),
         completedTasks: JSON.parse(localStorage.getItem(CLOSED_TASKS_KEY) || '[]'),
         deletedTasks: JSON.parse(localStorage.getItem(DELETED_TASKS_KEY) || '[]'),
+        wipTasks: JSON.parse(localStorage.getItem(WIP_TASKS_KEY) || '[]'),
         taskTypes: JSON.parse(localStorage.getItem('taskTypes') || '[]')
       };
       setTaskState(localState);
@@ -203,9 +214,14 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const newState = {
           openTasks: prevState.openTasks.filter((task: Task) => task.id !== taskId),
           completedTasks: [...prevState.completedTasks, completedTask],
-          deletedTasks: prevState.deletedTasks
+          deletedTasks: prevState.deletedTasks,
+          wipTasks: prevState.wipTasks.filter((task: Task) => task.id !== taskId)
         };
-        updateStorageAndSync({ openTasks: newState.openTasks, completedTasks: newState.completedTasks });
+        updateStorageAndSync({ 
+          openTasks: newState.openTasks, 
+          completedTasks: newState.completedTasks,
+          wipTasks: newState.wipTasks 
+        });
         return newState;
       });
 
@@ -236,9 +252,14 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const newState = {
         openTasks: prevState.openTasks.filter((task: Task) => task.id !== taskId),
         completedTasks: prevState.completedTasks,
-        deletedTasks: [...prevState.deletedTasks, taskToDelete]
+        deletedTasks: [...prevState.deletedTasks, taskToDelete],
+        wipTasks: prevState.wipTasks.filter((task: Task) => task.id !== taskId)
       };
-      updateStorageAndSync({ openTasks: newState.openTasks, deletedTasks: newState.deletedTasks });
+      updateStorageAndSync({ 
+        openTasks: newState.openTasks, 
+        deletedTasks: newState.deletedTasks,
+        wipTasks: newState.wipTasks 
+      });
       return newState;
     });
   }, [updateStorageAndSync]);
@@ -343,30 +364,91 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updateTaskTimer = useCallback((taskId: number, time: number, isRunning?: boolean, isStopped?: boolean) => {
     setTaskState(prevState => {
-      const updatedTasks = prevState.openTasks.map(task => {
-        if (task.id === taskId) {
-          return { ...task, completionTime: time };
-        }
-        return task;
-      });
-
-      const newState = { ...prevState, openTasks: updatedTasks };
+      const task = prevState.openTasks.find(t => t.id === taskId) || 
+                prevState.wipTasks.find(t => t.id === taskId);
+      
+      if (!task) {
+        console.warn(`Task with id ${taskId} not found in the tasks lists`);
+        return prevState;
+      }
+      
+      const updatedTask = { ...task, completionTime: time };
+      let newState = { ...prevState };
+      let shouldUpdateStorage = isStopped || false;
 
       if (isRunning !== undefined) {
-        setRunningTasks(prev => {
-          const newSet = new Set(prev);
-          if (isRunning) {
-            newSet.add(taskId);
-          } else {
-            newSet.delete(taskId);
+        // Handle moving tasks between openTasks and wipTasks
+        if (isRunning) {
+          // Move task to wipTasks if it's not already there
+          if (!prevState.wipTasks.some(t => t.id === taskId)) {
+            const taskWithRunning = { ...updatedTask, isRunning: true };
+            newState = {
+              ...newState,
+              openTasks: prevState.openTasks.filter(t => t.id !== taskId),
+              wipTasks: [...prevState.wipTasks, taskWithRunning]
+            };
+            shouldUpdateStorage = true; // Force storage update when moving to wipTasks
           }
-          return newSet;
-        });
+        } else {
+          // Move task back to openTasks if it was in wipTasks
+          if (prevState.wipTasks.some(t => t.id === taskId)) {
+            newState = {
+              ...newState,
+              wipTasks: prevState.wipTasks.filter(t => t.id !== taskId),
+              openTasks: [...prevState.openTasks, { ...updatedTask, isRunning: false }]
+            };
+            shouldUpdateStorage = true; // Force storage update when removing from wipTasks
+          } else {
+            // Just update the completion time for a task in openTasks
+            newState = {
+              ...newState,
+              openTasks: prevState.openTasks.map(t => 
+                t.id === taskId ? { ...t, completionTime: time } : t
+              )
+            };
+          }
+        }
+
+        // Update the running tasks set outside of the state update
+        if (isRunning) {
+          setRunningTasks(prev => {
+            const newSet = new Set(prev);
+            newSet.add(taskId);
+            return newSet;
+          });
+        } else {
+          setRunningTasks(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(taskId);
+            return newSet;
+          });
+        }
+      } else {
+        // Just update the completion time without changing task's location
+        if (prevState.openTasks.some(t => t.id === taskId)) {
+          newState = {
+            ...newState,
+            openTasks: prevState.openTasks.map(t => 
+              t.id === taskId ? { ...t, completionTime: time } : t
+            )
+          };
+        } else if (prevState.wipTasks.some(t => t.id === taskId)) {
+          newState = {
+            ...newState,
+            wipTasks: prevState.wipTasks.map(t => 
+              t.id === taskId ? { ...t, completionTime: time } : t
+            )
+          };
+        }
       }
 
-      if (isStopped) {
-        // Only update storage and sync when the timer is stopped
-        updateStorageAndSync(newState);
+      // Always update storage and sync when state changes that affect task placement
+      if (shouldUpdateStorage) {
+        console.log('Persisting task state changes to storage');
+        updateStorageAndSync({ 
+          openTasks: newState.openTasks,
+          wipTasks: newState.wipTasks
+        });
       }
 
       return newState;
@@ -377,6 +459,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     tasks: taskState.openTasks,
     completedTasks: taskState.completedTasks,
     deletedTasks: taskState.deletedTasks,
+    wipTasks: taskState.wipTasks,
     addTask,
     updateTask,
     completeTask,

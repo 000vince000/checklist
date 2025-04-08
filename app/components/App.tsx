@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import TaskInput from './TaskInput';
 import TaskHeatmap from './TaskHeatmap';
+import WIPRow from './WIPRow';
 import LoginView from './LoginView';
 import CommitHistoryHeatmap from './CommitHistoryHeatmap';
 import CustomTypeModal from './CustomTypeModal';
 import GoogleAuthButton from './GoogleAuthButton';
+import SharedTaskModal from './SharedTaskModal';
 import { FaGoogle } from 'react-icons/fa';
 import { TaskProvider, useTaskContext } from '../context/TaskContext';
+import { ModalProvider } from '../context/ModalContext';
 import { NewTaskButton } from '../styles/TaskStyles';
 import {
   GlobalStyle,
@@ -82,7 +85,10 @@ function App() {
     <>
       <GlobalStyle />
       <TaskProvider>
-        <AppContent isSignedIn={isSignedIn} setIsSignedIn={setIsSignedIn} />
+        <ModalProvider>
+          <AppContent isSignedIn={isSignedIn} setIsSignedIn={setIsSignedIn} />
+          <SharedTaskModal />
+        </ModalProvider>
       </TaskProvider>
     </>
   );
@@ -95,11 +101,11 @@ function AppContent({ isSignedIn, setIsSignedIn }: { isSignedIn: boolean, setIsS
   const [typeFilter, setTypeFilter] = useState('all');
   const [isMoodModalOpen, setIsMoodModalOpen] = useState(false);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
-  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [isCommitHistoryExpanded, setIsCommitHistoryExpanded] = useState(false);
   const [isCompletedTasksExpanded, setIsCompletedTasksExpanded] = useState(false);
   const [isCustomTypeModalOpen, setIsCustomTypeModalOpen] = useState(false);
   const [taskTypes, setTaskTypes] = useState<CustomTaskType[]>([]);
+  
   const openMoodModal = () => setIsMoodModalOpen(true);
   const closeMoodModal = () => setIsMoodModalOpen(false);
 
@@ -110,12 +116,6 @@ function AppContent({ isSignedIn, setIsSignedIn }: { isSignedIn: boolean, setIsS
 
   const handleTopWordClick = (word: string) => {
     setSearchTerm(prevTerm => prevTerm === word ? '' : word);
-  };
-
-  const openTaskModal = (taskId: number) => {
-    setSelectedTaskId(taskId);
-    // You might need to fetch the task data here if it's not already available
-    console.log('Opening task modal for task ID:', taskId); // Add this log
   };
 
   const toggleCommitHistory = () => {
@@ -228,15 +228,22 @@ function AppContent({ isSignedIn, setIsSignedIn }: { isSignedIn: boolean, setIsS
         <GoogleAuthIcon isSignedIn={isSignedIn} handleSignOut={handleSignOut} />
       </SearchAndTopWordsContainer>
       {isSignedIn && (
-        <Section>
-          <TaskHeatmap 
-            selectedMood={selectedMood} 
-            setSelectedMood={setSelectedMood}
+        <>
+          <WIPRow 
             searchTerm={searchTerm}
             attributeFilter={attributeFilter}
             typeFilter={typeFilter}
           />
-        </Section>
+          <Section>
+            <TaskHeatmap 
+              selectedMood={selectedMood} 
+              setSelectedMood={setSelectedMood}
+              searchTerm={searchTerm}
+              attributeFilter={attributeFilter}
+              typeFilter={typeFilter}
+            />
+          </Section>
+        </>
       )}
       <ExpandableRow>
         <button onClick={toggleCompletedTasks}>

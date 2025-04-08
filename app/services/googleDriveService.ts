@@ -19,6 +19,7 @@ const ROOT_FOLDER_NAME = 'Collaborative Checklist App';
 const TASKS_FILE_NAME = 'tasks.json';
 const COMPLETED_TASKS_FILE_NAME = 'completed_tasks.json';
 const DELETED_TASKS_FILE_NAME = 'deleted_tasks.json';
+const WIP_TASKS_FILE_NAME = 'wip_tasks.json';
 let initializationPromise: Promise<void> | null = null;
 
 // Add these imports at the top of the file
@@ -39,7 +40,7 @@ class GoogleDriveService {
   private readonly CLIENT_ID: string;
   private readonly SCOPES: string = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
 
-  private debouncedSaveToGoogleDrive: (data: { tasks?: any[], completedTasks?: any[], deletedTasks?: any[], taskTypes?: any[] }) => void;
+  private debouncedSaveToGoogleDrive: (data: { tasks?: any[], completedTasks?: any[], deletedTasks?: any[], wipTasks?: any[], taskTypes?: any[] }) => void;
 
   private constructor() {
     this.CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
@@ -210,7 +211,7 @@ class GoogleDriveService {
     }
   }
 
-  private async actualSaveToGoogleDrive(data: { tasks?: any[], completedTasks?: any[], deletedTasks?: any[], taskTypes?: any[] }): Promise<void> {
+  private async actualSaveToGoogleDrive(data: { tasks?: any[], completedTasks?: any[], deletedTasks?: any[], wipTasks?: any[], taskTypes?: any[] }): Promise<void> {
     for (const key in data) {
       if (data[key]) {
         console.log(`Number of ${key}:`, data[key].length);
@@ -237,6 +238,11 @@ class GoogleDriveService {
       if (data.deletedTasks && data.tasks) {
         console.log('Saving deleted tasks');
         await this.saveFile(DELETED_TASKS_FILE_NAME, data.deletedTasks, token);
+      }
+      // for work in progress tasks, both wipTasks and tasks must be passed in.
+      if (data.wipTasks && data.tasks) {
+        console.log('Saving WIP tasks');
+        await this.saveFile(WIP_TASKS_FILE_NAME, data.wipTasks, token);
       }
       if (data.taskTypes) {
         console.log('Saving task types');
@@ -284,7 +290,7 @@ class GoogleDriveService {
     console.log(`File ${fileName} ${existingFile ? 'updated' : 'created'} successfully`);
   }
 
-  public async loadFromGoogleDrive(): Promise<{ tasks: any[], completedTasks: any[], deletedTasks: any[], taskTypes: any[] } | null> {
+  public async loadFromGoogleDrive(): Promise<{ tasks: any[], completedTasks: any[], deletedTasks: any[], wipTasks: any[], taskTypes: any[] } | null> {
     console.log('loadFromGoogleDrive called, current username:', this.username); // Add this log
     await this.ensureUsername();
 
@@ -301,12 +307,14 @@ class GoogleDriveService {
       const tasks = await this.loadFile(TASKS_FILE_NAME, token);
       const completedTasks = await this.loadFile(COMPLETED_TASKS_FILE_NAME, token);
       const deletedTasks = await this.loadFile(DELETED_TASKS_FILE_NAME, token);
+      const wipTasks = await this.loadFile(WIP_TASKS_FILE_NAME, token);
       const taskTypes = await this.loadFile('taskTypes.json', token);
-      if (tasks !== null || completedTasks !== null || deletedTasks !== null) {
+      if (tasks !== null || completedTasks !== null || deletedTasks !== null || wipTasks !== null) {
         return {
           tasks: tasks || [],
           completedTasks: completedTasks || [],
           deletedTasks: deletedTasks || [],
+          wipTasks: wipTasks || [],
           taskTypes: taskTypes || []
         };
       }
@@ -378,7 +386,7 @@ class GoogleDriveService {
     console.log('Username set in GoogleDriveService:', username); // Add this log
   }
 
-  public saveToGoogleDrive(data: { tasks?: any[], completedTasks?: any[], deletedTasks?: any[], taskTypes?: any[] }): void {
+  public saveToGoogleDrive(data: { tasks?: any[], completedTasks?: any[], deletedTasks?: any[], wipTasks?: any[], taskTypes?: any[] }): void {
     // Remove debounce for now to ensure immediate saving
     this.actualSaveToGoogleDrive(data);
   }

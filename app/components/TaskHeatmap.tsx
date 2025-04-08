@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTaskContext } from '../context/TaskContext';
+import { useModalContext } from '../context/ModalContext';
 import { Task } from '../types/Task';
 import {
   getPriorityColor,
@@ -10,7 +11,6 @@ import {
   getTaskPrefix,
   isTaskOld
 } from '../utils/taskUtils';
-import TaskModal from './TaskModal';
 import { useTaskAnimation } from '../hooks/useTaskAnimation';
 import {
   HeatmapContainer,
@@ -38,11 +38,14 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
   attributeFilter, 
   typeFilter
 }) => {
-  const { tasks, completedTasks, updateTask, completeTask, deleteTask, animatingTaskId, customTypes } = useTaskContext();
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [timer, setTimer] = useState<number | null>(null);
-  const [timerRunning, setTimerRunning] = useState(false);
-  const [, forceUpdate] = useState({});
+  const { 
+    tasks, 
+    wipTasks,
+    animatingTaskId, 
+    customTypes
+  } = useTaskContext();
+  
+  const { openModal } = useModalContext();
 
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => 
@@ -62,110 +65,28 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
     return filteredTasks.sort((a, b) => calculatePriority(b, tasks) - calculatePriority(a, tasks));
   }, [filteredTasks, tasks]);
 
-  const openModal = (taskId: number) => {
-    console.log('TaskHeatmap: Opening modal for task id', taskId);
-    const task = tasks.find(t => t.id === taskId);
-    if (task) {
-      setSelectedTask(task);
-    } else {
-      console.log('Task not found for id:', taskId);
-    }
-  };
-
-  const closeModal = () => {
-    console.log('TaskHeatmap: Closing modal');
-    setSelectedTask(null);
-    setTimer(null);
-    setTimerRunning(false);
-  };
-
-  const handleAccept = () => {
-    console.log('TaskHeatmap: Accepting task', selectedTask);
-    if (selectedTask) {
-      setTimer(0);
-      setTimerRunning(true);
-    }
-  };
-
-  const handleReject = () => {
-    console.log('TaskHeatmap: Rejecting task', selectedTask);
-    if (selectedTask) {
-      const updatedTask = {
-        ...selectedTask,
-        rejectionCount: (selectedTask.rejectionCount || 0) + 1
-      };
-      updateTask(updatedTask);
-      setSelectedTask(updatedTask);
-      forceUpdate({}); // Force a re-render
-    }
-    closeModal();
-  };
-
-  const handleDone = () => {
-    console.log('TaskHeatmap: Completing task', selectedTask);
-    if (selectedTask && timer !== null) {
-      completeTask(selectedTask.id, timer);
-    }
-    setTimerRunning(false);
-    closeModal();
-  };
-
-  const handleAbandon = () => {
-    console.log('TaskHeatmap: Abandoning task', selectedTask);
-    handleReject();
-  };
-
-  const handleDelete = () => {
-    console.log('TaskHeatmap: Deleting task', selectedTask);
-    if (selectedTask) {
-      deleteTask(selectedTask.id);
-      closeModal();
-    }
-  };
-
-  const handleUpdateTask = (updatedTask: Task) => {
-    console.log('TaskHeatmap: Updating task', updatedTask);
-    updateTask(updatedTask);
-  };
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (timerRunning) {
-      interval = setInterval(() => {
-        setTimer(prevTimer => prevTimer !== null ? prevTimer + 1 : null);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [timerRunning]);
-
   useEffect(() => {
     if (selectedMood) {
       const selectedTask = selectTaskByMood(selectedMood, sortedTasks, tasks);
       if (selectedTask) {
-        openModal(selectedTask.id);
+        openModal(selectedTask.id, tasks, wipTasks);
       }
       setSelectedMood(null); // Reset the mood after selection
     }
-  }, [selectedMood, sortedTasks, tasks, customTypes]);
+  }, [selectedMood, sortedTasks, tasks, customTypes, wipTasks, openModal]);
 
   const taskSpring = useTaskAnimation(animatingTaskId);
 
-  const truncateName = (task: Task) => {
+  const truncateTaskName = (task: Task) => {
     const prefix = getTaskPrefix(task.type);
     const gridSize = getGridDimensions(task.effort, calculatePriority(task, tasks)).columns;
-    //const maxLength = task.effort === 'large' ? 20 : task.effort === 'medium' ? 80 : 120;
     const maxLength = gridSize === 4 ? 80 : gridSize === 3 ? 60 : gridSize === 2 ? 20 : 15;
     return prefix + " " + task.name.slice(0, maxLength);
   };
 
-  // Add this new function to update the selected task
-  const updateSelectedTask = (task: Task) => {
-    console.log('TaskHeatmap: Updating selected task', task);
-    setSelectedTask(task);
-  };
-
   return (
     <>
+      {/* Heatmap Container */}
       <HeatmapContainer>
         <GridContainer>
           {sortedTasks.map(task => (
@@ -173,14 +94,14 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
               key={task.id}
               priority={calculatePriority(task, tasks)}
               effort={task.effort}
-              onClick={() => openModal(task.id)}
+              onClick={() => openModal(task.id, tasks, wipTasks)}
               style={{
                 ...task.id === animatingTaskId ? taskSpring : undefined,
                 // update color if old use slightly darker grey color 
                 backgroundColor: isTaskOld(task) ? '#808080' : getPriorityColor(calculatePriority(task, tasks))
               }}
             >
-              {truncateName(task)}
+              {truncateTaskName(task)}
             </AnimatedTaskBox>
           ))}
         </GridContainer>
@@ -203,21 +124,6 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
           </LegendItem>
         </Legend>
       </HeatmapContainer>
-      <TaskModal
-        selectedTask={selectedTask}
-        isOpen={selectedTask !== null}
-        closeModal={closeModal}
-        handleAccept={handleAccept}
-        handleReject={handleReject}
-        handleDone={handleDone}
-        handleAbandon={handleAbandon}
-        handleDelete={handleDelete}
-        handleUpdateTask={handleUpdateTask}
-        timer={timer}
-        tasks={tasks}
-        openTaskModal={openModal}
-        updateSelectedTask={updateSelectedTask}
-      />
     </>
   );
 };

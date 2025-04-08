@@ -247,6 +247,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const handleAcceptClick = () => {
     console.log('TaskModal: Accept clicked for task', currentTask);
     handleAccept();
+    closeModal();
   };
 
   const handleRejectClick = () => {

@@ -29,6 +29,30 @@ A modern, minimalist task management application built with React and TypeScript
 - Completed tasks are tracked separately and can be viewed in a dedicated section
 - Custom task types can be created, edited, and deleted with emoji support
 
+## Task States and Persistence
+
+- Tasks exist in several states throughout their lifecycle:
+  - **In Progress**: Tasks that are currently being worked on with the timer running
+  - **Completed**: Tasks that have been successfully finished
+  - **Deleted**: Tasks that have been removed from the active task list
+
+- Task state persistence:
+  - All task states are automatically synced to Google Drive
+  - Active tasks are stored in the primary task file
+  - In Progress tasks are stored in a dedicated "wipTasks" file
+  - Completed tasks are moved to a separate completed tasks file
+  - Deleted tasks are stored in a trash file for potential recovery
+  - Each state transition triggers a sync operation to ensure data integrity
+  - Local storage provides fallback when offline
+  - Task state changes are tracked in the action history for analytics
+  - Task rejection count influences priority calculations
+
+- Data preservation:
+  - Task state history is preserved for analytics purposes
+  - Completed tasks maintain their metadata (completion time, duration, etc.)
+  - Abandoned tasks record reason for abandonment when provided
+  - All state transitions are timestamped for accurate history tracking
+
 ## User Interface
 
 - Responsive design that adapts to different screen sizes
