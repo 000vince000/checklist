@@ -140,6 +140,32 @@ A modern, minimalist task management application built with React and TypeScript
 - `server.js`: Express server for production
 - `webpack.config.js`: Webpack configuration
 
+## Components
+
+### Core Components
+
+- **App**: The main application component that manages authentication state and renders different views based on user login status. It provides the overall application structure including the header, search functionality, filters, and expandable sections.
+
+- **TaskHeatmap**: Displays tasks in a visual grid layout where each task is represented as a box with color coding based on priority. It handles opening task details, processing mood-based task selection, and manages task timers for tracking completion time.
+
+- **TaskInput**: Provides the form interface for creating new tasks, including fields for task name, attributes (urgency, importance), effort level, type, and optional URL. It also manages parent-child task relationships.
+
+- **TaskModal**: Detailed view for viewing and editing tasks. It provides functionality for accepting, rejecting, completing, abandoning, or deleting tasks. It also shows parent and child relationships and allows users to navigate between related tasks.
+
+- **CustomTypeModal**: Allows users to create and manage custom task types with emoji icons. Users can add, delete, and reorder task types, with changes being stored both locally and in Google Drive.
+
+### Authentication Components
+
+- **GoogleAuthButton**: Handles Google authentication integration, loading the Google API, rendering the sign-in button, and managing the authentication state. It also dispatches events to notify other components of authentication state changes.
+
+- **LoginView**: The initial view shown to unauthenticated users, displaying the application title and Google authentication button.
+
+### Utility Components
+
+- **TaskList**: A simple component that renders a list of tasks, typically used within other components.
+
+- **CommitHistoryHeatmap**: Visualizes task activity over time, showing when tasks were created, updated, or completed in a calendar-style heatmap.
+
 ## Instruction to LLMs 
 
 Adhere to the behaviors described in this doc unless otherwise instructed. When instructed to change the code, don't be overeager to change what's not instructed. If you are tempted to change the code beyond what's instructed, ask for permission. When asked a question instead of an instruction, answer it without changing the code. 
