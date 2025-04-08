@@ -445,11 +445,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 Rejection Count: {editedTask.rejectionCount}
               </TaskProperty>
             </TaskDetails>
-            {timer !== null && (
-              <TaskProperty>
-                Timer: {formatTime(timer)}
-              </TaskProperty>
-            )}
             {timer === null ? (
               <ButtonGroupStyled>
                 <AcceptButton type="button" onClick={handleAcceptClick}>Accept</AcceptButton>
