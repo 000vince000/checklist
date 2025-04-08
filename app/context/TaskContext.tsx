@@ -216,11 +216,15 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     setTimeout(() => {
       setTaskState((prevState: TaskState) => {
-        const taskToComplete = prevState.openTasks.find((task: Task) => task.id === taskId);
+        // Look for the task in both openTasks and wipTasks
+        const taskToComplete = prevState.openTasks.find((task: Task) => task.id === taskId) ||
+                            prevState.wipTasks.find((task: Task) => task.id === taskId);
+        
         if (!taskToComplete) {
-          console.warn(`Task with id ${taskId} not found in the tasks list`);
+          console.warn(`Task with id ${taskId} not found in either open or WIP tasks lists`);
           return prevState;
         }
+
         const taskWithClosedAt = {
           ...taskToComplete,
           closedAt: new Date().toISOString().split('T')[0]
