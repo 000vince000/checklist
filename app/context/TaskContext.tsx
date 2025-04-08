@@ -197,11 +197,39 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         ...updatedTask,
         updatedAt: new Date().toISOString().split('T')[0]
       };
-      const newState = {
-        ...prevState,
-        openTasks: prevState.openTasks.map((task: Task) => task.id === updatedTask.id ? taskWithUpdatedAt : task)
-      };
-      updateStorageAndSync({ openTasks: newState.openTasks });
+      
+      // Check if task is in openTasks or wipTasks
+      const isInOpenTasks = prevState.openTasks.some(task => task.id === updatedTask.id);
+      const isInWipTasks = prevState.wipTasks.some(task => task.id === updatedTask.id);
+      
+      let newState = { ...prevState };
+      
+      // Update the task in the appropriate collection
+      if (isInOpenTasks) {
+        newState = {
+          ...newState,
+          openTasks: prevState.openTasks.map(task => 
+            task.id === updatedTask.id ? taskWithUpdatedAt : task
+          )
+        };
+      } else if (isInWipTasks) {
+        newState = {
+          ...newState,
+          wipTasks: prevState.wipTasks.map(task => 
+            task.id === updatedTask.id ? { ...taskWithUpdatedAt, isRunning: true } : task
+          )
+        };
+      } else {
+        console.warn(`Task with id ${updatedTask.id} not found in either open or WIP tasks lists`);
+        return prevState;
+      }
+      
+      // Only save the collections that were actually modified
+      const savePayload: any = {};
+      if (isInOpenTasks) savePayload.openTasks = newState.openTasks;
+      if (isInWipTasks) savePayload.wipTasks = newState.wipTasks;
+      
+      updateStorageAndSync(savePayload);
       return newState;
     });
   }, [updateStorageAndSync]);

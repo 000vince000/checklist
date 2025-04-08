@@ -421,6 +421,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 <AddSubtaskButton onClick={(e) => { e.preventDefault(); handleAddSubtask(); }}>
                   <FaPlus />
                 </AddSubtaskButton>
+              </TaskProperty>
+              <div>
                 <ul>
                   {childTasks.map(child => (
                     <li key={child.id}>
@@ -435,7 +437,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                     </li>
                   ))}
                 </ul>
-              </TaskProperty>
+              </div>
               <TaskProperty>
                 Priority Score: {calculatePriority(editedTask, tasks).toFixed(2)}
               </TaskProperty>

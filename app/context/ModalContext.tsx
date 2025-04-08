@@ -95,7 +95,8 @@ export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
 
   const handleAbandon = (task: Task, updateTask: (task: Task) => void) => {
     console.log('ModalContext: Abandoning task', task);
-    handleReject(task, updateTask);
+    // Just close the modal without updating the task
+    closeModal();
   };
 
   const handleDelete = (taskId: number, deleteTask: (id: number) => void) => {
