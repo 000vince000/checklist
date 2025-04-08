@@ -139,6 +139,10 @@ A modern, minimalist task management application built with React and TypeScript
    ```
 
 5. Open your browser and navigate to `http://localhost:3000`
+6. Deploy to Github Pages via actions
+   ```
+   npm run deploy
+   ```
 
 ## Available Scripts
 
