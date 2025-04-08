@@ -27,7 +27,7 @@
   },
   "scripts": {
     "start": "webpack serve --mode development --open",
-    "build": "webpack --mode production",
+    "build": "NODE_ENV=production webpack --mode production",
     "dev": "webpack --mode development --watch",
     "server": "nodemon app.js",
     "dev:server": "concurrently \"npm run dev\" \"npm run server\"",
