@@ -239,8 +239,8 @@ class GoogleDriveService {
         console.log('Saving deleted tasks');
         await this.saveFile(DELETED_TASKS_FILE_NAME, data.deletedTasks, token);
       }
-      // for work in progress tasks, both wipTasks and tasks must be passed in.
-      if (data.wipTasks && data.tasks) {
+      // Save wipTasks when they are provided, regardless of whether tasks are present
+      if (data.wipTasks) {
         console.log('Saving WIP tasks');
         await this.saveFile(WIP_TASKS_FILE_NAME, data.wipTasks, token);
       }

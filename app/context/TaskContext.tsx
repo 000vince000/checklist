@@ -71,18 +71,33 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const saveToGoogleDrive = useCallback(async (taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[], wipTasks?: Task[] }) => {
     const timestamp = new Date().toISOString();
     try {
-      if (taskStates.completedTasks && taskStates.openTasks) {
-        console.log(`[${timestamp}] Saving ${taskStates.completedTasks.length} completed tasks to Google Drive`);
-        await googleDriveService.saveToGoogleDrive({completedTasks: taskStates.completedTasks, tasks: taskStates.openTasks});
-      } else if (taskStates.deletedTasks && taskStates.openTasks) {
-        console.log(`[${timestamp}] Saving ${taskStates.deletedTasks.length} deleted tasks to Google Drive`);
-        await googleDriveService.saveToGoogleDrive({deletedTasks: taskStates.deletedTasks, tasks: taskStates.openTasks});
-      } else if (taskStates.openTasks) {
-        console.log(`[${timestamp}] Saving ${taskStates.openTasks.length} open tasks to Google Drive`);
-        await googleDriveService.saveToGoogleDrive({tasks: taskStates.openTasks});
-      } else if (taskStates.wipTasks) {
-        console.log(`[${timestamp}] Saving ${taskStates.wipTasks.length} in progress tasks to Google Drive`);
-        await googleDriveService.saveToGoogleDrive({wipTasks: taskStates.wipTasks});
+      // Create a combined payload with all task collections present in taskStates
+      const payload: any = {};
+      
+      if (taskStates.openTasks) {
+        payload.tasks = taskStates.openTasks;
+        console.log(`[${timestamp}] Including ${taskStates.openTasks.length} open tasks in Google Drive sync`);
+      }
+      
+      if (taskStates.completedTasks) {
+        payload.completedTasks = taskStates.completedTasks;
+        console.log(`[${timestamp}] Including ${taskStates.completedTasks.length} completed tasks in Google Drive sync`);
+      }
+      
+      if (taskStates.deletedTasks) {
+        payload.deletedTasks = taskStates.deletedTasks;
+        console.log(`[${timestamp}] Including ${taskStates.deletedTasks.length} deleted tasks in Google Drive sync`);
+      }
+      
+      if (taskStates.wipTasks) {
+        payload.wipTasks = taskStates.wipTasks;
+        console.log(`[${timestamp}] Including ${taskStates.wipTasks.length} in-progress tasks in Google Drive sync`);
+      }
+      
+      // Only save if there's actual data to save
+      if (Object.keys(payload).length > 0) {
+        console.log(`[${timestamp}] Saving task data to Google Drive`);
+        await googleDriveService.saveToGoogleDrive(payload);
       }
     } catch (error) {
       console.error(`[${timestamp}] Error saving to Google Drive:`, error);
@@ -445,6 +460,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Always update storage and sync when state changes that affect task placement
       if (shouldUpdateStorage) {
         console.log('Persisting task state changes to storage');
+        // Ensure both collections are saved to maintain consistency
         updateStorageAndSync({ 
           openTasks: newState.openTasks,
           wipTasks: newState.wipTasks
