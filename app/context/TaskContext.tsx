@@ -59,6 +59,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [parentTaskName, setParentTaskName] = useState<string | undefined>(undefined);
   const [customTypes, setCustomTypes] = useState<CustomTaskType[]>([]);
   const [runningTasks, setRunningTasks] = useState<Set<number>>(new Set());
+  const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   const updateLocalStorage = useCallback((taskStates: { openTasks?: Task[], completedTasks?: Task[], deletedTasks?: Task[], wipTasks?: Task[], taskTypes?: CustomTaskType[] }) => {
     if (taskStates.completedTasks) localStorage.setItem(CLOSED_TASKS_KEY, JSON.stringify(taskStates.completedTasks));
@@ -97,10 +98,15 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Only save if there's actual data to save
       if (Object.keys(payload).length > 0) {
         console.log(`[${timestamp}] Saving task data to Google Drive`);
-        await googleDriveService.saveToGoogleDrive(payload);
+        // Add this save operation to the queue
+        saveQueueRef.current = saveQueueRef.current.then(async () => {
+          await googleDriveService.saveToGoogleDrive(payload);
+        });
+        await saveQueueRef.current;
       }
     } catch (error) {
       console.error(`[${timestamp}] Error saving to Google Drive:`, error);
+      throw error;
     }
   }, []);
 
