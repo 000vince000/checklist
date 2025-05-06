@@ -143,6 +143,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           taskTypes: driveData.taskTypes || []
         };
         setTaskState(newState);
+        setCustomTypes(driveData.taskTypes || []);
         updateLocalStorage(newState);
         console.log('Tasks synced from Google Drive');
       } else {
@@ -155,6 +156,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           taskTypes: JSON.parse(localStorage.getItem('taskTypes') || '[]')
         };
         setTaskState(localState);
+        setCustomTypes(localState.taskTypes || []);
         updateLocalStorage(localState);
       }
     } catch (error) {
@@ -168,6 +170,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         taskTypes: JSON.parse(localStorage.getItem('taskTypes') || '[]')
       };
       setTaskState(localState);
+      setCustomTypes(localState.taskTypes || []);
       updateLocalStorage(localState);
     }
   }, [updateLocalStorage]);

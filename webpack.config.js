@@ -58,5 +58,6 @@ module.exports = {
     headers: {
       'Content-Security-Policy': "frame-ancestors 'self' https://accounts.google.com"
     },
+    historyApiFallback: true,
   },
 };

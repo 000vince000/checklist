@@ -47,39 +47,9 @@ const TaskInput: React.FC<TaskInputProps> = ({ isOpen, closeModal }) => {
   const [searchResults, setSearchResults] = useState<Task[]>([]);
   const [selectedParentTask, setSelectedParentTask] = useState<Task | null>(null);
   const [url, setUrl] = useState('');
-  const [taskTypes, setTaskTypes] = useState<CustomTaskType[]>([]);
 
   useEffect(() => {
-    const loadTaskTypes = () => {
-      const storedTypes = localStorage.getItem('taskTypes');
-      if (storedTypes) {
-        const parsedTypes = JSON.parse(storedTypes) as CustomTaskType[];
-        setLocalCustomTypes(parsedTypes);
-        if (parsedTypes.length > 0) {
-          setNewTask(prevTask => ({
-            ...prevTask,
-            type: parsedTypes[parsedTypes.length - 1].name.toLowerCase()
-          }));
-        }
-      }
-    };
-
-    loadTaskTypes();
-
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'taskTypes') {
-        loadTaskTypes();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
-
-  useEffect(() => {
+    setLocalCustomTypes(customTypes);
     if (customTypes.length > 0) {
       setNewTask(prevTask => ({
         ...prevTask,
