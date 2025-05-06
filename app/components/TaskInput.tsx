@@ -34,31 +34,51 @@ interface TaskInputProps {
 
 const TaskInput: React.FC<TaskInputProps> = ({ isOpen, closeModal }) => {
   const { addTask, tasks, parentTaskName, parentTaskId, customTypes } = useTaskContext();
-  const [localCustomTypes, setLocalCustomTypes] = useState<CustomTaskType[]>([]);
+  const [localCustomTypes, setLocalCustomTypes] = useState<CustomTaskType[]>(customTypes);
   const [newTask, setNewTask] = useState<Partial<Task>>({
     attribute: 'unimportant',
     externalDependency: 'no',
     effort: 'small',
     rejectionCount: 0,
     isCompleted: false,
-    parentTaskId: parentTaskId
+    parentTaskId: parentTaskId,
+    type: customTypes.length > 0 ? customTypes[customTypes.length - 1].name.toLowerCase() : undefined
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Task[]>([]);
   const [selectedParentTask, setSelectedParentTask] = useState<Task | null>(null);
   const [url, setUrl] = useState('');
 
+  // Debug logging
   useEffect(() => {
-    setLocalCustomTypes(customTypes);
-    if (customTypes.length > 0) {
-      setNewTask(prevTask => ({
-        ...prevTask,
-        type: customTypes[customTypes.length - 1].name.toLowerCase()
-      }));
+    console.log('[TaskInput] Initial mount - customTypes:', customTypes);
+    console.log('[TaskInput] Initial mount - localCustomTypes:', localCustomTypes);
+  }, []);
+
+  // Keep local state in sync with context
+  useEffect(() => {
+    console.log('[TaskInput] customTypes changed:', customTypes);
+    console.log('[TaskInput] current localCustomTypes:', localCustomTypes);
+    
+    if (JSON.stringify(localCustomTypes) !== JSON.stringify(customTypes)) {
+      console.log('[TaskInput] Updating localCustomTypes');
+      setLocalCustomTypes(customTypes);
+      if (customTypes.length > 0) {
+        console.log('[TaskInput] Setting new task type:', customTypes[customTypes.length - 1].name.toLowerCase());
+        setNewTask(prevTask => ({
+          ...prevTask,
+          type: customTypes[customTypes.length - 1].name.toLowerCase()
+        }));
+      }
+    } else {
+      console.log('[TaskInput] No update needed - types are the same');
     }
   }, [customTypes]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    if (e.target.id === 'type') {
+      console.log('[TaskInput] Type changed to:', e.target.value);
+    }
     setNewTask({ ...newTask, [e.target.id]: e.target.value });
   };
 
