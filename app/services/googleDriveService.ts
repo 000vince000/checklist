@@ -291,7 +291,7 @@ class GoogleDriveService {
   }
 
   public async loadFromGoogleDrive(): Promise<{ tasks: any[], completedTasks: any[], deletedTasks: any[], wipTasks: any[], taskTypes: any[] } | null> {
-    console.log('loadFromGoogleDrive called, current username:', this.username); // Add this log
+    console.log('loadFromGoogleDrive called, current username:', this.username);
     await this.ensureUsername();
 
     try {
@@ -304,11 +304,26 @@ class GoogleDriveService {
     try {
       const token = await this.getAccessToken();
       
-      const tasks = await this.loadFile(TASKS_FILE_NAME, token);
-      const completedTasks = await this.loadFile(COMPLETED_TASKS_FILE_NAME, token);
-      const deletedTasks = await this.loadFile(DELETED_TASKS_FILE_NAME, token);
-      const wipTasks = await this.loadFile(WIP_TASKS_FILE_NAME, token);
-      const taskTypes = await this.loadFile('taskTypes.json', token);
+      // Get all file IDs in one request
+      const response = await this.fetchWithAuth(
+        `https://www.googleapis.com/drive/v3/files?q='${this.userFolderId}' in parents and trashed=false&fields=files(id,name)`,
+        token
+      );
+      const data = await response.json();
+      const files = data.files || [];
+
+      // Create a map of filename to file ID
+      const fileMap = new Map<string, string>(files.map((file: { id: string; name: string }) => [file.name, file.id]));
+
+      // Load all files in parallel
+      const [tasks, completedTasks, deletedTasks, wipTasks, taskTypes] = await Promise.all([
+        this.loadFileById(fileMap.get(TASKS_FILE_NAME), token),
+        this.loadFileById(fileMap.get(COMPLETED_TASKS_FILE_NAME), token),
+        this.loadFileById(fileMap.get(DELETED_TASKS_FILE_NAME), token),
+        this.loadFileById(fileMap.get(WIP_TASKS_FILE_NAME), token),
+        this.loadFileById(fileMap.get('taskTypes.json'), token)
+      ]);
+
       if (tasks !== null || completedTasks !== null || deletedTasks !== null || wipTasks !== null) {
         return {
           tasks: tasks || [],
@@ -322,33 +337,26 @@ class GoogleDriveService {
       return null;
     } catch (error) {
       console.error('Error loading from Google Drive:', error);
-      throw error; // Re-throw the error to be handled by the caller
+      throw error;
     }
   }
 
-  private async loadFile(fileName: string, token: string): Promise<any | null> {
-    const existingFiles = await this.findAllFiles(fileName);
-
-    if (existingFiles.length > 1) {
-      throw new Error(`Multiple files found with name ${fileName}. Please resolve this manually and try again.`);
+  private async loadFileById(fileId: string | undefined, token: string): Promise<any | null> {
+    if (!fileId) {
+      return null;
     }
 
-    const existingFile = existingFiles[0];
+    const fileResponse = await this.fetchWithAuth(
+      `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+      token
+    );
+    const fileContent = await fileResponse.text();
 
-    if (existingFile) {
-      const fileResponse = await this.fetchWithAuth(`https://www.googleapis.com/drive/v3/files/${existingFile.id}?alt=media`, token);
-      const fileContent = await fileResponse.text();
-
-      try {
-        const parsedContent = JSON.parse(fileContent);
-        console.log(`Parsed ${fileName} content:`, parsedContent);
-        return parsedContent;
-      } catch (parseError) {
-        console.error(`Error parsing ${fileName} content:`, parseError);
-        return null;
-      }
-    } else {
-      console.log(`No ${fileName} found in Google Drive`);
+    try {
+      const parsedContent = JSON.parse(fileContent);
+      return parsedContent;
+    } catch (parseError) {
+      console.error(`Error parsing file content:`, parseError);
       return null;
     }
   }
