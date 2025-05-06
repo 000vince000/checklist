@@ -1,7 +1,8 @@
 const webpack = require('webpack');
 const dotenv = require('dotenv');
-const path = require('path');  // Add this line
+const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 // Call dotenv and it will return an Object with a parsed key 
 const env = dotenv.config().parsed || {};
@@ -32,7 +33,7 @@ module.exports = {
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
-    publicPath: isProduction ? '/checklist/' : '/', // Set the publicPath for GitHub Pages
+    publicPath: isProduction ? '/checklist/' : '/',
   },
   plugins: [
     new webpack.DefinePlugin({
@@ -43,8 +44,17 @@ module.exports = {
       template: path.resolve(__dirname, 'public/index.html'),
       inject: true
     }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'public/favicon.svg', to: 'favicon.svg' }
+      ],
+    }),
   ],
   devServer: {
+    port: 3000,
+    static: {
+      directory: path.join(__dirname, 'public'),
+    },
     headers: {
       'Content-Security-Policy': "frame-ancestors 'self' https://accounts.google.com"
     },
