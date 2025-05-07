@@ -19,7 +19,8 @@ import {
   Legend,
   LegendItem,
   LegendColor,
-  getGridDimensions
+  getGridDimensions,
+  Tooltip
 } from '../styles/TaskHeatmapStyles';
 
 // Add this interface definition
@@ -46,6 +47,9 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
   } = useTaskContext();
   
   const { openModal } = useModalContext();
+
+  const [tooltipTask, setTooltipTask] = useState<Task | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => 
@@ -84,6 +88,19 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
     return prefix + " " + task.name.slice(0, maxLength);
   };
 
+  const handleTaskHover = (task: Task, event: React.MouseEvent) => {
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
+    setTooltipPosition({ 
+      x: rect.left + (rect.width / 2), 
+      y: rect.top - 10 
+    });
+    setTooltipTask(task);
+  };
+
+  const handleTaskLeave = () => {
+    setTooltipTask(null);
+  };
+
   return (
     <>
       {/* Heatmap Container */}
@@ -95,6 +112,8 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
               priority={calculatePriority(task, tasks)}
               effort={task.effort}
               onClick={() => openModal(task.id, tasks, wipTasks)}
+              onMouseEnter={(e) => handleTaskHover(task, e)}
+              onMouseLeave={handleTaskLeave}
               style={{
                 ...task.id === animatingTaskId ? taskSpring : undefined,
                 // update color if old use slightly darker grey color 
@@ -124,6 +143,15 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
           </LegendItem>
         </Legend>
       </HeatmapContainer>
+      {tooltipTask && (
+        <Tooltip style={{ 
+          left: tooltipPosition.x, 
+          top: tooltipPosition.y,
+          transform: 'translateX(-50%)'  // Center the tooltip
+        }}>
+          {tooltipTask.name}
+        </Tooltip>
+      )}
     </>
   );
 };

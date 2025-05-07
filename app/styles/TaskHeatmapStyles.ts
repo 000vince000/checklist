@@ -2,6 +2,7 @@ import styled, { css } from 'styled-components';
 import { animated } from 'react-spring';
 import { Task } from '../types/Task';
 import { getPriorityColor } from '../utils/taskUtils';
+import { keyframes } from 'styled-components';
 
 // New function to calculate grid dimensions
 export const getGridDimensions = (effort: Task['effort'], priority: number) => {
@@ -160,4 +161,29 @@ export const WIPTaskBox = styled(AnimatedTaskBox)`
   flex: 0 0 auto;
   margin: 0 10px;
   min-width: 150px;
+`;
+
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+`;
+
+export const Tooltip = styled.div`
+  position: fixed;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  z-index: 9999;
+  pointer-events: none;
+  animation: ${fadeIn} 0.2s ease-in;
+  max-width: 300px;
+  word-wrap: break-word;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  white-space: normal;
 `;
