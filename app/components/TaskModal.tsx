@@ -54,13 +54,12 @@ interface TaskModalProps {
   handleAccept: () => void;
   handleReject: () => void;
   handleDone: () => void;
-  handleAbandon: () => void;
+  handleAbandon: (task: Task, updateTask: (task: Task) => void) => void;
   handleDelete: () => void;
   handleUpdateTask: (updatedTask: Task) => void;
-  timer: number | null;
   tasks: Task[];
   openTaskModal: (taskId: number) => void;
-  updateSelectedTask: (task: Task) => void; // Add this new prop
+  updateSelectedTask: (task: Task) => void;
 }
 
 const TaskModal: React.FC<TaskModalProps> = ({
@@ -73,10 +72,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
   handleAbandon,
   handleDelete,
   handleUpdateTask,
-  timer,
   tasks,
   openTaskModal,
-  updateSelectedTask, // Add this new prop
+  updateSelectedTask
 }) => {
   const { tasks: allTasks, completedTasks, openTaskInputModal } = useTaskContext();
   const [searchTerm, setSearchTerm] = useState('');
@@ -262,7 +260,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   const handleAbandonClick = () => {
     console.log('TaskModal: Abandon clicked for task', currentTask);
-    handleAbandon();
+    if (currentTask) {
+      handleAbandon(currentTask, handleUpdateTask);
+    }
   };
 
   const handleDeleteClick = () => {
@@ -445,17 +445,17 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 Rejection Count: {editedTask.rejectionCount}
               </TaskProperty>
             </TaskDetails>
-            {timer === null ? (
+            {selectedTask?.isRunning ? (
+              <ButtonGroupStyled>
+                <DoneButton onClick={handleDoneClick}>Done</DoneButton>
+                <AbandonButton onClick={handleAbandonClick}>Abandon</AbandonButton>
+              </ButtonGroupStyled>
+            ) : (
               <ButtonGroupStyled>
                 <AcceptButton type="button" onClick={handleAcceptClick}>Accept</AcceptButton>
                 <RejectButton type="button" onClick={handleRejectClick}>Reject</RejectButton>
                 <DeleteButton type="button" onClick={handleDeleteClick}>Delete</DeleteButton>
                 <SaveButton type="submit">Save</SaveButton>
-              </ButtonGroupStyled>
-            ) : (
-              <ButtonGroupStyled>
-                <DoneButton onClick={handleDoneClick}>Done</DoneButton>
-                <AbandonButton onClick={handleAbandonClick}>Abandon</AbandonButton>
               </ButtonGroupStyled>
             )}
           </Form>

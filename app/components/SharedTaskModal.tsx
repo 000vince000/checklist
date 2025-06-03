@@ -8,13 +8,11 @@ const SharedTaskModal: React.FC = () => {
     tasks, 
     updateTask, 
     completeTask, 
-    deleteTask,
-    updateTaskTimer 
+    deleteTask
   } = useTaskContext();
   
   const {
     selectedTask,
-    timer,
     closeModal,
     handleAccept,
     handleReject,
@@ -35,13 +33,12 @@ const SharedTaskModal: React.FC = () => {
       selectedTask={selectedTask}
       isOpen={selectedTask !== null}
       closeModal={closeModal}
-      handleAccept={() => handleAccept(selectedTask.id, updateTaskTimer)}
+      handleAccept={() => handleAccept(selectedTask.id)}
       handleReject={() => handleReject(selectedTask, updateTask)}
-      handleDone={() => handleDone(selectedTask.id, timer, completeTask)}
+      handleDone={() => handleDone(selectedTask.id, completeTask)}
       handleAbandon={() => handleAbandon(selectedTask, updateTask)}
       handleDelete={() => handleDelete(selectedTask.id, deleteTask)}
       handleUpdateTask={(task) => handleUpdateTask(task, updateTask)}
-      timer={timer}
       tasks={tasks}
       openTaskModal={(taskId) => openModal(taskId, tasks, [])}
       updateSelectedTask={updateSelectedTask}

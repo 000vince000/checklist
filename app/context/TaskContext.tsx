@@ -24,7 +24,7 @@ interface TaskContextType {
   parentTaskId: number | null;
   customTypes: CustomTaskType[];
   setCustomTypes: React.Dispatch<React.SetStateAction<CustomTaskType[]>>;
-  updateTaskTimer: (taskId: number, time: number, isRunning?: boolean, isStopped?: boolean) => void;
+  updateTaskStatus: (taskId: number, isRunning: boolean) => void;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -418,7 +418,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('taskTypes', JSON.stringify(customTypes));
   }, [customTypes]);
 
-  const updateTaskTimer = useCallback((taskId: number, time: number, isRunning?: boolean, isStopped?: boolean) => {
+  const updateTaskStatus = useCallback((taskId: number, isRunning: boolean) => {
     setTaskState(prevState => {
       const task = prevState.openTasks.find(t => t.id === taskId) || 
                 prevState.wipTasks.find(t => t.id === taskId);
@@ -428,80 +428,52 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return prevState;
       }
       
-      const updatedTask = { ...task, completionTime: time };
+      const updatedTask = { ...task };
       let newState = { ...prevState };
-      let shouldUpdateStorage = isStopped || false;
+      let shouldUpdateStorage = false;
 
-      if (isRunning !== undefined) {
-        // Handle moving tasks between openTasks and wipTasks
-        if (isRunning) {
-          // Move task to wipTasks if it's not already there
-          if (!prevState.wipTasks.some(t => t.id === taskId)) {
-            const taskWithRunning = { ...updatedTask, isRunning: true };
-            newState = {
-              ...newState,
-              openTasks: prevState.openTasks.filter(t => t.id !== taskId),
-              wipTasks: [...prevState.wipTasks, taskWithRunning]
-            };
-            shouldUpdateStorage = true; // Force storage update when moving to wipTasks
-          }
-        } else {
-          // Move task back to openTasks if it was in wipTasks
-          if (prevState.wipTasks.some(t => t.id === taskId)) {
-            newState = {
-              ...newState,
-              wipTasks: prevState.wipTasks.filter(t => t.id !== taskId),
-              openTasks: [...prevState.openTasks, { ...updatedTask, isRunning: false }]
-            };
-            shouldUpdateStorage = true; // Force storage update when removing from wipTasks
-          } else {
-            // Just update the completion time for a task in openTasks
-            newState = {
-              ...newState,
-              openTasks: prevState.openTasks.map(t => 
-                t.id === taskId ? { ...t, completionTime: time } : t
-              )
-            };
-          }
-        }
-
-        // Update the running tasks set outside of the state update
-        if (isRunning) {
-          setRunningTasks(prev => {
-            const newSet = new Set(prev);
-            newSet.add(taskId);
-            return newSet;
-          });
-        } else {
-          setRunningTasks(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(taskId);
-            return newSet;
-          });
+      // Handle moving tasks between openTasks and wipTasks
+      if (isRunning) {
+        // Move task to wipTasks if it's not already there
+        if (!prevState.wipTasks.some(t => t.id === taskId)) {
+          const taskWithRunning = { ...updatedTask, isRunning: true };
+          newState = {
+            ...newState,
+            openTasks: prevState.openTasks.filter(t => t.id !== taskId),
+            wipTasks: [...prevState.wipTasks, taskWithRunning]
+          };
+          shouldUpdateStorage = true;
         }
       } else {
-        // Just update the completion time without changing task's location
-        if (prevState.openTasks.some(t => t.id === taskId)) {
+        // Move task back to openTasks if it was in wipTasks
+        if (prevState.wipTasks.some(t => t.id === taskId)) {
           newState = {
             ...newState,
-            openTasks: prevState.openTasks.map(t => 
-              t.id === taskId ? { ...t, completionTime: time } : t
-            )
+            wipTasks: prevState.wipTasks.filter(t => t.id !== taskId),
+            openTasks: [...prevState.openTasks, { ...updatedTask, isRunning: false }]
           };
-        } else if (prevState.wipTasks.some(t => t.id === taskId)) {
-          newState = {
-            ...newState,
-            wipTasks: prevState.wipTasks.map(t => 
-              t.id === taskId ? { ...t, completionTime: time } : t
-            )
-          };
+          shouldUpdateStorage = true;
         }
+      }
+
+      // Update the running tasks set outside of the state update
+      if (isRunning) {
+        setRunningTasks(prev => {
+          const newSet = new Set(prev);
+          newSet.add(taskId);
+          return newSet;
+        });
+      } else {
+        setRunningTasks(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(taskId);
+          return newSet;
+        });
       }
 
       // Always update storage and sync when state changes that affect task placement
       if (shouldUpdateStorage) {
         console.log('Persisting task state changes to storage');
-        // Ensure both collections are saved to maintain consistency
         updateStorageAndSync({ 
           openTasks: newState.openTasks,
           wipTasks: newState.wipTasks
@@ -533,7 +505,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     parentTaskId,
     customTypes,
     setCustomTypes,
-    updateTaskTimer,
+    updateTaskStatus,
   };
 
   return (
