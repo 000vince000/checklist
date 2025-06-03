@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import TaskInput from './TaskInput';
 import TaskHeatmap from './TaskHeatmap';
 import WIPRow from './WIPRow';
 import LoginView from './LoginView';
-import CommitHistoryHeatmap from './CommitHistoryHeatmap';
 import CustomTypeModal from './CustomTypeModal';
 import GoogleAuthButton from './GoogleAuthButton';
 import SharedTaskModal from './SharedTaskModal';
@@ -38,6 +37,8 @@ import {
 } from '../styles/AppStyles';
 import { formatTime } from '../utils/taskUtils';
 import { CustomTaskType } from '../types/Task';
+
+const CommitHistoryHeatmap = lazy(() => import('./CommitHistoryHeatmap'));
 
 const LuckyButton: React.FC<{ openMoodModal: () => void }> = ({ openMoodModal }) => {
   return <LuckyButtonStyled onClick={openMoodModal}>Feeling Lucky</LuckyButtonStyled>;
@@ -263,8 +264,12 @@ function AppContent({ isSignedIn, setIsSignedIn }: { isSignedIn: boolean, setIsS
         <button onClick={toggleCommitHistory}>
           {isCommitHistoryExpanded ? 'Hide' : 'Show'} Action History
         </button>
-        {isCommitHistoryExpanded && <CommitHistoryHeatmap />}
-      </ExpandableRow>
+        {isCommitHistoryExpanded && (
+          <Suspense fallback={<div>Loading activity history...</div>}>
+            <CommitHistoryHeatmap />
+          </Suspense>
+        )}
+      </ExpandableRow>,
       <TaskInput
         isOpen={isTaskInputModalOpen}
         closeModal={closeTaskInputModal}

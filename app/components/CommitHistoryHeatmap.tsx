@@ -31,18 +31,8 @@ const CommitHistoryHeatmap: React.FC = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const CELL_SIZE = isMobile ? MOBILE_CELL_SIZE : DESKTOP_CELL_SIZE;
-
-  useEffect(() => {
     const generateHeatmapData = () => {
+      console.log('[CommitHistoryHeatmap] Calculating activity data...');
       const data: { [key: string]: number } = {};
       const today = new Date();
       const sixMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 5, 1);
@@ -72,6 +62,8 @@ const CommitHistoryHeatmap: React.FC = () => {
 
     setHeatmapData(generateHeatmapData());
   }, [tasks]);
+
+  const CELL_SIZE = isMobile ? MOBILE_CELL_SIZE : DESKTOP_CELL_SIZE;
 
   const getColor = (count: number) => {
     if (count === 0) return '#ebedf0';
