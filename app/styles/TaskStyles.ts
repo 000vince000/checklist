@@ -264,9 +264,9 @@ export const NewTaskButton = styled(Button)`
 `;
 
 export const DoneButton = styled(ActionButton)`
-  background-color: #4CAF50;
+  background-color: #9c27b0;
   color: white;
-  &:hover { background-color: #45a049; }
+  &:hover { background-color: #7b1fa2; }
 `;
 
 export const PauseButton = styled(ActionButton)`

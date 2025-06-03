@@ -245,7 +245,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const handleAcceptClick = () => {
     console.log('TaskModal: Accept clicked for task', currentTask);
     handleAccept();
-    closeModal();
   };
 
   const handleRejectClick = () => {
@@ -445,19 +444,22 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 Rejection Count: {editedTask.rejectionCount}
               </TaskProperty>
             </TaskDetails>
-            {selectedTask?.isRunning ? (
-              <ButtonGroupStyled>
-                <DoneButton onClick={handleDoneClick}>Done</DoneButton>
-                <AbandonButton onClick={handleAbandonClick}>Abandon</AbandonButton>
-              </ButtonGroupStyled>
-            ) : (
-              <ButtonGroupStyled>
-                <AcceptButton type="button" onClick={handleAcceptClick}>Accept</AcceptButton>
-                <RejectButton type="button" onClick={handleRejectClick}>Reject</RejectButton>
-                <DeleteButton type="button" onClick={handleDeleteClick}>Delete</DeleteButton>
-                <SaveButton type="submit">Save</SaveButton>
-              </ButtonGroupStyled>
-            )}
+            <ButtonGroupStyled>
+              {selectedTask?.isRunning ? (
+                <>
+                  <DoneButton onClick={handleDoneClick}>Done</DoneButton>
+                  <AbandonButton onClick={handleAbandonClick}>Abandon</AbandonButton>
+                </>
+              ) : (
+                <>
+                  <AcceptButton type="button" onClick={handleAcceptClick}>Accept</AcceptButton>
+                  <RejectButton type="button" onClick={handleRejectClick}>Reject</RejectButton>
+                  <DoneButton onClick={handleDoneClick}>Done</DoneButton>
+                </>
+              )}
+              <DeleteButton type="button" onClick={handleDeleteClick}>Delete</DeleteButton>
+              <SaveButton type="submit">Save</SaveButton>
+            </ButtonGroupStyled>
           </Form>
         )}
       </ModalContent>
