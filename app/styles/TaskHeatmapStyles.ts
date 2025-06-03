@@ -53,6 +53,7 @@ export const GridContainer = styled.div`
   margin: 0;
   justify-content: center;
   overflow: hidden;
+  touch-action: pan-y;
 
   @media (min-width: 768px) {
     grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));

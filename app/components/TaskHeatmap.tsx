@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useTaskContext } from '../context/TaskContext';
 import { useModalContext } from '../context/ModalContext';
 import { Task } from '../types/Task';
@@ -50,6 +50,10 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
 
   const [tooltipTask, setTooltipTask] = useState<Task | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const MOVEMENT_THRESHOLD = 5; // pixels
 
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => 
@@ -79,6 +83,15 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
     }
   }, [selectedMood, sortedTasks, tasks, customTypes, wipTasks, openModal]);
 
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.matchMedia('(max-width: 768px)').matches);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const taskSpring = useTaskAnimation(animatingTaskId);
 
   const truncateTaskName = (task: Task) => {
@@ -89,6 +102,7 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
   };
 
   const handleTaskHover = (task: Task, event: React.MouseEvent) => {
+    if (isMobile) return; // Skip hover on mobile
     const rect = (event.target as HTMLElement).getBoundingClientRect();
     setTooltipPosition({ 
       x: rect.left + (rect.width / 2), 
@@ -98,7 +112,75 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
   };
 
   const handleTaskLeave = () => {
+    if (isMobile) return; // Skip hover leave on mobile
     setTooltipTask(null);
+  };
+
+  const handlePointerDown = (task: Task, event: React.PointerEvent) => {
+    console.log('PointerDown:', { 
+      type: event.pointerType,
+      isTouch: event.pointerType === 'touch',
+      taskId: task.id 
+    });
+
+    if (event.pointerType !== 'touch') return;
+    
+    // Store initial touch position
+    touchStartPos.current = {
+      x: event.clientX,
+      y: event.clientY
+    };
+    
+    const target = event.target as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    
+    console.log('Starting long press timer');
+    longPressTimer.current = setTimeout(() => {
+      console.log('Long press timer completed');
+      setTooltipPosition({ 
+        x: rect.left + (rect.width / 2), 
+        y: rect.top - 10 
+      });
+      setTooltipTask(task);
+    }, 500);
+  };
+
+  const handlePointerUp = (event: React.PointerEvent) => {
+    console.log('PointerUp:', { 
+      type: event.pointerType,
+      isTouch: event.pointerType === 'touch',
+      hasTimer: !!longPressTimer.current 
+    });
+
+    if (event.pointerType !== 'touch') return;
+    if (longPressTimer.current) {
+      console.log('Clearing long press timer');
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    touchStartPos.current = null;
+  };
+
+  const handlePointerMove = (event: React.PointerEvent) => {
+    if (event.pointerType !== 'touch' || !touchStartPos.current) return;
+
+    const movement = Math.sqrt(
+      Math.pow(event.clientX - touchStartPos.current.x, 2) +
+      Math.pow(event.clientY - touchStartPos.current.y, 2)
+    );
+
+    console.log('PointerMove:', {
+      movement,
+      threshold: MOVEMENT_THRESHOLD,
+      hasTimer: !!longPressTimer.current
+    });
+
+    if (movement > MOVEMENT_THRESHOLD && longPressTimer.current) {
+      console.log('Movement exceeded threshold, clearing timer');
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+      setTooltipTask(null);
+    }
   };
 
   return (
@@ -114,6 +196,9 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
               onClick={() => openModal(task.id, tasks, wipTasks)}
               onMouseEnter={(e) => handleTaskHover(task, e)}
               onMouseLeave={handleTaskLeave}
+              onPointerDown={(e) => handlePointerDown(task, e)}
+              onPointerUp={handlePointerUp}
+              onPointerMove={handlePointerMove}
               style={{
                 ...task.id === animatingTaskId ? taskSpring : undefined,
                 // update color if old use slightly darker grey color 
