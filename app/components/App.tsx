@@ -39,6 +39,7 @@ import { formatTime } from '../utils/taskUtils';
 import { CustomTaskType } from '../types/Task';
 
 const CommitHistoryHeatmap = lazy(() => import('./CommitHistoryHeatmap'));
+const CompletedTasksList = lazy(() => import('./CompletedTasksList'));
 
 const LuckyButton: React.FC<{ openMoodModal: () => void }> = ({ openMoodModal }) => {
   return <LuckyButtonStyled onClick={openMoodModal}>Feeling Lucky</LuckyButtonStyled>;
@@ -251,13 +252,9 @@ function AppContent({ isSignedIn, setIsSignedIn }: { isSignedIn: boolean, setIsS
           {isCompletedTasksExpanded ? 'Hide' : 'Show'} Completed Tasks
         </button>
         {isCompletedTasksExpanded && (
-          <CompletedTasksSection>
-            {completedTasks.map(task => (
-              <CompletedTaskItem key={task.id}>
-              {task.name} - Completed in: {formatTime(task.completionTime || 0)}
-            </CompletedTaskItem>
-          ))}
-          </CompletedTasksSection>
+          <Suspense fallback={<div>Loading completed tasks...</div>}>
+            <CompletedTasksList tasks={completedTasks} />
+          </Suspense>
         )}
       </ExpandableRow>
       <ExpandableRow>
