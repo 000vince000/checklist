@@ -53,6 +53,7 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const touchStartPos = useRef<{ x: number; y: number } | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [isLongPressing, setIsLongPressing] = useState(false);
   const MOVEMENT_THRESHOLD = 5; // pixels
 
   const filteredTasks = useMemo(() => {
@@ -135,6 +136,7 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
     const rect = target.getBoundingClientRect();
     
     console.log('Starting long press timer');
+    setIsLongPressing(true);
     longPressTimer.current = setTimeout(() => {
       console.log('Long press timer completed');
       setTooltipPosition({ 
@@ -159,6 +161,7 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
       longPressTimer.current = null;
     }
     touchStartPos.current = null;
+    setIsLongPressing(false);
   };
 
   const handlePointerMove = (event: React.PointerEvent) => {
@@ -180,6 +183,7 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
       setTooltipTask(null);
+      setIsLongPressing(false);
     }
   };
 
@@ -202,7 +206,8 @@ const TaskHeatmap: React.FC<TaskHeatmapProps> = ({
               style={{
                 ...task.id === animatingTaskId ? taskSpring : undefined,
                 // update color if old use slightly darker grey color 
-                backgroundColor: isTaskOld(task) ? '#808080' : getPriorityColor(calculatePriority(task, tasks))
+                backgroundColor: isTaskOld(task) ? '#808080' : getPriorityColor(calculatePriority(task, tasks)),
+                userSelect: isLongPressing ? 'none' : 'auto'
               }}
             >
               {truncateTaskName(task)}
