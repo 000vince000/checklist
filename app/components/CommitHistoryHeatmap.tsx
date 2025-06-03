@@ -66,11 +66,12 @@ const CommitHistoryHeatmap: React.FC = () => {
   const CELL_SIZE = isMobile ? MOBILE_CELL_SIZE : DESKTOP_CELL_SIZE;
 
   const getColor = (count: number) => {
-    if (count === 0) return '#ebedf0';
-    if (count < 5) return '#9be9a8';
-    if (count < 10) return '#40c463';
-    if (count < 15) return '#30a14e';
-    return '#216e39';
+    if (count === 0) return '#f1f1f1';      // Light gray for zero
+    if (count < 3) return '#c6e7c6';        // Light green
+    if (count < 6) return '#7bc87b';        // Medium green
+    if (count < 9) return '#4caf50';        // Bright green
+    if (count < 12) return '#2e7d32';       // Dark green
+    return '#1b5e20';                       // Deep green
   };
 
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
