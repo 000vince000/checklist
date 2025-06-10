@@ -6,6 +6,7 @@ import LoginView from './LoginView';
 import CustomTypeModal from './CustomTypeModal';
 import GoogleAuthButton from './GoogleAuthButton';
 import SharedTaskModal from './SharedTaskModal';
+import EmailComposer from './EmailComposer';
 import { FaGoogle } from 'react-icons/fa';
 import { TaskProvider, useTaskContext } from '../context/TaskContext';
 import { ModalProvider } from '../context/ModalContext';
@@ -107,6 +108,7 @@ function AppContent({ isSignedIn, setIsSignedIn }: { isSignedIn: boolean, setIsS
   const [isCompletedTasksExpanded, setIsCompletedTasksExpanded] = useState(false);
   const [isCustomTypeModalOpen, setIsCustomTypeModalOpen] = useState(false);
   const [taskTypes, setTaskTypes] = useState<CustomTaskType[]>([]);
+  const [isEmailComposerOpen, setIsEmailComposerOpen] = useState(false);
   
   const openMoodModal = () => setIsMoodModalOpen(true);
   const closeMoodModal = () => setIsMoodModalOpen(false);
@@ -183,6 +185,7 @@ function AppContent({ isSignedIn, setIsSignedIn }: { isSignedIn: boolean, setIsS
           <ButtonContainer>
             <NewTaskButton onClick={() => openTaskInputModal(null)}>+ New</NewTaskButton>
             <LuckyButton openMoodModal={openMoodModal} />
+            <NewTaskButton onClick={() => setIsEmailComposerOpen(true)}>Send Email</NewTaskButton>
           </ButtonContainer>
           <FilterContainer>
             <FilterDropdown 
@@ -207,6 +210,7 @@ function AppContent({ isSignedIn, setIsSignedIn }: { isSignedIn: boolean, setIsS
           </FilterContainer>
         </ButtonAndFilterContainer>
       </Header>
+      {isEmailComposerOpen && <EmailComposer />}
       <SearchAndTopWordsContainer>
         <SearchBarContainer>
           <SearchBar 
