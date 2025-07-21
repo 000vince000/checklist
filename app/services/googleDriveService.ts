@@ -38,7 +38,7 @@ class GoogleDriveService {
   private username: string | null = null;
 
   private readonly CLIENT_ID: string;
-  private readonly SCOPES: string = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/gmail.send';
+  private readonly SCOPES: string = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
 
   private debouncedSaveToGoogleDrive: (data: { tasks?: any[], completedTasks?: any[], deletedTasks?: any[], wipTasks?: any[], taskTypes?: any[] }) => void;
 
