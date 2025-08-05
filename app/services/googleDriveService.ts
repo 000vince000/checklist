@@ -124,24 +124,46 @@ class GoogleDriveService {
       return this.accessToken;
     }
 
-    return new Promise((resolve, reject) => {
+    // Wrap the token request in a Promise that times-out so callers are never left
+    // waiting forever when the hidden GIS iframe cannot complete (for example when
+    // 3rd-party cookies are blocked on mobile Chrome).
+    return new Promise<string>((resolve, reject) => {
       if (!this.tokenClient) {
-        reject(new Error('Token client is not initialized. Please call initializeGoogleDriveAPI first.'));
+        reject(
+          new Error(
+            'Token client is not initialized. Please call initializeGoogleDriveAPI first.'
+          )
+        );
         return;
       }
 
+      const TIMEOUT_MS = 5000; // 5 s – fail fast for better UX
+      const startTime = Date.now();
+      const timeout = setTimeout(() => {
+        reject(
+          new Error(
+            'Google Identity Services requestAccessToken timed out (cookies blocked or user interaction required)'
+          )
+        );
+      }, TIMEOUT_MS);
+
       this.tokenClient.callback = (resp: TokenResponse) => {
+        clearTimeout(timeout);
+        console.log('GIS access token latency:', Date.now() - startTime, 'ms');
         this.handleTokenResponse(resp);
         if (resp.access_token) {
           resolve(resp.access_token);
         } else {
-          reject(new Error('Failed to get access token: No token received'));
+          reject(new Error(`Failed to get access token: ${resp.error || 'No token received'}`));
         }
       };
 
       try {
-        this.tokenClient.requestAccessToken({ prompt: this.hasGivenConsent ? '' : 'consent' });
+        this.tokenClient.requestAccessToken({
+          prompt: this.hasGivenConsent ? '' : 'consent',
+        });
       } catch (error) {
+        clearTimeout(timeout);
         console.error('Error in requestAccessToken:', error);
         reject(new Error(`Error requesting access token: ${error}`));
       }
