@@ -5,7 +5,7 @@ ghpages.publish(
   path.join(__dirname, '..', 'dist'),
   {
     branch: 'github-pages',
-    repo: 'https://github.com/000vince000/checklist.git',
+    repo: 'git@github.com:000vince000/checklist.git',
     message: 'Auto-generated commit from script/deploy.js',
     silent: false,
     add: true, // This option ensures that the deployment adds to the existing branch
