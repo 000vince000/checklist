@@ -54,6 +54,7 @@ export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
       // Update the task to be in progress
       updateTaskStatus(taskId, true);
     }
+    closeModal();
   };
 
   const handleReject = (task: Task, updateTask: (task: Task) => void) => {
