@@ -194,10 +194,6 @@ A modern, minimalist task management application built with React and TypeScript
 
 - **CommitHistoryHeatmap**: Visualizes task activity over time, showing when tasks were created, updated, or completed in a calendar-style heatmap.
 
-## Instruction to LLMs 
-
-Adhere to the behaviors described in this doc unless otherwise instructed. When instructed to change the code, don't be overeager to change what's not instructed. If you are tempted to change the code beyond what's instructed, ask for permission. When asked a question instead of an instruction, answer it without changing the code. 
-
 ## License
 
 This project is licensed under the MIT License.
