@@ -337,6 +337,11 @@ class GoogleDriveService {
       // Create a map of filename to file ID
       const fileMap = new Map<string, string>(files.map((file: { id: string; name: string }) => [file.name, file.id]));
 
+      // Diagnostic logging for WIP tasks sync issue
+      console.log('[WIP Tasks Debug] Files found in user folder:', files.map((f: { id: string; name: string }) => f.name));
+      const wipFileId = fileMap.get(WIP_TASKS_FILE_NAME);
+      console.log(`[WIP Tasks Debug] Looking for '${WIP_TASKS_FILE_NAME}':`, wipFileId ? `found (id: ${wipFileId})` : 'NOT FOUND in fileMap');
+
       // Load all files in parallel
       const [tasks, completedTasks, deletedTasks, wipTasks, taskTypes] = await Promise.all([
         this.loadFileById(fileMap.get(TASKS_FILE_NAME), token),
@@ -345,6 +350,8 @@ class GoogleDriveService {
         this.loadFileById(fileMap.get(WIP_TASKS_FILE_NAME), token),
         this.loadFileById(fileMap.get('taskTypes.json'), token)
       ]);
+
+      console.log(`[WIP Tasks Debug] Loaded wipTasks:`, wipTasks === null ? 'null' : Array.isArray(wipTasks) ? `array with ${wipTasks.length} items` : typeof wipTasks);
 
       if (tasks !== null || completedTasks !== null || deletedTasks !== null || wipTasks !== null) {
         return {
@@ -372,13 +379,18 @@ class GoogleDriveService {
       `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
       token
     );
+    
+    if (!fileResponse.ok) {
+      console.error(`[WIP Tasks Debug] HTTP error loading file ${fileId}: ${fileResponse.status} ${fileResponse.statusText}`);
+    }
+    
     const fileContent = await fileResponse.text();
 
     try {
       const parsedContent = JSON.parse(fileContent);
       return parsedContent;
     } catch (parseError) {
-      console.error(`Error parsing file content:`, parseError);
+      console.error(`[WIP Tasks Debug] JSON parse error for file ${fileId}:`, parseError);
       return null;
     }
   }
