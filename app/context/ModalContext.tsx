@@ -7,11 +7,11 @@ interface ModalContextType {
   openModal: (taskId: number, tasks: Task[], wipTasks: Task[]) => void;
   closeModal: () => void;
   handleAccept: (taskId: number) => void;
-  handleReject: (task: Task, updateTask: (task: Task) => void) => void;
+  handleReject: (task: Task, updateTask: (task: Task, skipUpdatedAt?: boolean) => void) => void;
   handleDone: (taskId: number, completeTask: (id: number, time: number) => void) => void;
   handleAbandon: (task: Task, updateTask: (task: Task) => void) => void;
   handleDelete: (taskId: number, deleteTask: (id: number) => void) => void;
-  handleUpdateTask: (task: Task, updateTask: (task: Task) => void) => void;
+  handleUpdateTask: (task: Task, updateTask: (task: Task, skipUpdatedAt?: boolean) => void) => void;
   updateSelectedTask: (task: Task) => void;
 }
 
@@ -57,14 +57,14 @@ export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
     closeModal();
   };
 
-  const handleReject = (task: Task, updateTask: (task: Task) => void) => {
+  const handleReject = (task: Task, updateTask: (task: Task, skipUpdatedAt?: boolean) => void) => {
     console.log('ModalContext: Rejecting task', task);
     if (task) {
       const updatedTask = {
         ...task,
         rejectionCount: (task.rejectionCount || 0) + 1
       };
-      updateTask(updatedTask);
+      updateTask(updatedTask, true); // Skip updatedAt when rejecting
       setSelectedTask(updatedTask);
     }
     closeModal();

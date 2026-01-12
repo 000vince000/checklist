@@ -135,11 +135,13 @@ export const generateRandomTasks = (count: number): Task[] => {
 };
 
 export const isTaskOld = (task: Task): boolean => {
-  if (!task.createdAt) return false;
+  // Use updatedAt if available, otherwise fall back to createdAt
+  const dateToCheck = task.updatedAt || task.createdAt;
+  if (!dateToCheck) return false;
   
-  const createdDate = new Date(task.createdAt);
+  const taskDate = new Date(dateToCheck);
   const now = new Date();
-  const diffTime = Math.abs(now.getTime() - createdDate.getTime());
+  const diffTime = Math.abs(now.getTime() - taskDate.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   
   return diffDays > 45;

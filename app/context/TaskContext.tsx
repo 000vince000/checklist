@@ -9,7 +9,7 @@ interface TaskContextType {
   deletedTasks: Task[];
   wipTasks: Task[];
   addTask: (task: Task) => void;
-  updateTask: (updatedTask: Task) => void;
+  updateTask: (updatedTask: Task, skipUpdatedAt?: boolean) => void;
   completeTask: (taskId: number, completionTime: number) => void;
   deleteTask: (taskId: number) => void;
   animatingTaskId: number | null;
@@ -199,13 +199,20 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setTimeout(() => setAnimatingTaskId(null), 500);
   }, [updateStorageAndSync]);
 
-  const updateTask = useCallback((updatedTask: Task) => {
+  const updateTask = useCallback((updatedTask: Task, skipUpdatedAt?: boolean) => {
     console.log('Updating task:', updatedTask);
     setTaskState((prevState: TaskState) => {
-      const taskWithUpdatedAt = {
-        ...updatedTask,
-        updatedAt: new Date().toISOString().split('T')[0]
-      };
+      const isContentChanged = updatedTask.name !== prevState.openTasks.find(task => task.id === updatedTask.id)?.name ||
+                              updatedTask.note !== prevState.openTasks.find(task => task.id === updatedTask.id)?.note ||
+                              updatedTask.url !== prevState.openTasks.find(task => task.id === updatedTask.id)?.url;
+      
+      // Only update updatedAt if the task content has changed
+      const taskWithUpdatedAt = skipUpdatedAt || !isContentChanged 
+        ? updatedTask 
+        : {
+            ...updatedTask,
+            updatedAt: new Date().toISOString().split('T')[0]
+          };
       
       // Check if task is in openTasks or wipTasks
       const isInOpenTasks = prevState.openTasks.some(task => task.id === updatedTask.id);
