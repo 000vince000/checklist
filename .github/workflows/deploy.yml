@@ -22,6 +22,10 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          REACT_APP_GOOGLE_API_KEY: ${{ secrets.REACT_APP_GOOGLE_API_KEY }}
+          REACT_APP_GOOGLE_CLIENT_ID: ${{ secrets.REACT_APP_GOOGLE_CLIENT_ID }}
+          REACT_APP_GOOGLE_DISCOVERY_DOCS: ${{ secrets.REACT_APP_GOOGLE_DISCOVERY_DOCS }}
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
