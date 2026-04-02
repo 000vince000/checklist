@@ -301,7 +301,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteTask = useCallback((taskId: number) => {
     console.log('Deleting task:', taskId);
     setTaskState((prevState: TaskState) => {
-      const taskToDelete = prevState.openTasks.find((task: Task) => task.id === taskId);
+      const taskToDelete = prevState.openTasks.find((task: Task) => task.id === taskId)
+        || prevState.wipTasks.find((task: Task) => task.id === taskId);
       if (!taskToDelete) {
         console.log(`Task with id ${taskId} not found, skipping delete operation`);
         return prevState;
