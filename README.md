@@ -94,6 +94,26 @@ A modern, minimalist task management application built with React and TypeScript
   - Independent updates
   - Reduced sync complexity
 
+## WIP Task Notifications
+
+A standalone Google Apps Script (`scripts/wipTaskNotifier.gs`) sends a daily SMS summary of your in-progress tasks by reading `wip_tasks.json` directly from Google Drive.
+
+### Setup
+
+1. Go to [script.google.com](https://script.google.com) and create a new project
+2. Paste the contents of `scripts/wipTaskNotifier.gs`
+3. Set `PHONE_GATEWAY` to your `number@carrier-gateway` (e.g. `9173853869@msg.fi.google.com`)
+4. Run `findWipFile()` once to confirm it locates the right file (check the execution log), authorizing the script when prompted
+5. Add a time-based trigger so the summary sends automatically:
+   - In the Apps Script editor, open **Triggers** (clock icon in the left sidebar)
+   - Click **Add Trigger**
+   - Function: `sendDailyWipSummary`
+   - Event source: **Time-driven**
+   - Type: **Day timer**, then pick an hour
+   - Save
+
+The script scopes its lookup to the prod folder path (`Collaborative Checklist App/000vince000.github.io/00vince00@gmail.com`) so it ignores any localhost copy of `wip_tasks.json`.
+
 ## Tech Stack
 
 - React 17.0.2
