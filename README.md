@@ -144,6 +144,21 @@ A modern, minimalist task management application built with React and TypeScript
    npm run deploy
    ```
 
+## Daily WIP SMS Notifications
+
+A Google Apps Script (`scripts/wip-notifier.gs`) sends a daily SMS summary of your in-progress tasks via the Google Fi email-to-SMS gateway. It runs entirely outside the app — no backend required.
+
+### Setup
+
+1. Go to [script.google.com](https://script.google.com) and create a new project
+2. Paste the contents of `scripts/wip-notifier.gs` into the editor
+3. Set `PHONE_GATEWAY` to your `number@msg.fi.google.com` address
+4. Run `findWipFile()` manually (click Run) — check the Logs for your `wip_tasks.json` file ID
+5. Paste that file ID into `WIP_FILE_ID`
+6. Add a daily trigger: **Triggers → Add Trigger → sendDailyWipSummary → Time-driven → Day timer → your preferred time**
+
+The script sends as your Google account — no credentials or app passwords needed.
+
 ## Available Scripts
 
 - `npm start`: Start the production server
