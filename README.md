@@ -152,12 +152,16 @@ A Google Apps Script (`scripts/wip-notifier.gs`) sends a daily SMS summary of yo
 
 1. Go to [script.google.com](https://script.google.com) and create a new project
 2. Paste the contents of `scripts/wip-notifier.gs` into the editor
-3. Set `PHONE_GATEWAY` to your `number@msg.fi.google.com` address
-4. Run `findWipFile()` manually (click Run) — check the Logs for your `wip_tasks.json` file ID
+3. Set `PHONE_GATEWAY` to your `number@carrier-gateway` (e.g. `1234567890@msg.fi.google.com` for Google Fi)
+4. Run `findWipFile()` manually (click Run, approve permissions) — check the Execution log for your `wip_tasks.json` file ID
+   - The file lives at: **My Drive → Collaborative Checklist App → [your hostname] → [your username] → wip_tasks.json**
+   - If multiple results appear, use the path above to identify the correct one
 5. Paste that file ID into `WIP_FILE_ID`
-6. Add a daily trigger: **Triggers → Add Trigger → sendDailyWipSummary → Time-driven → Day timer → your preferred time**
+6. Add a daily trigger: **Triggers (clock icon) → Add Trigger → sendDailyWipSummary → Time-driven → Day timer → your preferred time**
 
 The script sends as your Google account — no credentials or app passwords needed.
+
+> **Privacy**: `PHONE_GATEWAY` and `WIP_FILE_ID` contain personal information. Only fill them in inside the Google Apps Script editor — never commit real values to this repository.
 
 ## Available Scripts
 
