@@ -451,6 +451,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             wipTasks: [...prevState.wipTasks, taskWithRunning]
           };
           shouldUpdateStorage = true;
+          fetch('/notify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ taskName: updatedTask.name }),
+          }).catch(err => console.error('SMS notify failed:', err));
         }
       } else {
         // Move task back to openTasks if it was in wipTasks
